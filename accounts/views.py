@@ -99,7 +99,7 @@ class Mypage(ListAPIView): # 마이 페이지
         if my_page == request.user:
             serializer = MyPageSerializer(my_page)
             return Response({'내 정보':serializer.data},status=200)
-        return Response({"message": "다시 시도"}, status=400)
+        return Response({"message": "다시 시도", '구독중인 사람': serializer.data['subscribings']}, status=400)
 
 class SubscribeView(APIView):  # 구독 기능
     permission_classes = [IsAuthenticated]
