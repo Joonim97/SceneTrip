@@ -14,3 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("사용 중인 username입니다.")
         return data
     
+class MyPageSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        model = User
+        # 마이페이지에서 필요한 필드만 선택
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender']

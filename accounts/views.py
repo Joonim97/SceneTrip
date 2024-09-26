@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from .serializers import UserSerializer
+from .serializers import UserSerializer, MyPageSerializer
 from .emails import send_verification_email
 import uuid
 from django.http import HttpResponse
@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.generics import ListAPIView
 
 User = get_user_model() # 필수 지우면 안됨
 
@@ -86,6 +87,19 @@ class LogoutAPIView(APIView):
             return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
         return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
     
+
+class Mypage(ListAPIView): # 마이 페이지
+    permission_classes = [IsAuthenticated]
+
+    # def get_queryset(self): # 내가 쓴 글 역참조 로직
+    #     return User.objects.none()
+
+    def get(self, request, nickname):
+        my_page = get_object_or_404(User, nickname=nickname)
+        if my_page == request.user:
+            serializer = MyPageSerializer(my_page)
+            return Response({'내 정보':serializer.data},status=200)
+        return Response({"message": "다시 시도"}, status=400)
 
 class SubscribeView(APIView):  # 구독 기능
     permission_classes = [IsAuthenticated]
