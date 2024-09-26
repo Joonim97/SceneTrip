@@ -85,4 +85,21 @@ class LogoutAPIView(APIView):
 
             return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
         return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        
+    
+
+class SubscribeView(APIView):  # 구독 기능
+    permission_classes = [IsAuthenticated]
+    def post(self, request, nickname):
+        # 구독 대상 사용자 조회
+        user = get_object_or_404(User, nickname=nickname)
+        me = request.user
+        if me in user.subscribes.all(): # 내가 대상 사용자를 이미 구독하고 있는지 확인
+            user.subscribes.remove(me)
+            return Response("구독취소를 했습니다.", status=status.HTTP_200_OK)
+        else:
+            if nickname != me.nickname:
+                user.subscribes.add(me)
+                return Response("구독했습니다.", status=status.HTTP_200_OK)
+            else:
+                return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
+            

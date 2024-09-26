@@ -12,3 +12,5 @@ class User(AbstractUser):
     birth_date = models.DateField(blank=False) # 생년월일
     gender = models.CharField(max_length=10, null=True, blank=True) # 성별
     verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
+    nickname = models.CharField(max_length=20, unique=True)
+    subscribings = models.ManyToManyField('self', symmetrical=False, related_name='subscribes') # 구독
