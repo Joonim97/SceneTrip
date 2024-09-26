@@ -8,8 +8,8 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import AllowAny
-from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model() # 필수 지우면 안됨
 
@@ -57,8 +57,32 @@ class SigninAPIView(APIView):
             if user.check_password(password):  # 해쉬 비밀번호 확인 후 맞으면 로그인 처리
                 serializer = UserSerializer(user)
                 res_data = serializer.data
-                return Response({"message": f"로그인 성공하셨습니다. 환영합니다 {user_id} 님"}, status=status.HTTP_200_OK)
+
+                refresh = RefreshToken.for_user(user)
+                refresh_token = str(refresh)
+                access_token = str(refresh.access_token)
+
+                res_data["access_token"] = access_token
+                res_data["refresh_token"] = refresh_token
+
+                return Response({"message": f"로그인 성공하셨습니다. 환영합니다 {user_id} 님", "data" : res_data}, status=status.HTTP_200_OK)
             else:
                 return Response({"message": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({"message": "해당 user_id에 대한 계정을 찾을 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 로그아웃
+class LogoutAPIView(APIView):
+	# login한 user에 대한 확인 필요.
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user: # 사용자가 맞으면
+            refresh_token_str = request.data.get("refresh_token")
+            refresh_token = RefreshToken(refresh_token_str)
+            refresh_token.blacklist()
+
+            return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
+        return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
