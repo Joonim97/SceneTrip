@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-secret_file = os.path.join(BASE_DIR, 'secret.json')
+secret_file = os.path.join(BASE_DIR, 'secrets.json')
 with open(secret_file, 'r') as f:
     secrets = json.loads(f.read())
 def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생을 검출합니다.
@@ -34,7 +34,7 @@ def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생
         raise ImproperlyConfigured(error_msg)
 SECRET_KEY = get_secret("SECRET_KEY")
 
-secret_file = os.path.join(BASE_DIR, 'secret.json')
+secret_file = os.path.join(BASE_DIR, 'secrets.json')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -42,7 +42,8 @@ EMAIL_HOST_USER = get_secret("EMAIL")
 EMAIL_HOST_PASSWORD = get_secret("EMAIL_PASSWORD")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-API_KEY = get_secret("API_KEY")
+API_KEY = get_secret("API_KEY")  # OpenAI
+SERVICE_KEY = get_secret("SERVICE_KEY") # data_open_api
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -59,7 +60,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
+    'rest_framework',
+
     'accounts',
     'journals',
     'communities',
