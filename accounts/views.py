@@ -45,32 +45,32 @@ class VerifyEmailAPIView(APIView):
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
 
-# 로그인
-class SigninAPIView(APIView):
-    permission_classes = [AllowAny] # 로그인 인증 미진행 
+# # 로그인
+# class SigninAPIView(APIView):
+#     permission_classes = [AllowAny] # 로그인 인증 미진행 
 
-    def post(self, request):
-        # 유저 정보에 있는 user_id, password 가져오기
-        user_id = request.data.get("user_id")
-        password = request.data.get("password")
-        try:
-            user = User.objects.get(user_id=user_id) # 가져온 user_id 와 맞는 지 확인 아니면 예외처리
-            if user.check_password(password):  # 해쉬 비밀번호 확인 후 맞으면 로그인 처리
-                serializer = UserSerializer(user)
-                res_data = serializer.data
+#     def post(self, request):
+#         # 유저 정보에 있는 user_id, password 가져오기
+#         user_id = request.data.get("user_id")
+#         password = request.data.get("password")
+#         try:
+#             user = User.objects.get(user_id=user_id) # 가져온 user_id 와 맞는 지 확인 아니면 예외처리
+#             if user.check_password(password):  # 해쉬 비밀번호 확인 후 맞으면 로그인 처리
+#                 serializer = UserSerializer(user)
+#                 res_data = serializer.data
 
-                refresh = RefreshToken.for_user(user)
-                refresh_token = str(refresh)
-                access_token = str(refresh.access_token)
+#                 refresh = RefreshToken.for_user(user)
+#                 refresh_token = str(refresh)
+#                 access_token = str(refresh.access_token)
 
-                res_data["access_token"] = access_token
-                res_data["refresh_token"] = refresh_token
+#                 res_data["access_token"] = access_token
+#                 res_data["refresh_token"] = refresh_token
 
-                return Response({"message": f"로그인 성공하셨습니다. 환영합니다 {user_id} 님", "data" : res_data}, status=status.HTTP_200_OK)
-            else:
-                return Response({"message": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        except User.DoesNotExist:
-            return Response({"message": "해당 user_id에 대한 계정을 찾을 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+#                 return Response({"message": f"로그인 성공하셨습니다. 환영합니다 {user_id} 님", "data" : res_data}, status=status.HTTP_200_OK)
+#             else:
+#                 return Response({"message": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+#         except User.DoesNotExist:
+#             return Response({"message": "해당 user_id에 대한 계정을 찾을 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 로그아웃
