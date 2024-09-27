@@ -15,6 +15,9 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("사용 중인 username입니다.")
         return data
     
+class PasswordCheckSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+
 # 구독자 이름만 보이게 만듬
 class SubUsernameSerializer(serializers.ModelSerializer):
     class Meta:

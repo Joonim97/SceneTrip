@@ -122,30 +122,33 @@ class SubscribeView(APIView):  # 구독 기능
             else:
                 return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
 
-class PasswordResetView(generics.GenericAPIView):
-    def post(self, request, *args, **kwargs):
+class PasswordResetRequestView(APIView): # password 재설정
+    def post(self, request):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
         if user:
-            token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = f"{settings.FRONTEND_URL}/reset/{uid}/{token}/"
+            token = default_token_generator.make_token(user)
+            reset_url = f"{request.scheme}://{request.get_host()}/reset/{uid}/{token}/"
+            # message = f"안녕하세요 {user.username}님,\n\n비밀번호 재설정을 위해 아래 링크를 클릭하세요:\n{reset_url}\n\n감사합니다."
+            message = f'uid: {uid}  |  token: {token}'
             send_mail(
-                '비밀번호 초기화',
-                f'비밀번호를 초기화 하려면 이 링크를 누르세요: {reset_url}',
-                settings.EMAIL_HOST_USER,
-                [email],
+                'Password Reset Request',
+                message,
+                'noreply@gmail.com',
+                [user.email],
                 fail_silently=False,
             )
-        return Response({"message": "Password reset link sent if email exists."}, status=status.HTTP_200_OK)
+        return Response({"message": "해당 이메일을 사용하는 계정이 있는 경우, 비밀번호 재설정 메일을 전송합니다."}, status=status.HTTP_200_OK)
+    
 
-class PasswordResetConfirmView(generics.GenericAPIView):
-    def post(self, request, uidb64, token, *args, **kwargs):
+class PasswordResetConfirmView(APIView):
+    def post(self, request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
             new_password = request.data.get('new_password')
             user.set_password(new_password)
             user.save()
-            return Response({"message": "비밀번호 변경이 완료되었습니다"}, status=status.HTTP_200_OK)
-        return Response({"message": "유효하지 않은 정보입니다"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "비밀번호가 변경되었습니다."}, status=status.HTTP_200_OK)
+        return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
