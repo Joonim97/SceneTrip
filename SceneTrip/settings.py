@@ -61,12 +61,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 3rd Thrid
-    "rest_framework",
+    'rest_framework',  # REST framework
     "rest_framework_simplejwt.token_blacklist",
     # apps
-    
-    'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
-
     'accounts',
     'journals',
     'communities',
