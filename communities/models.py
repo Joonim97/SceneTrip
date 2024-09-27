@@ -5,12 +5,12 @@ from django.conf import settings
 User = get_user_model()
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
-    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comments')
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='community_comments')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='community_replies')
     
     def __str__(self):
         return f'Comment by {self.user.username} on {self.community.title}'
@@ -21,7 +21,7 @@ class Comment(models.Model):
 
 class CommentLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='likes')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='community_likes')
     like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
     
     class Meta:
