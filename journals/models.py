@@ -12,10 +12,10 @@ class Comment(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     
     def __str__(self):
-        return f'Comment by {self.user.username} on {self.post.title}'
+        return f'Comment by {self.user.username} on {self.journal.title}'
     
     class Meta:
-        orderig = [ '-created_at']
+        ordering = [ '-created_at']
     
 
 class CommentLike(models.Model):
