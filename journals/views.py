@@ -3,14 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Comment, CommentLike, Journal
-from .serializers import CommentSerializer, CommentLikeSerializer
+from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
-from .serializers import JournalSerializer,JournalDetailSerializer # 시리얼라이저 여기
 from django.conf import settings
 
 class CommentView(APIView):
@@ -72,6 +71,7 @@ class CommentLikeView(APIView):
             
         # 좋아요/싫어요가 눌리지 않은 상태
         return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
+
 
 class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
         queryset = Journal.objects.all().order_by('-created_at') # 생성최신순

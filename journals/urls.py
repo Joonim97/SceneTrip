@@ -12,5 +12,5 @@ urlpatterns = [
     path('<int:journal_pk>/comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view, name='comment_like'),
     path('', JournalListAPIView.as_view(), name='jounal-list'),
     path('<int:pk>/', JournalDetailAPIView.as_view(), name='jounal-detail'),
-    path('search/', JournalSearchSet.as_view(), name='journal-search')
-]
+    path('search/', JournalSearchSet.as_view(), name='journal-search'),
+] 

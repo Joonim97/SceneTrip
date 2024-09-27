@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 from django.conf import settings
 
 User = get_user_model()
@@ -27,6 +26,7 @@ class CommentLike(models.Model):
     
     class Meta:
         unique_together = ('user', 'comment')
+
 
 class Journal(models.Model):
     # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸

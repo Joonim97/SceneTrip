@@ -32,6 +32,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
         return super().create(validated_data)
 
+
 # class CommentSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Comment
