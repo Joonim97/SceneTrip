@@ -122,7 +122,8 @@ class SubscribeView(APIView):  # 구독 기능
             else:
                 return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
 
-class PasswordResetRequestView(APIView): # password 재설정
+# password 리셋
+class PasswordResetRequestView(APIView):
     def post(self, request):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
@@ -133,7 +134,7 @@ class PasswordResetRequestView(APIView): # password 재설정
             # message = f"안녕하세요 {user.username}님,\n\n비밀번호 재설정을 위해 아래 링크를 클릭하세요:\n{reset_url}\n\n감사합니다."
             message = f'uid: {uid}  |  token: {token}'
             send_mail(
-                'Password Reset Request',
+                '비밀번호 변경 요청',
                 message,
                 'noreply@gmail.com',
                 [user.email],
@@ -141,7 +142,7 @@ class PasswordResetRequestView(APIView): # password 재설정
             )
         return Response({"message": "해당 이메일을 사용하는 계정이 있는 경우, 비밀번호 재설정 메일을 전송합니다."}, status=status.HTTP_200_OK)
     
-
+# password 재설정
 class PasswordResetConfirmView(APIView):
     def post(self, request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -151,4 +152,37 @@ class PasswordResetConfirmView(APIView):
             user.set_password(new_password)
             user.save()
             return Response({"message": "비밀번호가 변경되었습니다."}, status=status.HTTP_200_OK)
+        return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# Eamil 리셋
+class EmailResetRequestView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        user = User.objects.filter(username=username).first()
+        if user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"{request.scheme}://{request.get_host()}/reset/{uid}/{token}/"
+            # message = f"안녕하세요 {user.username}님,\n\n비밀번호 재설정을 위해 아래 링크를 클릭하세요:\n{reset_url}\n\n감사합니다."
+            message = f'uid: {uid}  |  token: {token}'
+            send_mail(
+                '이메일 변경 요청',
+                message,
+                'noreply@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        return Response({"message": "해당 유저을 사용하는 계정이 있는 경우, 이메일 재설정 메일을 전송합니다."}, status=status.HTTP_200_OK)
+    
+# Email 재설정
+class EamilResetConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        if default_token_generator.check_token(user, token):
+            new_email = request.data.get('new_email')
+            user.set_password(new_email)
+            user.save()
+            return Response({"message": "이메일이 변경되었습니다."}, status=status.HTTP_200_OK)
         return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
