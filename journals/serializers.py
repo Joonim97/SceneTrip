@@ -15,7 +15,7 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'replies']
         
     def create(self, validated_data):
-        request = self.contex.get('request')
+        request = self.context.get('request')
         if request and hasattr(request, 'user'):
             validated_data['user'] = request.user
         return super().create(validated_data)
@@ -24,7 +24,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
         fields = ['id', 'user', 'comment', 'like_type']
-        read_only-fields = ['user']
+        read_only_fields = ['user']
         
     def create(self, validated_data):
         request = self.context.get('request')
