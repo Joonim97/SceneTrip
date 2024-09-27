@@ -30,8 +30,9 @@ class SubUsernameSerializer(serializers.ModelSerializer):
 
 class MyPageSerializer(UserSerializer):
     subscribings = SubUsernameSerializer(many=True, read_only=True)  # 구독 중인 사용자들
+    image = serializers.ImageField(use_url=True, required=False)
 
     class Meta(UserSerializer.Meta):
         model = User
         # 마이페이지에서 필요한 필드만 선택
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'image']

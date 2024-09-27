@@ -105,6 +105,19 @@ class Mypage(ListAPIView): # 마이 페이지
             serializer = MyPageSerializer(my_page)
             return Response({'내 정보':serializer.data},status=200)
         return Response({"message": "다시 시도", '구독중인 사람': serializer.data['subscribings']}, status=400)
+    
+    # def put(self, request, nickname): # 마이페이지 수정
+    #             if request.user.is_authenticated: # 로그인 상태일때
+    #                     profile_image = get_object_or_404(User, nickname=nickname)
+    #                     if profile_image == request.user:
+    #                             profile_image.image.delete() # 이미지 삭제
+    #                             serializer = MyPageSerializer(
+    #                             profile_image, data=request.data, partial=True)
+    #                             if serializer.is_valid(raise_exception=True):
+    #                                     serializer.save()
+    #                             return Response(serializer.data)
+    #                     return Response({'작성자만 수정할 수 있습니다'}, status=403)
+    #             return Response({'로그인 후 이용 가능합니다'}, status=400)
 
 class SubscribeView(APIView):  # 구독 기능
     permission_classes = [IsAuthenticated]
@@ -182,7 +195,7 @@ class EamilResetConfirmView(APIView):
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
             new_email = request.data.get('new_email')
-            user.set_password(new_email)
+            user.email = new_email
             user.save()
             return Response({"message": "이메일이 변경되었습니다."}, status=status.HTTP_200_OK)
         return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
