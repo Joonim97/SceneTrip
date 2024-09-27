@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
 from .serializers import UserSerializer, MyPageSerializer
 from .emails import send_verification_email
@@ -11,6 +10,12 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import ListAPIView
+from rest_framework import generics, status
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
 
 User = get_user_model() # 필수 지우면 안됨
 
@@ -116,4 +121,31 @@ class SubscribeView(APIView):  # 구독 기능
                 return Response("구독했습니다.", status=status.HTTP_200_OK)
             else:
                 return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
-            
+
+class PasswordResetView(generics.GenericAPIView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        user = User.objects.filter(email=email).first()
+        if user:
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_url = f"{settings.FRONTEND_URL}/reset/{uid}/{token}/"
+            send_mail(
+                '비밀번호 초기화',
+                f'비밀번호를 초기화 하려면 이 링크를 누르세요: {reset_url}',
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+        return Response({"message": "Password reset link sent if email exists."}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    def post(self, request, uidb64, token, *args, **kwargs):
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        if default_token_generator.check_token(user, token):
+            new_password = request.data.get('new_password')
+            user.set_password(new_password)
+            user.save()
+            return Response({"message": "비밀번호 변경이 완료되었습니다"}, status=status.HTTP_200_OK)
+        return Response({"message": "유효하지 않은 정보입니다"}, status=status.HTTP_400_BAD_REQUEST)
