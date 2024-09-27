@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Comment
-from .serializers import CommentSerializer
+from .models import Comment, CommentLike
+from .serializers import CommentSerializer, CommentLikeSerializer
 from django.shortcuts import get_object_or_404
 
 class CommentView(APIView):
@@ -29,7 +29,7 @@ class CommentView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request, comment_id):
+    def put(self, request, comment_id): 
         comment = Comment.objects.get(id=comment_id)
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
@@ -41,3 +41,27 @@ class CommentView(APIView):
         comment = Comment.objects.get(id=comment_id)
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+    
+class CommentLikeView(APIView):
+    def post(self, request, comment_id, like_type):
+        comment = get_object_or_404(Comment, id=comment_id)
+        like_instance, created = CommentLike.objects.get_or_create(
+            user=request.user,
+            comment=comment,
+            defaults={'like_type': like_type}
+        )
+        
+        # 이미 좋아요/싫어요가 눌린 상태
+        if not created:
+            if like_instance.like_type == like_type:
+                like_instance.delete()
+                return Response({'message': f'{like_type.capitalize()} 취소'}, status=status.HTTP_200_OK)
+            else:
+                like_instance.like_type = like_type
+                like_instance.save()
+                return Response({'message': f'{like_type.capitalize()} 변경'}, status=status.HTTP_200_OK)
+            
+        # 좋아요/싫어요가 눌리지 않은 상태
+        return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)

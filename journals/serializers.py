@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comment
+from .models import Comment, CommentLike
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -16,6 +16,18 @@ class CommentSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         request = self.contex.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['user'] = request.user
+        return super().create(validated_data)
+    
+class CommentLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentLike
+        fields = ['id', 'user', 'comment', 'like_type']
+        read_only-fields = ['user']
+        
+    def create(self, validated_data):
+        request = self.context.get('request')
         if request and hasattr(request, 'user'):
             validated_data['user'] = request.user
         return super().create(validated_data)

@@ -17,3 +17,11 @@ class Comment(models.Model):
     class Meta:
         orderig = [ '-created_at']
     
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='likes')
+    like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
+    
+    class Meta:
+        unique_together = ('user', 'comment')
