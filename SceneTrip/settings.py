@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
+    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
 
     'accounts',
     'journals',

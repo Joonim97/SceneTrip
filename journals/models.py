@@ -20,7 +20,7 @@ class Comment(models.Model):
     
 
 class CommentLike(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comment_likes')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='journal_likes')
     like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
     
