@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from datetime import timedelta
 from pathlib import Path
 import os, json
 from django.core.exceptions import ImproperlyConfigured
@@ -60,10 +59,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 3rd Thrid
-    'rest_framework',  # REST framework
-    "rest_framework_simplejwt.token_blacklist",
-    # apps
+    
+    'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
+
     'accounts',
     'journals',
     'communities',
@@ -81,19 +79,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'SceneTrip.urls'
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-}
 
 TEMPLATES = [
     {
@@ -124,7 +109,6 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'accounts.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
