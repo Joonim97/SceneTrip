@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Journal
+from .models import Community
 
 
 # class CommentSerializer(serializers.ModelSerializer):
@@ -13,17 +13,17 @@ from .models import Journal
 #         ret.pop('article')
 #         return ret
 
-class JournalSerializer(serializers.ModelSerializer) :
+class CommunitySerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
     # image = serializers.ImageField(use_url=True, required=False)
 
     class Meta :
-        model=Journal
+        model=Community
         # fields=['id','title','content','created_at','updated_at']
         fields='__all__'
         read_only_fields = ('id','created_at','updated_at')
 
 
 
-class JournalDetailSerializer(JournalSerializer):
+class CommunityDetailSerializer(CommunitySerializer):
     True # 댓글 보이게 추가해야 함
