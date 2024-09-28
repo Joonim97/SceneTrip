@@ -1,96 +1,52 @@
-from django.shortcuts import render
-from django.conf import settings
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from urllib.parse import urlencode
-from requests.exceptions import RequestException
-import requests
+from rest_framework import status
+from django.db.models import Q
+from .models import Location
+from .serializers import LocationSerializer
+import re
 
 
-
-class OpenApiView(APIView):
-    def get(self, request, *args, **kwargs):
-        base_url = f"https://api.odcloud.kr/api/15111405/v1/uddi:d8741b9c-f484-4ea8-8f54-bd21ab62de14"
-
-        params = {
-            "page": "int",  # 페이지 인덱스
-            "perPage": "int",  # 세션당 요청레코드수
-            "returnType": "JSON",
-        }
-        query_string = urlencode(params)
-
-        full_url = f"{base_url}?{query_string}&serviceKey={settings.SERVICE_KEY}"
-
-        response = requests.get(full_url)
-        return Response(response.json(), status=status.HTTP_200_OK)
+def custom_sort_key(value):
+    # 한글, 알파벳, 숫자, 특수기호 순으로 정렬
+    if re.match(r"^[가-힣]", value):
+        return (0, value)
+    elif re.match(r"^[a-zA-Z]", value):
+        return (1, value)
+    elif re.match(r"^[0-9]", value):
+        return (2, value)
+    else:
+        return (3, value)
 
 
 class LocationListAPIView(APIView):
-    def get(self, request, *args, **kwargs):
-        base_url = f"https://api.odcloud.kr/api/15111405/v1/uddi:d8741b9c-f484-4ea8-8f54-bd21ab62de14"
+    # 촬영지 목록 조회
+    def get(self, request):
+        location_data = Location.objects.all()
+        sorted_location_data = sorted(
+            location_data, key=lambda x: custom_sort_key(x.제목)
+        )
+        serializer = LocationSerializer(sorted_location_data, many=True)
 
-        page = request.query_params.get("page")
-        perPage = request.query_params.get("perPage")
-
-        params = {
-            "page": page,  # 페이지 인덱스
-            "perPage": perPage,  # 세션당 요청레코드수
-            "returnType": "JSON",
-        }
-        query_string = urlencode(params)
-
-        full_url = f"{base_url}?{query_string}&serviceKey={settings.SERVICE_KEY}"
-
-        response = requests.get(full_url)
-        return Response(response.json(), status=status.HTTP_200_OK)
+        return Response(serializer.data)
 
 
 class LocationSearchAPIView(APIView):
+    # 촬영지 검색
     def get(self, request, *args, **kwargs):
-        base_url = "https://api.odcloud.kr/api/15111405/v1/uddi:d8741b9c-f484-4ea8-8f54-bd21ab62de14"
-        service_key = settings.SERVICE_KEY
+        query_params = request.query_params
+        search_value = query_params.get("keyword", None)
+        filter_fields = ["미디어타입", "제목", "장소명", "장소타입", "장소설명", "주소"]
 
-        page = 1
-        per_page = 1000  # 한 번에 1000개씩 요청
-        keyword = request.query_params.get("keyword", "").lower()
+        filters = Q()
+        if search_value:
+            for field in filter_fields:
+                filters |= Q(**{f"{field}__icontains": search_value})
 
-        all_data = []
+        location_data = Location.objects.filter(filters)
+        sorted_location_data = sorted(
+            location_data, key=lambda x: custom_sort_key(x.제목)
+        )
+        serializer = LocationSerializer(sorted_location_data, many=True)
 
-        while True:
-            params = {
-                "page": page,
-                "perPage": per_page,
-                "returnType": "JSON",
-            }
-            query_string = urlencode(params)
-            full_url = f"{base_url}?{query_string}&serviceKey={service_key}"
-
-            try:
-                response = requests.get(full_url, timeout=10)  # 10초 타임아웃 설정
-                response.raise_for_status()  # HTTP 에러 발생 시 예외 발생
-                data = response.json()
-            except RequestException as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            if not data['data']:
-                break
-
-            all_data.extend(data['data'])
-            page += 1
-
-        # Filter the data based on the keyword
-        if keyword:
-            filtered_data = [
-                item for item in all_data 
-                if keyword in item['제목'].lower() 
-                or keyword in item['장소설명'].lower()
-                or keyword in item['장소명'].lower()
-                or keyword in item['미디어타입'].lower()
-                or keyword in item['장소타입'].lower()
-                or keyword in item['주소'].lower()
-            ]
-        else:
-            filtered_data = all_data
-
-        return Response(filtered_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

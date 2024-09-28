@@ -44,8 +44,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 API_KEY = get_secret("API_KEY")  # OpenAI
 
-SERVICE_KEY = get_secret("SERVICE_KEY") # data_open_api
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -108,8 +106,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'locationdata': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'locationdata.sqlite3',
     }
 }
+
+DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
 
 # Password validation
