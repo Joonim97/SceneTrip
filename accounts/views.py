@@ -107,6 +107,23 @@ class Mypage(ListAPIView): # 마이 페이지
             return Response({'내 정보':serializer.data},status=200)
         return Response({"message": "다시 시도"}, status=400)
     
+    def put(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)
+        if user != request.user:
+            return Response({"message": "수정할 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        # 클라이언트에서 profile_image를 비워서 보내면 이미지 제거 처리
+        if 'profile_image' in request.FILES:
+            profile_image = request.FILES['profile_image']
+            user.profile_image = profile_image 
+        elif 'profile_image' in request.data and not request.data['profile_image']:
+            # profile_image가 비어 있는 경우 (이미지 제거 요청)
+            user.profile_image = None
+
+        user.save()  # 변경 사항 저장
+        return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
+
+    
     # def put(self, request, nickname): # 마이페이지 수정
     #             if request.user.is_authenticated: # 로그인 상태일때
     #                     profile_image = get_object_or_404(User, nickname=nickname)

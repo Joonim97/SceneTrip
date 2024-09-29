@@ -35,4 +35,4 @@ class MyPageSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image']
