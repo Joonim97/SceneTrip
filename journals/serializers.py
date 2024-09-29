@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comment, CommentLike, Journal
+from .models import Comment, CommentLike, Journal, User
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -44,16 +44,13 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 #         ret.pop('article')
 #         return ret
 
-class JournalSerializer(serializers.ModelSerializer) :
-    # author = serializers.ReadOnlyField(source='author.username')
-    # image = serializers.ImageField(use_url=True, required=False)
+class JournalSerializer(serializers.ModelSerializer):
+    user_nickname = serializers.ReadOnlyField(source='user.nickname')
 
-    class Meta :
-        model=Journal
-        # fields=['id','title','content','created_at','updated_at']
-        fields='__all__'
-        read_only_fields = ('id','created_at','updated_at')
-
+    class Meta:
+        model = Journal
+        fields = '__all__'
+        read_only_fields = ('user_nickname','user')
 
 
 class JournalDetailSerializer(JournalSerializer):

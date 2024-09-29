@@ -16,7 +16,7 @@ class Comment(models.Model):
         return f'Comment by {self.user.username} on {self.journal.title}'
     
     class Meta:
-        ordering = [ '-created_at']
+        ordering = ['-created_at']
     
 
 class CommentLike(models.Model):
@@ -34,6 +34,8 @@ class Journal(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
     # image = models.ImageField(null=True)
 
-    # author = models.ForeignKey(User, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.title

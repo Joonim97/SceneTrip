@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 from django.db import models
+from journals.serializers import JournalSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,9 +31,8 @@ class SubUsernameSerializer(serializers.ModelSerializer):
 
 class MyPageSerializer(UserSerializer):
     subscribings = SubUsernameSerializer(many=True, read_only=True)  # 구독 중인 사용자들
-    image = serializers.ImageField(use_url=True, required=False)
+    my_journals = JournalSerializer(many=True, read_only=True)  # 내가 쓴 글 역참조
 
     class Meta(UserSerializer.Meta):
         model = User
-        # 마이페이지에서 필요한 필드만 선택
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'image']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals']
