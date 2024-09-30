@@ -19,3 +19,12 @@ class Location(models.Model):
     created_at = models.CharField(max_length=10)
 
 
+class LocationSave(models.Model):
+    User = get_user_model()
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'location')
