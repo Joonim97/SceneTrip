@@ -67,10 +67,15 @@ class CommentLikeView(APIView):
             else:
                 like_instance.like_type = like_type
                 like_instance.save()
-                return Response({'message': f'{like_type.capitalize()} 변경'}, status=status.HTTP_200_OK)
             
-        # 좋아요/싫어요가 눌리지 않은 상태
-        return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'messgae': f'{like_type.capitalize()}!'}, status=status.HTTP_201_CREATED)
+    
+        if CommentLike.objects.filter(comment=comment, like_type='dislike').count() >= 3: #테스트용으로 3개, 이후에는 30개로 수정 필요!
+            comment.delete()
+            return Response({'message': '댓글이 삭제되었습니다.'}, status=status.HTTP_201_CREATED)
+        
+        return Response({'message': f'{like_type.capitalize()}!'}, status=status.HTTP_200_OK)
 
 
 class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성

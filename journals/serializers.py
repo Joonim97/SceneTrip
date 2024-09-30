@@ -11,8 +11,14 @@ class CommentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Comment
-        fields = ['id', 'journal', 'user', 'content', 'created_at', 'replies']
-        read_only_fields = ['user', 'created_at', 'replies']
+        fields = ['id', 'journal', 'user', 'content', 'created_at', 'like_count', 'dislike_count', 'replies']
+        read_only_fields = ['user', 'created_at', 'like_count', 'dislike_count', 'replies']
+        
+    def get_like_count(self, comment):
+        return CommentLike.objects.filter(comment=comment, like_type='like').count()
+    
+    def get_dislike_count(self, comment):
+        return CommentLike.objects.filter(comment=comment, like_type='dislike').count()
         
     def create(self, validated_data):
         request = self.context.get('request')
