@@ -37,3 +37,4 @@ class Community(models.Model):
     image = models.ImageField(null=True)
 
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
+    unusable=models.ManyToManyField(User, related_name='community_unusable') #글신고누적수 표시용

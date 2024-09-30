@@ -36,7 +36,9 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class JournalSerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
     image = serializers.ImageField(use_url=True, required=False)
-
+    likes= Journal.likes
+    likes_count= serializers.IntegerField(source='Journal.likes.count', read_only=True)
+    
     class Meta :
         model=Journal
         fields='__all__'
@@ -44,4 +46,6 @@ class JournalSerializer(serializers.ModelSerializer) :
 
 
 class JournalDetailSerializer(JournalSerializer):
-    True # 댓글 보이게 추가해야 함
+    comments= CommentSerializer(many=True, read_only=True)
+    comments_count= serializers.IntegerField(source='comments.count', read_only=True)
+

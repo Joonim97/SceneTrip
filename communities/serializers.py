@@ -36,11 +36,15 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class CommunitySerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
     image = serializers.ImageField(use_url=True, required=False)
-
+    unusables = Community.unusable
+    unusables_count= serializers.IntegerField(source='Community.unusable.count', read_only=True)
+    
     class Meta :
         model=Community
         fields='__all__'
-        read_only_fields = ('id','created_at','updated_at')
+        read_only_fields = ('id','created_at','updated_at','unusable')
+
+    
 
 
 

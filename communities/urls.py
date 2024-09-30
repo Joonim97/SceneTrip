@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import CommentView, CommentLikeView, CommunityListAPIView, CommunityDetailAPIView
+from .views import CommentView, CommentLikeView, CommunityListAPIView, CommunityDetailAPIView, CommunityUnusableAPIView
 
 app_name = "communities"
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path('<int:community_pk>/comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view, name='comment_like'),
     path('', CommunityListAPIView.as_view(), name='community-list'),
     path('<int:pk>/', CommunityDetailAPIView.as_view(), name='community-detail'),
-]
+    path('<int:pk>/unusable/' , CommunityUnusableAPIView.as_view() , name='unusable'), # 커뮤글 신고
+]   

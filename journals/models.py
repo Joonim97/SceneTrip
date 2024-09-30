@@ -38,3 +38,5 @@ class Journal(models.Model):
     # author = models.ForeignKey(User, on_delete=models.CASCADE) # 주석 안 하면 valueerror 발생... 
     # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
     likes=models.ManyToManyField(User, related_name='journal_like')
+    
+    
