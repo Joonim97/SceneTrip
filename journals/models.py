@@ -35,7 +35,11 @@ class Journal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
-    # image = models.ImageField(null=True)
+    hit_count = models.IntegerField(default=0)
+
+    def hit(self):
+        self.hit_count += 1
+        self.save()
 
     def __str__(self):
         return self.title
