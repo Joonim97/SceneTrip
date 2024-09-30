@@ -60,4 +60,16 @@ class LocationSearchAPIView(APIView):
         return Response(sorted_location_data, status=status.HTTP_200_OK)
 
 
+class LocationSaveView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request, id):
+        user = request.user
+        location = get_object_or_404(Location, id=id)
+
+        location_save, created = LocationSave.objects.get_or_create(user=user, location=location)
+        if created:
+            return Response({"message": "촬영지 정보가 저장되었습니다."}, status=status.HTTP_201_CREATED)
+        else:
+            location_save.delete()
+            return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
