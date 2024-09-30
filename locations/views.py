@@ -1,6 +1,7 @@
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from .models import Location, LocationSave
@@ -50,11 +51,13 @@ class LocationSearchAPIView(APIView):
             for field in filter_fields:
                 filters |= Q(**{f"{field}__icontains": search_value})
 
-        location_data = Location.objects.filter(filters)
+        location_data = Location.objects.filter(filters).values('id', 'title', 'place_name')
         sorted_location_data = sorted(
-            location_data, key=lambda x: custom_sort_key(x.title)
+            location_data, key=lambda x: custom_sort_key(x['title'])
         )
-        serializer = LocationSerializer(sorted_location_data, many=True)
+        # serializer = LocationSerializer(sorted_location_data, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(sorted_location_data, status=status.HTTP_200_OK)
+
+
 
