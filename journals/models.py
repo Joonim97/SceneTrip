@@ -35,5 +35,5 @@ class Journal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     # image = models.ImageField(null=True)
-
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
+    likes=models.ManyToManyField(User, related_name='journal_like')
