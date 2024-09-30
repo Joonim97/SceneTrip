@@ -35,7 +35,6 @@ def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생
         raise ImproperlyConfigured(error_msg)
 SECRET_KEY = get_secret("SECRET_KEY")
 
-secret_file = os.path.join(BASE_DIR, 'secrets.json')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -43,7 +42,8 @@ EMAIL_HOST_USER = get_secret("EMAIL")
 EMAIL_HOST_PASSWORD = get_secret("EMAIL_PASSWORD")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-API_KEY = get_secret("API_KEY")
+
+API_KEY = get_secret("API_KEY")  # OpenAI
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -119,7 +119,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    },
+    # 'locationdata': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'locationdata.sqlite3',
+    # }
 }
 
 MEDIA_URL = '/media/'
@@ -133,6 +137,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
+
+# DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
 
 # Password validation
