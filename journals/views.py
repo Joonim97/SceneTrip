@@ -93,11 +93,12 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
 
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
-        def get_object(self, pk):
-                return get_object_or_404(Journal, pk=pk)
+        def get_object(self, nickname):
+                return get_object_or_404(Journal, user__nickname=nickname)
 
         def get(self, request, nickname): # 저널 상세조회
                 journal = self.get_object(nickname)
+                journal.hit() # 저널 조회수 업데이트
                 serializer = JournalDetailSerializer(journal)
                 return Response(serializer.data)
 
