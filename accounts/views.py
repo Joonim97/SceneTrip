@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserSerializer, MyPageSerializer
+from .serializers import EmailCheckSerializer, PasswordCheckSerializer, UserSerializer, MyPageSerializer
 from .emails import send_verification_email
 import uuid
 from django.http import HttpResponse
@@ -178,12 +178,20 @@ class PasswordResetConfirmView(APIView):
     def post(self, request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-        if default_token_generator.check_token(user, token):
-            new_password = request.data.get('new_password')
+        if not default_token_generator.check_token(user, token):
+            return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = PasswordCheckSerializer(data=request.data)
+        if serializer.is_valid():
+            # 유효성 검사를 통과한 데이터에서 비밀번호를 가져오기
+            new_password = serializer.validated_data['new_password']
             user.set_password(new_password)
             user.save()
             return Response({"message": "비밀번호가 변경되었습니다."}, status=status.HTTP_200_OK)
-        return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # 유효성 검사를 통과하지 못하면 오류 반환
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
 
 # Eamil 리셋
@@ -211,9 +219,16 @@ class EamilResetConfirmView(APIView):
     def post(self, request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-        if default_token_generator.check_token(user, token):
-            new_email = request.data.get('new_email')
+        if not default_token_generator.check_token(user, token):
+                    return Response({"message": "토큰 또는 아이디 값이 맞지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                
+        serializer = EmailCheckSerializer(data=request.data)
+        if serializer.is_valid():
+            # 유효성 검사를 통과한 데이터에서 이메일을 가져오기
+            new_email = serializer.validated_data['new_email']
             user.email = new_email
             user.save()
             return Response({"message": "이메일이 변경되었습니다."}, status=status.HTTP_200_OK)
-        return Response({"message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # 유효성 검사를 통과하지 못하면 오류 반환
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

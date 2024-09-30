@@ -18,10 +18,10 @@ class UserSerializer(serializers.ModelSerializer):
     
 # 비밀번호 재설정
 class PasswordCheckSerializer(serializers.Serializer):
-    password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
 
 class EmailCheckSerializer(serializers.Serializer):
-    email = serializers.CharField(write_only=True)
+    new_email = serializers.EmailField(write_only=True)
 
 # 구독자 이름만 보이게 만듬
 class SubUsernameSerializer(serializers.ModelSerializer):
