@@ -93,24 +93,24 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
 
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
-        def get_object(self, nickname):
-                return get_object_or_404(Journal, user__nickname=nickname)
+        def get_object(self, pk):
+                return get_object_or_404(Journal, pk=pk)
 
-        def get(self, request, nickname): # 저널 상세조회
-                journal = self.get_object(nickname)
+        def get(self, request, pk): # 저널 상세조회
+                journal = self.get_object(pk)
                 journal.hit() # 저널 조회수 업데이트
                 serializer = JournalDetailSerializer(journal)
                 return Response(serializer.data)
 
-        def put(self, request, nickname): # 저널 수정
-                journal = self.get_object(nickname)
+        def put(self, request, pk): # 저널 수정
+                journal = self.get_object(pk)
                 serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         return Response(serializer.data)
                 
-        def delete(self, request, nickname): # 저널 삭제
-                journal = self.get_object(nickname)
+        def delete(self, request, pk): # 저널 삭제
+                journal = self.get_object(pk)
                 journal.delete()
                 return Response({'삭제되었습니다'}, status=204)
         
@@ -120,4 +120,4 @@ class JournalSearchSet(ListAPIView): # 저널 검색
         serializer_class=JournalSerializer
 
         filter_backends=[SearchFilter]
-        search_fields=[ 'title'] # 내용, 작성자로 찾기 추가해야 함
+        search_fields=['title'] # 내용, 작성자로 찾기 추가해야 함
