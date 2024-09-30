@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q
-from .models import Location
+from django.shortcuts import get_object_or_404
+from .models import Location, LocationSave
 from .serializers import LocationSerializer
 import re
 
@@ -22,21 +23,27 @@ def custom_sort_key(value):
 class LocationListAPIView(APIView):
     # 촬영지 목록 조회
     def get(self, request):
-        location_data = Location.objects.all()
-        sorted_location_data = sorted(
-            location_data, key=lambda x: custom_sort_key(x.제목)
-        )
-        serializer = LocationSerializer(sorted_location_data, many=True)
+        location_data = Location.objects.values('id', 'title', 'place_name')
+        sorted_location_data = sorted(location_data, key=lambda x: custom_sort_key(x['title']))
 
+        return Response(sorted_location_data)
+    
+
+class LocationDetailAPIView(APIView):
+    # 촬영지 상세조회
+    def get(self, request, pk):
+        location = get_object_or_404(Location, pk=pk)
+        serializer = LocationSerializer(location)
         return Response(serializer.data)
+    pass
 
 
 class LocationSearchAPIView(APIView):
     # 촬영지 검색
     def get(self, request, *args, **kwargs):
         query_params = request.query_params
-        search_value = query_params.get("keyword", None)
-        filter_fields = ["미디어타입", "제목", "장소명", "장소타입", "장소설명", "주소"]
+        search_value = query_params.get("keyword", None) # 검색 keyword
+        filter_fields = ["media_type", "title", "place_name", "place_type", "place_description", "address"]
 
         filters = Q()
         if search_value:
@@ -45,8 +52,9 @@ class LocationSearchAPIView(APIView):
 
         location_data = Location.objects.filter(filters)
         sorted_location_data = sorted(
-            location_data, key=lambda x: custom_sort_key(x.제목)
+            location_data, key=lambda x: custom_sort_key(x.title)
         )
         serializer = LocationSerializer(sorted_location_data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
