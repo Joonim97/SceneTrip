@@ -14,15 +14,16 @@ from django.conf import settings
 
 class CommentView(APIView):
     def get(self, request, journal_id):
-        comments = Comment.objects.filter(journal_id=journal_id, parent=None)
+        comments = Comment.objects.filter(journal_id=journal_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
-    def post(self, request, journal_id):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, journal_id, parent_id=None):
         data = request.data.copy()
+        journal = get_object_or_404(Journal, id=journal_id)
         data['journal'] = journal_id
-        
-        parent_id = data.get('parent', None)
         
         if parent_id:
             parent_comment = get_object_or_404(Comment, id=parent_id)
@@ -31,7 +32,7 @@ class CommentView(APIView):
         
         serializer = CommentSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(journal_id=journal_id)
+            serializer.save(journal=journal)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -51,6 +52,8 @@ class CommentView(APIView):
     
     
 class CommentLikeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, comment_id, like_type):
         comment = get_object_or_404(Comment, id=comment_id)
         like_instance, created = CommentLike.objects.get_or_create(
@@ -63,19 +66,21 @@ class CommentLikeView(APIView):
         if not created:
             if like_instance.like_type == like_type:
                 like_instance.delete()
-                return Response({'message': f'{like_type.capitalize()} 취소'}, status=status.HTTP_200_OK)
+                message = f'{like_type.capitalize()} 취소'
             else:
                 like_instance.like_type = like_type
                 like_instance.save()
-            
+                message = f'{like_type.capitalize()} 변경됨'
         else:
-            return Response({'messgae': f'{like_type.capitalize()}!'}, status=status.HTTP_201_CREATED)
-    
-        if CommentLike.objects.filter(comment=comment, like_type='dislike').count() >= 3: #테스트용으로 3개, 이후에는 30개로 수정 필요!
+            message = f'{like_type.capitalize()}!'
+        
+        # 싫어요가 3개 이상일 경우 댓글 삭제
+        dislike_count = CommentLike.objects.filter(comment=comment, like_type='dislike').count()
+        if dislike_count >= 3:
             comment.delete()
             return Response({'message': '댓글이 삭제되었습니다.'}, status=status.HTTP_201_CREATED)
         
-        return Response({'message': f'{like_type.capitalize()}!'}, status=status.HTTP_200_OK)
+        return Response({'message': message}, status=status.HTTP_200_OK)
 
 
 class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성

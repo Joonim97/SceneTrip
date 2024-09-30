@@ -7,11 +7,13 @@ class RecursiveSerializer(serializers.Serializer):
         return serializer.data
 
 class CommentSerializer(serializers.ModelSerializer):
+    like_count = serializers.SerializerMethodField()
+    dislike_count = serializers.SerializerMethodField()
     replies = RecursiveSerializer(many=True, read_only=True)
     
     class Meta:
         model = Comment
-        fields = ['id', 'journal', 'user', 'content', 'created_at', 'like_count', 'dislike_count', 'replies']
+        fields = ['id', 'journal', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies']
         read_only_fields = ['user', 'created_at', 'like_count', 'dislike_count', 'replies']
         
     def get_like_count(self, comment):
