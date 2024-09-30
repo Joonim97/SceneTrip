@@ -122,8 +122,9 @@ class JournalSearchSet(ListAPIView): # 저널 검색
 
 
 class JournalLikeAPIView(APIView): # 저널 좋아요/좋취 
+    permission_classes = [IsAuthenticated]
     def post(self, request, pk):
-        journal = get_object_or_404(Journal, pk)
+        journal = get_object_or_404(Journal, pk=pk)
 
         if request.user in journal.likes.all():
             journal.likes.remove(request.user) # 좋아요 이미 되어있으면

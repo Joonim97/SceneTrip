@@ -37,12 +37,12 @@ class JournalSerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
     image = serializers.ImageField(use_url=True, required=False)
     likes= Journal.likes
-    likes_count= serializers.IntegerField(source='Journal.likes.count', read_only=True)
+    likes_count= serializers.IntegerField(source='Journal.likes.count()', read_only=True)
     
     class Meta :
         model=Journal
         fields='__all__'
-        read_only_fields = ('id','created_at','updated_at','likes','author')
+        read_only_fields = ('id','created_at','updated_at','likes','author','likes_count')
 
 
 class JournalDetailSerializer(JournalSerializer):
