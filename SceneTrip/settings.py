@@ -118,10 +118,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'locationdata': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'locationdata.sqlite3',
-    }
+    # 'locationdata': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'locationdata.sqlite3',
+    # }
 }
 
 MEDIA_URL = '/media/'
@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
+# DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
 
 # Password validation
