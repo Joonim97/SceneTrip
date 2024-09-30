@@ -35,12 +35,12 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 class JournalSerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
-    # image = serializers.ImageField(use_url=True, required=False)
+    image = serializers.ImageField(use_url=True, required=False)
 
     class Meta :
         model=Journal
         fields='__all__'
-        read_only_fields = ('id','created_at','updated_at','likes')
+        read_only_fields = ('id','created_at','updated_at','likes','author')
 
 
 class JournalDetailSerializer(JournalSerializer):

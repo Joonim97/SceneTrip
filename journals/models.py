@@ -29,11 +29,12 @@ class CommentLike(models.Model):
 
 
 class Journal(models.Model):
-    # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸
+    id=models.IntegerField(primary_key=True) # 주석 안 하면 글생성했을 때 id:null로 뜸
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # image = models.ImageField(null=True)
-    # author = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.ImageField(null=True)
+    # author = models.ForeignKey(User, on_delete=models.CASCADE) # 주석 안 하면 valueerror 발생... 
+    # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
     likes=models.ManyToManyField(User, related_name='journal_like')
