@@ -1,27 +1,21 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 
 class Location(models.Model):
-    id = models.AutoField(primary_key=True)
-    연번 = models.IntegerField()
-    미디어타입 = models.CharField(max_length=20)
-    제목 = models.CharField(max_length=300)
-    장소명 = models.CharField(max_length=300)
-    장소타입 = models.CharField(max_length=100)
-    장소설명 = models.TextField(max_length=300)
-    영업시간 = models.TextField(max_length=300)
-    브레이크타임 = models.CharField(max_length=100)
-    휴무일 = models.CharField(max_length=100)
-    주소 = models.CharField(max_length=300)
-    위도 = models.FloatField(max_length=8)
-    경도 = models.FloatField(max_length=10)
-    전화번호 = models.CharField(max_length=20)
-    최종작성일 = models.CharField(max_length=10)
+    id = models.IntegerField(primary_key=True)
+    media_type = models.CharField(max_length=20)
+    title = models.CharField(max_length=300)
+    place_name = models.CharField(max_length=300)
+    place_type = models.CharField(max_length=100)
+    place_description = models.TextField(max_length=300)
+    opening_hours = models.TextField(max_length=300)
+    break_time = models.CharField(max_length=100)
+    closed_day = models.CharField(max_length=100)
+    address = models.CharField(max_length=300)
+    latitude = models.FloatField(max_length=8)
+    longitude = models.FloatField(max_length=10)
+    tel = models.CharField(max_length=20)
+    created_at = models.CharField(max_length=10)
 
-    # def __str__(self):
-    #     return self.제목
 
-    class Meta:
-        managed = False
-        app_label = "locationdata"
-        db_table = "location"
