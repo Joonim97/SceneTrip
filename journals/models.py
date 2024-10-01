@@ -31,7 +31,7 @@ class CommentLike(models.Model):
 
 
 class Journal(models.Model):
-    id=models.IntegerField(primary_key=True) # 주석 안 하면 글생성했을 때 id:null로 뜸
+    #  id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
