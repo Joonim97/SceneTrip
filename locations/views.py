@@ -30,6 +30,27 @@ class LocationListAPIView(APIView):
         return Response(sorted_location_data)
     
 
+class LocationRegionAPIView(APIView):
+    # 촬영지 지역별 조회
+    def get(self, request, region, *args, **kwargs):
+        regions = [
+            '경기도', '서울특별시', '인천광역시', '강원도', '경상남도', '경상북도', 
+            '광주광역시', '대구광역시', '대전광역시', '울산광역시', '부산', # 부산광역시의 경우 '부산'으로만 기록되어 있는 데이터도 있어서.
+            '전라남도', '전라북도', '제주특별자치도', '충청남도', '충청북도', '세종특별자치시'
+        ]
+
+        if region not in regions:
+            return Response({"error": "Invalid region"}, status=400)
+        
+        region_data = {}
+        location_data = Location.objects.filter(address__contains=region)
+        serializer = LocationSerializer(location_data, many=True)
+        sorted_data = sorted(serializer.data, key=lambda x: custom_sort_key(x['title']))
+        region_data[region] = sorted_data
+
+        return Response(region_data)
+
+
 class LocationDetailAPIView(APIView):
     # 촬영지 상세조회
     def get(self, request, pk):
@@ -72,4 +93,4 @@ class LocationSaveView(APIView):
             return Response({"message": "촬영지 정보가 저장되었습니다."}, status=status.HTTP_201_CREATED)
         else:
             location_save.delete()
-            return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT) 
