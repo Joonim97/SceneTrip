@@ -17,6 +17,7 @@ class Location(models.Model):
     longitude = models.FloatField(max_length=10)
     tel = models.CharField(max_length=20)
     created_at = models.CharField(max_length=10)
+    save_count = models.IntegerField(default=0)
 
 
 class LocationSave(models.Model):
@@ -25,6 +26,6 @@ class LocationSave(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
     saved_at = models.DateTimeField(auto_now_add=True)
-
+    
     class Meta:
         unique_together = ('user', 'location')
