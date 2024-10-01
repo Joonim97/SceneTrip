@@ -83,7 +83,9 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
         #         serializer = CommunitySerializer(community))
         #         return Response(community)
         
-        def post(self, request): # 커뮤니티 작성               
+        def post(self, request): # 커뮤니티 작성      
+                permission_classes = [IsAuthenticated] # 로그인권한
+
                 serializer = CommunitySerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
@@ -93,6 +95,8 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
+        permission_classes = [IsAuthenticated] # 로그인권한
+        
         def get_object(self, pk):
                 return get_object_or_404(Community, pk=pk)
 

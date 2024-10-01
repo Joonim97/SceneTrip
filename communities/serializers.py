@@ -49,4 +49,5 @@ class CommunitySerializer(serializers.ModelSerializer) :
 
 
 class CommunityDetailSerializer(CommunitySerializer):
-    True # 댓글 보이게 추가해야 함
+    comments= CommentSerializer(many=True, read_only=True)
+    comments_count = serializers.IntegerField(source='comments.count', read_only=True)
