@@ -96,9 +96,9 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
                 serializer = JournalSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
-                        return Response(serializer.data, status=201)
+                        return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                        return Response(serializer.errors, status=400)
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST )
 
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
@@ -120,7 +120,7 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def delete(self, request, pk): # 저널 삭제
                 journal = self.get_object(pk)
                 journal.delete()
-                return Response({'삭제되었습니다'}, status=204)
+                return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
         
 
 class JournalSearchSet(ListAPIView): # 저널 검색
@@ -129,3 +129,16 @@ class JournalSearchSet(ListAPIView): # 저널 검색
 
         filter_backends=[SearchFilter]
         search_fields=[ 'title'] # 내용, 작성자로 찾기 추가해야 함
+
+
+class JournalLikeAPIView(APIView): # 저널 좋아요/좋취 
+    permission_classes = [IsAuthenticated]
+    def post(self, request, pk):
+        journal = get_object_or_404(Journal, pk=pk)
+
+        if request.user in journal.likes.all():
+            journal.likes.remove(request.user) # 좋아요 이미 되어있으면
+            return Response("좋아요 취소", status=status.HTTP_200_OK)
+        else:
+            journal.likes.add(request.user) # 좋아요 되어있지 않으면
+            return Response("좋아요 +1",  status=status.HTTP_200_OK)

@@ -56,6 +56,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
 }
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     'journals',
     'communities',
     'locations',
+    # 'hitcount',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
