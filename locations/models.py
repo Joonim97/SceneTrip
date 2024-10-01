@@ -22,7 +22,7 @@ class Location(models.Model):
 class LocationSave(models.Model):
     User = get_user_model()
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="location_save")
     location = models.ForeignKey(Location, on_delete=models.CASCADE, default=1)
     saved_at = models.DateTimeField(auto_now_add=True)
 
