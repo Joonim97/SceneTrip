@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import User
 from django.db import models
 from journals.serializers import JournalSerializer
+from locations.serializers import LocationSaveSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,7 +33,8 @@ class SubUsernameSerializer(serializers.ModelSerializer):
 class MyPageSerializer(UserSerializer):
     subscribings = SubUsernameSerializer(many=True, read_only=True)  # 구독 중인 사용자들
     my_journals = JournalSerializer(many=True, read_only=True)  # 내가 쓴 글 역참조
+    location_save = LocationSaveSerializer(many=True, read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save']
