@@ -75,8 +75,9 @@ class CommentLikeView(APIView):
 
 
 class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작성
-        queryset = Community.objects.all().order_by('-created_at') # 생성최신순 조회
+        queryset = Community.objects.all().order_by('-created_at') 
         serializer_class = CommunitySerializer
+
         
         def post(self, request): # 커뮤니티 작성      
                 permission_classes = [IsAuthenticated] # 로그인권한
@@ -96,6 +97,10 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
 
         def get(self, request, pk): # 커뮤니티 상세조회
                 community = self.get_object(pk)
+
+                if community.unusables.count() >=3 : # 3회 이상 신고된 글 접근 불가
+                    return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
+
                 serializer = CommunityDetailSerializer(community)
                 return Response(serializer.data)
 
@@ -131,9 +136,9 @@ class CommunityUnusableAPIView(APIView): # 커뮤글 신고
         user = request.user
         community = get_object_or_404(Community, pk=pk)
 
-        if user not in community.unusable.all():
-            community.unusable.add(user) 
+        if user not in community.unusables.all():
+            community.unusables.add(user) 
             
             return Response({"신고가 접수되었습니다"},  status=status.HTTP_200_OK)
         
-        return Response({"이미 신고되었습니다"},  status=status.HTTP_200_OK)
+        return Response({"이미 신고되었습니다"},  status=status.HTTP_200_OK) # 신고는 취소 불가

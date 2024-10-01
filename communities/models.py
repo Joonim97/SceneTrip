@@ -29,7 +29,7 @@ class CommentLike(models.Model):
 
 
 class Community(models.Model):
-    id=models.IntegerField(primary_key=True)
+    # id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -37,3 +37,4 @@ class Community(models.Model):
     image = models.ImageField(null=True)
     unusables=models.ManyToManyField(User, related_name='community_unusable') #글신고
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
+

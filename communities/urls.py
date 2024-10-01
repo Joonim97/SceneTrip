@@ -12,5 +12,5 @@ urlpatterns = [
     path('<int:community_pk>/comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view, name='comment_like'),
     path('', CommunityListAPIView.as_view(), name='community-list'),
     path('<int:pk>/', CommunityDetailAPIView.as_view(), name='community-detail'),
-    path('<int:pk>/unusable/' , CommunityUnusableAPIView.as_view() , name='unusable'), # 커뮤글 신고
+    path('<int:pk>/unusables/' , CommunityUnusableAPIView.as_view() , name='unusable'), # 커뮤글 신고
 ]   

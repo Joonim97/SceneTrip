@@ -34,6 +34,20 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 
 class CommunitySerializer(serializers.ModelSerializer) :
+    #image = serializers.ImageField(use_url=True, required=False)
+    unusables_count= serializers.SerializerMethodField() # 신고수 카운트
+    
+    class Meta :
+        model=Community
+        fields=[ 'id','title','created_at', 'unusables_count' ]
+        read_only_fields = ('id','created_at','updated_at','unusables','unusables_count')
+
+    def get_unusables_count(self, community_id) :
+        return community_id.unusables.count()
+
+
+
+class CommunityDetailSerializer(CommunitySerializer):
     image = serializers.ImageField(use_url=True, required=False)
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     
@@ -44,10 +58,7 @@ class CommunitySerializer(serializers.ModelSerializer) :
 
     def get_unusables_count(self, community_id) :
         return community_id.unusables.count()
-
-
-
-class CommunityDetailSerializer(CommunitySerializer):
-    True
+    
+    # 댓글 보이게 해야 돼 ⬇️
     # comments= CommentSerializer(many=True, read_only=True)
     # comments_count = serializers.IntegerField(source='comments.count', read_only=True)
