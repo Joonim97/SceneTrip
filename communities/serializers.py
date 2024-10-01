@@ -33,8 +33,8 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class CommunitySerializer(serializers.ModelSerializer) :
-    #image = serializers.ImageField(use_url=True, required=False)
+class CommunitySerializer(serializers.ModelSerializer) : #커뮤
+    
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     
     class Meta :
@@ -47,7 +47,7 @@ class CommunitySerializer(serializers.ModelSerializer) :
 
 
 
-class CommunityDetailSerializer(CommunitySerializer):
+class CommunityDetailSerializer(CommunitySerializer): #커뮤 디테일
     image = serializers.ImageField(use_url=True, required=False)
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     

@@ -30,16 +30,18 @@ class CommentLike(models.Model):
         unique_together = ('user', 'comment')
 
 
-class Journal(models.Model):
+class Journal(models.Model): # 저널
     #  id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(null=True)
+    image = models.ImageField(null=True, blank=True)
     likes=models.ManyToManyField(User, related_name='journal_like')
     # author = models.ForeignKey(User, on_delete=models.CASCADE) # 주석 안 하면 valueerror 발생... 
     # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
     
     
-    
+# class JournalImage(models.Model): # 이미지 여러장 추가하기 위해 필요한 이미지용 모델
+#     journal=models.ForeignKey(Journal, related_name='journal_images', on_delete=models.CASCADE)
+#     image=models.ImageField(upload_to='journal_images/', blank=True, null=True)

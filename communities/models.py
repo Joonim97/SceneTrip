@@ -34,7 +34,7 @@ class Community(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(null=True)
+    image = models.ImageField(null=True, blank=True)
     unusables=models.ManyToManyField(User, related_name='community_unusable') #글신고
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
 

@@ -82,7 +82,7 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
         def post(self, request): # 커뮤니티 작성      
                 permission_classes = [IsAuthenticated] # 로그인권한
 
-                serializer = CommunitySerializer(data=request.data)
+                serializer = CommunityDetailSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         return Response(serializer.data, status=status.HTTP_201_CREATED)

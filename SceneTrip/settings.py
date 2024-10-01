@@ -159,7 +159,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+# static, media 경로 설정
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'SceneTrip' / 'static'
+MEDIA_URL = '/{}/'.format('media')
+MEDIA_ROOT= BASE_DIR / 'SceneTrip' / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
