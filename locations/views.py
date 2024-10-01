@@ -57,7 +57,6 @@ class LocationDetailAPIView(APIView):
         location = get_object_or_404(Location, pk=pk)
         serializer = LocationSerializer(location)
         return Response(serializer.data)
-    pass
 
 
 class LocationSearchAPIView(APIView):
