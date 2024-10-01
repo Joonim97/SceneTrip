@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Comment, CommentLike, Journal
+from django.shortcuts import get_object_or_404
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -35,17 +36,20 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 class JournalSerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
+    
     image = serializers.ImageField(use_url=True, required=False)
-    likes= Journal.likes
-    likes_count= serializers.IntegerField(source='Journal.likes.count()', read_only=True)
+    likes_count= serializers.SerializerMethodField() # likes 카운트 계산
     
     class Meta :
         model=Journal
-        fields='__all__'
-        read_only_fields = ('id','created_at','updated_at','likes','author','likes_count')
+        fields= '__all__'
+        read_only_fields = ('id','author','created_at','updated_at','likes',
+                            'likes_count')
 
+    def get_likes_count(self, journal_id):
+        return journal_id.likes.count()
 
 class JournalDetailSerializer(JournalSerializer):
+    
     comments= CommentSerializer(many=True, read_only=True)
     comments_count= serializers.IntegerField(source='comments.count', read_only=True)
-

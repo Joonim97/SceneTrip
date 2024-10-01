@@ -3,7 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Comment, CommentLike, Journal
-from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
+from .serializers import (
+    CommentSerializer, CommentLikeSerializer, JournalSerializer,
+    JournalDetailSerializer )
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from rest_framework.viewsets import ModelViewSet
@@ -74,6 +76,7 @@ class CommentLikeView(APIView):
 
 
 class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
+        
         queryset = Journal.objects.all().order_by('-created_at') # 생성최신순
         serializer_class = JournalSerializer
         
@@ -82,7 +85,9 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
         #         serializer = JournalSerializer(journal)
         #         return Response(journal)
         
-        def post(self, request): #  작성               
+        def post(self, request): #  작성 
+                permission_classes = [IsAuthenticated] # 로그인권한
+              
                 serializer = JournalSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
@@ -92,6 +97,7 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
 
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
+        
         def get_object(self, pk):
                 return get_object_or_404(Journal, pk=pk)
 
@@ -101,6 +107,8 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 return Response(serializer.data)
 
         def put(self, request, pk): # 저널 수정
+                permission_classes = [IsAuthenticated] # 로그인권한
+
                 journal = self.get_object(pk)
                 serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -108,6 +116,8 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                         return Response(serializer.data)
                 
         def delete(self, request, pk): # 저널 삭제
+                permission_classes = [IsAuthenticated] # 로그인권한
+
                 journal = self.get_object(pk)
                 journal.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
@@ -121,14 +131,15 @@ class JournalSearchSet(ListAPIView): # 저널 검색
         search_fields=[ 'title'] # 내용, 작성자로 찾기 추가해야 함
 
 
-class JournalLikeAPIView(APIView): # 저널 좋아요/좋취 
+class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소 
     permission_classes = [IsAuthenticated]
+    
     def post(self, request, pk):
         journal = get_object_or_404(Journal, pk=pk)
-
+    
         if request.user in journal.likes.all():
             journal.likes.remove(request.user) # 좋아요 이미 되어있으면
-            return Response("좋아요 취소", status=status.HTTP_200_OK)
+            return Response({"좋아요 취소"},   status=status.HTTP_200_OK )
         else:
             journal.likes.add(request.user) # 좋아요 되어있지 않으면
-            return Response("좋아요 +1",  status=status.HTTP_200_OK)
+            return Response({'좋아요 +1'},  status=status.HTTP_200_OK)

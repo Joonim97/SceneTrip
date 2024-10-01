@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from rest_framework import serializers
+from collections import Counter
 
 User = get_user_model()
 
@@ -35,8 +37,9 @@ class Journal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     image = models.ImageField(null=True)
+    likes=models.ManyToManyField(User, related_name='journal_like')
     # author = models.ForeignKey(User, on_delete=models.CASCADE) # 주석 안 하면 valueerror 발생... 
     # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
-    likes=models.ManyToManyField(User, related_name='journal_like')
+    
     
     
