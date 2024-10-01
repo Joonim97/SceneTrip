@@ -78,11 +78,6 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
         queryset = Community.objects.all().order_by('-created_at') # 생성최신순 조회
         serializer_class = CommunitySerializer
         
-        # def get(self, request): #전체목록 일단 주석처리리
-        #         community = Community.objects.all()
-        #         serializer = CommunitySerializer(community))
-        #         return Response(community)
-        
         def post(self, request): # 커뮤니티 작성      
                 permission_classes = [IsAuthenticated] # 로그인권한
 
@@ -95,7 +90,6 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
-        permission_classes = [IsAuthenticated] # 로그인권한
         
         def get_object(self, pk):
                 return get_object_or_404(Community, pk=pk)
@@ -106,6 +100,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 return Response(serializer.data)
 
         def put(self, request, pk): # 커뮤니티 수정
+                permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
                 serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -113,6 +108,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                         return Response(serializer.data)
                 
         def delete(self, request, pk): # 커뮤니티 삭제
+                permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
                 community.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
