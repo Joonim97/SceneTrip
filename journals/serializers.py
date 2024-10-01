@@ -14,7 +14,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'journal', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies']
-        read_only_fields = ['user', 'created_at', 'like_count', 'dislike_count', 'replies']
+        read_only_fields = ['journal', 'user', 'created_at', 'like_count', 'dislike_count', 'replies']
         
     def get_like_count(self, comment):
         return CommentLike.objects.filter(comment=comment, like_type='like').count()
@@ -27,6 +27,11 @@ class CommentSerializer(serializers.ModelSerializer):
         if request and hasattr(request, 'user'):
             validated_data['user'] = request.user
         return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        # journal 필드는 수정할 필요가 없으므로 validated_data에서 제거
+        validated_data.pop('journal', None)
+        return super().update(instance, validated_data)
     
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,15 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Comment, CommentLike, Journal
-from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
+from .models import Comment, CommentLike, Journal
+from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
+
+
 from django.conf import settings
 
 class CommentView(APIView):
@@ -18,7 +20,10 @@ class CommentView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def post(self, request, journal_id, parent_id=None):
         data = request.data.copy()
@@ -38,6 +43,10 @@ class CommentView(APIView):
     
     def put(self, request, comment_id): 
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("수정 권한이 없습니다.")
+        
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -46,6 +55,10 @@ class CommentView(APIView):
     
     def delete(self, request, comment_id):
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("삭제 권한이 없습니다.")
+        
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
