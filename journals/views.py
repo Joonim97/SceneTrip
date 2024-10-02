@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Comment, CommentLike, Journal
+from .models import Comment, CommentLike, Journal, JournalImage
 from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -11,6 +11,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from django.conf import settings
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class CommentView(APIView):
     def get(self, request, journal_id):
@@ -77,6 +78,7 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
         queryset = Journal.objects.all().order_by('-created_at') # 생성최신순
         serializer_class = JournalSerializer
         permission_classes = [IsAuthenticated]
+        parser_classes = (MultiPartParser, FormParser)
 
         # def get(self, request): #전체목록 일단 주석처리리
         #         journal = Journal.objects.all()
@@ -86,11 +88,14 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
         def post(self, request): # 작성
             serializer = JournalSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
-                serializer.save(user=request.user)  # 현재 로그인한 유저 저장
+                journal = serializer.save(user=request.user)  # 현재 로그인한 유저 저장
+
+                images = request.FILES.getlist('images')
+                for image in images:
+                    JournalImage.objects.create(journal=journal, image=image)
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
-
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def get_object(self, pk):
