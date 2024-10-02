@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from django.conf import settings
 from django.db.models import Q
+from django.utils.dateparse import parse_datetime
 
 class CommentView(APIView): # 저널 댓글
     def get(self, request, journal_id):
@@ -88,6 +89,9 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             title_query= self.request.query_params.get('title',None) # 제목 검색
             # content_query= self.request.query_params.get('content',None) # 내용 검색
             # author_query= self.request.query_params.get('author',None) # 작성자 검색
+            start_date= self.request.query_params.get('start_date', None) # 기간시작일
+            end_date= self.request.query_params.get('end_date', None) # 기간종료일
+            # 기간입력 예: ?start_date=2023-01-01T00:00:00Z&end_date=2023-12-31T23:59:59Z
             
             if search_query:
                 serializer_class=JournalDetailSerializer()
@@ -100,6 +104,12 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             #     queryset=queryset.filter( Q(content__icontains=title_query) )
             # if author_query :
             #     queryset=queryset.filter( Q(author__icontains=title_query) )
+            if start_date or end_date:
+                start_date_parsed = parse_datetime(start_date)
+                end_date_parsed = parse_datetime(end_date)
+                if start_date_parsed or end_date_parsed:
+                    queryset = queryset.filter(created_at__range=(start_date_parsed, end_date_parsed))
+
             return queryset
             
         def post(self, request): #  작성 
