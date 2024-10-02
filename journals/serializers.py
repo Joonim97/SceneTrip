@@ -7,7 +7,7 @@ class RecursiveSerializer(serializers.Serializer):
         serializer = self.parent.__class__(value, context=self.context)
         return serializer.data
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer): # 저널댓글 시리얼라이저
     replies = RecursiveSerializer(many=True, read_only=True)
     
     class Meta:
@@ -21,7 +21,7 @@ class CommentSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
         return super().create(validated_data)
     
-class CommentLikeSerializer(serializers.ModelSerializer):
+class CommentLikeSerializer(serializers.ModelSerializer): # 저널 댓글좋아요 시리얼라이저
     class Meta:
         model = CommentLike
         fields = ['id', 'user', 'comment', 'like_type']
@@ -41,7 +41,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 #         fields=['id','image']
 
 
-class JournalSerializer(serializers.ModelSerializer) : #저널
+class JournalSerializer(serializers.ModelSerializer) : # 저널
     # image = serializers.ImageField(use_url=True, required=False)
     likes_count= serializers.SerializerMethodField() # likes 카운트 계산
     author = serializers.CharField(source='author.username', read_only=True)

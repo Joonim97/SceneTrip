@@ -6,7 +6,7 @@ from collections import Counter
 
 User = get_user_model()
 
-class Comment(models.Model):
+class Comment(models.Model): # 저널 댓글
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comments')
     journal = models.ForeignKey('Journal', on_delete=models.CASCADE, related_name='journal_comments')
     content = models.TextField()
@@ -21,7 +21,7 @@ class Comment(models.Model):
         ordering = [ '-created_at']
     
 
-class CommentLike(models.Model):
+class CommentLike(models.Model): # 저널 댓글좋아요
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comment_likes')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='journal_likes')
     like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
@@ -33,7 +33,7 @@ class CommentLike(models.Model):
 class Journal(models.Model): # 저널
     #  id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals') 
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author') 
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -15,7 +15,7 @@ from rest_framework.generics import ListAPIView
 from django.conf import settings
 from django.db.models import Q
 
-class CommentView(APIView):
+class CommentView(APIView): # 저널 댓글
     def get(self, request, journal_id):
         comments = Comment.objects.filter(journal_id=journal_id, parent=None)
         serializer = CommentSerializer(comments, many=True)
@@ -53,7 +53,7 @@ class CommentView(APIView):
     
     
     
-class CommentLikeView(APIView):
+class CommentLikeView(APIView): # 저널 댓글좋아요
     def post(self, request, comment_id, like_type):
         comment = get_object_or_404(Comment, id=comment_id)
         like_instance, created = CommentLike.objects.get_or_create(
@@ -76,7 +76,7 @@ class CommentLikeView(APIView):
         return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
 
 
-class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성, 저널검색
+class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성, 저널검색
         queryset = Journal.objects.all().order_by('-created_at') # 생성최신순
         serializer_class = JournalSerializer
         
@@ -86,7 +86,7 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성, 저�
             search_query= self.request.query_params.get('search', None) # 'search'라는 파라미터로 검색어를 받음
             if search_query:
                 queryset=queryset.filter(
-                    Q(title__icontains=search_query) | Q(content__icontains=search_query)
+                    Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__icontains=search_query)
                 )
                 return queryset
             else :
