@@ -35,7 +35,7 @@ class CommentLikeSerializer(serializers.ModelSerializer): # 커뮤 댓글좋아�
 
 class CommunitySerializer(serializers.ModelSerializer) : # 커뮤
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
-    author = serializers.CharField(source='author.username', read_only=True)
+    author = serializers.CharField(source='author.nickname', read_only=True)
 
     class Meta :
         model=Community
@@ -50,8 +50,8 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤
 class CommunityDetailSerializer(CommunitySerializer): #커뮤 디테일
     image = serializers.ImageField(use_url=True, required=False)
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
-    author = serializers.CharField(source='author.username', read_only=True)
-    
+    author = serializers.CharField(source='author.nickname', read_only=True)
+
     class Meta :
         model=Community
         fields=[ 'id','title','author','created_at','updated_at','image','content', 'unusables_count' ]

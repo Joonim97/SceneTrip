@@ -31,7 +31,7 @@ class CommentLike(models.Model): # 커뮤 댓글좋아요
 class Community(models.Model): # 커뮤
     # id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author', null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

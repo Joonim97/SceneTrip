@@ -33,7 +33,7 @@ class CommentLike(models.Model): # 저널 댓글좋아요
 class Journal(models.Model): # 저널
     #  id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author') 
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author', null=True) 
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
