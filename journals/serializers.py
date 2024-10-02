@@ -43,12 +43,12 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 class JournalSerializer(serializers.ModelSerializer) : #저널
     # image = serializers.ImageField(use_url=True, required=False)
-    
     likes_count= serializers.SerializerMethodField() # likes 카운트 계산
+    author = serializers.CharField(source='author.username', read_only=True)
 
     class Meta :
         model=Journal
-        fields= [  'id','title','created_at', 'likes_count' ]
+        fields= [  'id','title','author','created_at', 'likes_count' ]
         read_only_fields = ('id','author','created_at','updated_at','likes',
                             'likes_count')
 
@@ -59,10 +59,11 @@ class JournalDetailSerializer(JournalSerializer): # 저널디테일
     image = serializers.ImageField(use_url=True, required=False)
     
     likes_count= serializers.SerializerMethodField() # likes 카운트 계산
+    author = serializers.CharField(source='author.username', read_only=True)
 
     class Meta :
         model=Journal
-        fields= [  'id','title','created_at','updated_at','image','content','likes_count']
+        fields= [  'id','title','author','created_at','updated_at','image','content','likes_count']
         read_only_fields = ('id','author','created_at','updated_at','likes',
                             'likes_count')
 
