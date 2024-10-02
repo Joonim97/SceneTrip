@@ -1,5 +1,6 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -61,6 +62,22 @@ class CommentView(APIView):
         
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class DislikedCommentsView(APIView):
+    def get(self, request, min_dislikes):
+        # 일정 수 이상의 싫어요를 받은 댓글을 필터링
+        disliked_comments = Comment.objects.filter(
+            id__in=CommentLike.objects.filter(like_type='dislike')
+                                      .values('comment')
+                                      .annotate(dislike_count=models.Count('comment'))
+                                      .filter(dislike_count__gte=min_dislikes)
+                                      .values('comment')
+        )
+
+        # 필터링된 댓글을 직렬화
+        serializer = CommentSerializer(disliked_comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     
     
