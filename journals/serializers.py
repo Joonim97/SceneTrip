@@ -58,16 +58,21 @@ class JournalSerializer(serializers.ModelSerializer) : # 저널
 class JournalDetailSerializer(JournalSerializer): # 저널디테일
     image = serializers.ImageField(use_url=True, required=False)
     
-    likes_count= serializers.SerializerMethodField() # likes 카운트 계산
+    likes_count= serializers.SerializerMethodField() # likes 수
     author = serializers.CharField(source='author.nickname', read_only=True)
+    comments= CommentSerializer(many=True, read_only=True, source='journal_comments')
+    comments_count= serializers.SerializerMethodField() # 댓글 수
 
     class Meta :
         model=Journal
-        fields= [  'id','title','author','created_at','updated_at','image','content','likes_count']
+        fields= [  'id','title','author','created_at','updated_at',
+                'image','content','likes_count','comments_count','comments']
         read_only_fields = ('id','author','created_at','updated_at','likes',
-                            'likes_count')
+                            'likes_count','comments_count','comments')
 
     def get_likes_count(self, journal_id):
         return journal_id.likes.count()
-    # comments= CommentSerializer(many=True, read_only=True)
-    # comments_count= serializers.IntegerField(source='comments.count', read_only=True)
+    
+    def get_comments_count(self, journal_id):
+        return journal_id.journal_comments.count()
+    
