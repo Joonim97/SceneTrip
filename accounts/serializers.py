@@ -1,8 +1,12 @@
 from rest_framework import serializers
+from journals.models import Journal
+from journals.serializers import JournalSerializer
+from locations.models import LocationSave
+from locations.serializers import LocationSaveSerializer
 from .models import User
 from django.db import models
-from journals.serializers import JournalSerializer
-from locations.serializers import LocationSaveSerializer
+from django.core.paginator import Paginator
+from rest_framework.pagination import PageNumberPagination
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,11 +34,29 @@ class SubUsernameSerializer(serializers.ModelSerializer):
         model = User
         fields = ['nickname']
 
-class MyPageSerializer(UserSerializer):
-    subscribings = SubUsernameSerializer(many=True, read_only=True)  # 구독 중인 사용자들
-    my_journals = JournalSerializer(many=True, read_only=True)  # 내가 쓴 글 역참조
-    location_save = LocationSaveSerializer(many=True, read_only=True)
 
-    class Meta(UserSerializer.Meta):
+class MyPageSerializer(serializers.ModelSerializer):
+    subscribings = serializers.SerializerMethodField()  # 구독 중인 사용자들
+    my_journals = serializers.SerializerMethodField()  # 내가 쓴 글 역참조
+    location_save = serializers.SerializerMethodField()  # 저장한 촬영지
+
+    profile_image = serializers.ImageField()
+
+    class Meta:
         model = User
         fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save']
+
+    def get_subscribings(self, obj):
+        # 구독 중인 사용자 중 최대 5명 반환
+        subscriptions = obj.subscribings.all()[:5]  # 가장 최근 구독된 5명만 가져오기
+        return SubUsernameSerializer(subscriptions, many=True).data
+
+    def get_my_journals(self, obj):
+        # 작성한 저널 중 최대 5개 반환
+        journals = obj.my_journals.all()[:5]  # 가장 최근 저널 5개만 가져오기
+        return JournalSerializer(journals, many=True).data
+
+    def get_location_save(self, obj):
+        # 저장한 촬영지 중 최대 5개 반환
+        saved_locations = obj.location_save.all()[:5]  # 가장 최근 저장된 5개만 가져오기
+        return LocationSaveSerializer(saved_locations, many=True).data
