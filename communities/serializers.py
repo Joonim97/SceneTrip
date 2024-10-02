@@ -36,14 +36,19 @@ class CommentLikeSerializer(serializers.ModelSerializer): # 커뮤 댓글좋아�
 class CommunitySerializer(serializers.ModelSerializer) : # 커뮤
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     author = serializers.CharField(source='author.nickname', read_only=True)
+    comments_count= serializers.SerializerMethodField() # 댓글 수
 
     class Meta :
         model=Community
-        fields=[ 'id','title','author','created_at', 'unusables_count' ]
-        read_only_fields = ('id','author','created_at','updated_at','unusables','unusables_count')
+        fields=[ 'id','title','author','created_at', 'comments_count','unusables_count' ]
+        read_only_fields = ('id','author','created_at','updated_at'
+                            'unusables_count','comments_count')
 
     def get_unusables_count(self, community_id) :
         return community_id.unusables.count()
+    
+    def get_comments_count(self, community_id):
+        return community_id.community_comments.count()
 
 
 
@@ -51,15 +56,18 @@ class CommunityDetailSerializer(CommunitySerializer): #커뮤 디테일
     image = serializers.ImageField(use_url=True, required=False)
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     author = serializers.CharField(source='author.nickname', read_only=True)
+    comments= CommentSerializer(many=True, read_only=True, source='community_comments')
+    comments_count= serializers.SerializerMethodField() # 댓글 수
 
     class Meta :
         model=Community
-        fields=[ 'id','title','author','created_at','updated_at','image','content', 'unusables_count' ]
-        read_only_fields = ('id','author','created_at','updated_at','unusables','unusables_count')
+        fields=[ 'id','title','author','created_at','updated_at',
+                'image','content', 'unusables_count','comments_count','comments' ]
+        read_only_fields = ('id','author','created_at','updated_at',
+                            'unusables','unusables_count','comments_count','comments')
 
     def get_unusables_count(self, community_id) :
         return community_id.unusables.count()
     
-    # 댓글 보이게 해야 돼 ⬇️
-    # comments= CommentSerializer(many=True, read_only=True)
-    # comments_count = serializers.IntegerField(source='comments.count', read_only=True)
+    def get_comments_count(self, community_id):
+        return community_id.community_comments.count()
