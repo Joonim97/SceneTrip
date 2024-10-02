@@ -190,7 +190,7 @@ class EamilResetConfirmView(APIView):
             # 유효성 검사를 통과하지 못하면 오류 반환
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-
+# 내가 쓴 글
 class MyJournalsListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -203,6 +203,7 @@ class MyJournalsListAPIView(generics.ListAPIView):
         
         return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
     
+# 촬영지 저장 전체목록
 class SavedLocationsListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -215,6 +216,7 @@ class SavedLocationsListAPIView(generics.ListAPIView):
 
         return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
     
+# 구독자 전체목록
 class SubscribingsListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -227,14 +229,15 @@ class SubscribingsListAPIView(generics.ListAPIView):
 
         return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
     
+# 구독자 글
 class SubsribingsjournalAPI(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] 
 
     def get(self, request, nickname, sub_nickname):
         user = get_object_or_404(User, nickname=nickname) # 닉네임으로 사용자 조회
         sub_user = get_object_or_404(User, nickname=sub_nickname) # 구독한 사용자를 조회
 
-        if user.subscribings.filter(nickname=sub_nickname).exists():
+        if user.subscribings.filter(nickname=sub_nickname).exists(): 
         # 구독한 사용자가 작성한 저널들 가져오기
             journals = sub_user.my_journals.all() # my_journals = 역참조한 글들
             serializer = JournalSerializer(journals, many=True)
