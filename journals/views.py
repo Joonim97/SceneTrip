@@ -83,14 +83,24 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
         def get_queryset(self): # 저널전체목록조회 & 저널검색 | method는 get | 검색어 아무것도 안 넣으면 전체목록 나옴옴
             permission_classes = [AllowAny]
             queryset = Journal.objects.all().order_by('-created_at')
-            search_query= self.request.query_params.get('search', None) # 'search'라는 파라미터로 검색어를 받음
+            
+            search_query= self.request.query_params.get('search', None) # 통합검색 | 'search'라는 파라미터로 검색어를 받음
+            title_query= self.request.query_params.get('title',None) # 제목 검색
+            # content_query= self.request.query_params.get('content',None) # 내용 검색
+            # author_query= self.request.query_params.get('author',None) # 작성자 검색
+            
             if search_query:
+                serializer_class=JournalDetailSerializer()
                 queryset=queryset.filter(
                     Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__icontains=search_query)
                 )
-                return queryset
-            else :
-                return queryset
+            if title_query :
+                queryset=queryset.filter( Q(title__icontains=title_query) )
+            # if content_query :
+            #     queryset=queryset.filter( Q(content__icontains=title_query) )
+            # if author_query :
+            #     queryset=queryset.filter( Q(author__icontains=title_query) )
+            return queryset
             
         def post(self, request): #  작성 
                 permission_classes = [IsAuthenticated] # 로그인권한
