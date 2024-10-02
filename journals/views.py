@@ -13,6 +13,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from django.conf import settings
+from django.db.models import Q
 
 class CommentView(APIView):
     def get(self, request, journal_id):
@@ -75,16 +76,22 @@ class CommentLikeView(APIView):
         return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
 
 
-class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
-        
+class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성, 저널검색
         queryset = Journal.objects.all().order_by('-created_at') # 생성최신순
         serializer_class = JournalSerializer
         
-        # def get(self, request): #전체목록 일단 주석처리리
-        #         journal = Journal.objects.all()
-        #         serializer = JournalSerializer(journal)
-        #         return Response(journal)
-        
+        def get_queryset(self): # 저널전체목록조회 & 저널검색 | method는 get | 검색어 아무것도 안 넣으면 전체목록 나옴옴
+            permission_classes = [AllowAny]
+            queryset = Journal.objects.all().order_by('-created_at')
+            search_query= self.request.query_params.get('search', None) # 'search'라는 파라미터로 검색어를 받음
+            if search_query:
+                queryset=queryset.filter(
+                    Q(title__icontains=search_query) | Q(content__icontains=search_query)
+                )
+                return queryset
+            else :
+                return queryset
+            
         def post(self, request): #  작성 
                 permission_classes = [IsAuthenticated] # 로그인권한
         
@@ -94,7 +101,7 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
                         return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
                         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST )
-
+        
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         

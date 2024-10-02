@@ -42,7 +42,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 
 class JournalSerializer(serializers.ModelSerializer) : #저널
-    image = serializers.ImageField(use_url=True, required=False)
+    # image = serializers.ImageField(use_url=True, required=False)
     
     likes_count= serializers.SerializerMethodField() # likes 카운트 계산
 
