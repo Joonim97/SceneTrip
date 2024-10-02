@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import EmailCheckSerializer, PasswordCheckSerializer, UserSerializer, MyPageSerializer
+
+from journals.serializers import JournalSerializer
+from locations.serializers import LocationSaveSerializer
+from .serializers import EmailCheckSerializer, PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
 from .emails import send_verification_email
 import uuid
 from django.http import HttpResponse
@@ -18,6 +21,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
 
+from rest_framework.pagination import PageNumberPagination
 User = get_user_model() # 필수 지우면 안됨
 
 # 회원가입
@@ -49,35 +53,6 @@ class VerifyEmailAPIView(APIView):
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-
-# # 로그인
-# class SigninAPIView(APIView):
-#     permission_classes = [AllowAny] # 로그인 인증 미진행 
-
-#     def post(self, request):
-#         # 유저 정보에 있는 user_id, password 가져오기
-#         user_id = request.data.get("user_id")
-#         password = request.data.get("password")
-#         try:
-#             user = User.objects.get(user_id=user_id) # 가져온 user_id 와 맞는 지 확인 아니면 예외처리
-#             if user.check_password(password):  # 해쉬 비밀번호 확인 후 맞으면 로그인 처리
-#                 serializer = UserSerializer(user)
-#                 res_data = serializer.data
-
-#                 refresh = RefreshToken.for_user(user)
-#                 refresh_token = str(refresh)
-#                 access_token = str(refresh.access_token)
-
-#                 res_data["access_token"] = access_token
-#                 res_data["refresh_token"] = refresh_token
-
-#                 return Response({"message": f"로그인 성공하셨습니다. 환영합니다 {user_id} 님", "data" : res_data}, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({"message": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-#         except User.DoesNotExist:
-#             return Response({"message": "해당 user_id에 대한 계정을 찾을 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
 
 # 로그아웃
 class LogoutAPIView(APIView):
@@ -92,14 +67,11 @@ class LogoutAPIView(APIView):
 
             return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
         return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
-    
 
+# 마이페이지
 class Mypage(ListAPIView): # 마이 페이지
     permission_classes = [IsAuthenticated]
-
-    # def get_queryset(self): # 내가 쓴 글 역참조 로직
-    #     return User.objects.none()
-
+    
     def get(self, request, nickname):
         my_page = get_object_or_404(User, nickname=nickname)
         if my_page == request.user:
@@ -111,8 +83,7 @@ class Mypage(ListAPIView): # 마이 페이지
         user = get_object_or_404(User, nickname=nickname)
         if user != request.user:
             return Response({"message": "수정할 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
-
-        # 클라이언트에서 profile_image를 비워서 보내면 이미지 제거 처리
+        
         if 'profile_image' in request.FILES:
             profile_image = request.FILES['profile_image']
             user.profile_image = profile_image 
@@ -122,20 +93,6 @@ class Mypage(ListAPIView): # 마이 페이지
 
         user.save()  # 변경 사항 저장
         return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
-
-    
-    # def put(self, request, nickname): # 마이페이지 수정
-    #             if request.user.is_authenticated: # 로그인 상태일때
-    #                     profile_image = get_object_or_404(User, nickname=nickname)
-    #                     if profile_image == request.user:
-    #                             profile_image.image.delete() # 이미지 삭제
-    #                             serializer = MyPageSerializer(
-    #                             profile_image, data=request.data, partial=True)
-    #                             if serializer.is_valid(raise_exception=True):
-    #                                     serializer.save()
-    #                             return Response(serializer.data)
-    #                     return Response({'작성자만 수정할 수 있습니다'}, status=403)
-    #             return Response({'로그인 후 이용 가능합니다'}, status=400)
 
 class SubscribeView(APIView):  # 구독 기능
     permission_classes = [IsAuthenticated]
@@ -232,3 +189,55 @@ class EamilResetConfirmView(APIView):
         else:
             # 유효성 검사를 통과하지 못하면 오류 반환
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class MyJournalsListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
+        if user == request.user:  # 요청한 사용자가 본인인지 확인
+            journals = user.my_journals.all()  # 사용자의 모든 저널 가져오기
+            serializer = JournalSerializer(journals, many=True)
+            return Response({'내가 쓴 글': serializer.data}, status=200)
+        
+        return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
+    
+class SavedLocationsListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
+        if user == request.user:  # 요청한 사용자가 본인인지 확인
+            saved_locations = user.location_save.all()  # 사용자의 모든 저장된 촬영지 가져오기
+            serializer = LocationSaveSerializer(saved_locations, many=True)
+            return Response({'저장된 촬영지': serializer.data}, status=200)
+
+        return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
+    
+class SubscribingsListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
+        if user == request.user:  # 요청한 사용자가 본인인지 확인
+            subscribings = user.subscribings.all()  # 사용자의 모든 구독 가져오기
+            serializer = SubUsernameSerializer(subscribings, many=True)
+            return Response({'구독 중인 사용자들': serializer.data}, status=200)
+
+        return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
+    
+class SubsribingsjournalAPI(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname, sub_nickname):
+        user = get_object_or_404(User, nickname=nickname) # 닉네임으로 사용자 조회
+        sub_user = get_object_or_404(User, nickname=sub_nickname) # 구독한 사용자를 조회
+
+        if user.subscribings.filter(nickname=sub_nickname).exists():
+        # 구독한 사용자가 작성한 저널들 가져오기
+            journals = sub_user.my_journals.all() # my_journals = 역참조한 글들
+            serializer = JournalSerializer(journals, many=True)
+            return Response({'구독한 사용자의 글': serializer.data}, status=200)
+    
+        return Response({"message": "구독한 사용자가 아닙니다."}, status=403)
