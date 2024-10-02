@@ -13,7 +13,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from django.conf import settings
 
-class CommentView(APIView):
+class CommentView(APIView): # 커뮤 댓글
     def get(self, request, community_id):
         comments = Comment.objects.filter(community_id=community_id, parent=None)
         serializer = CommentSerializer(comments, many=True)
@@ -51,7 +51,7 @@ class CommentView(APIView):
     
     
     
-class CommentLikeView(APIView):
+class CommentLikeView(APIView): # 커뮤 댓글좋아요
     def post(self, request, comment_id, like_type):
         comment = get_object_or_404(Comment, id=comment_id)
         like_instance, created = CommentLike.objects.get_or_create(
@@ -74,8 +74,8 @@ class CommentLikeView(APIView):
         return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
 
 
-class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작성
-        queryset = Community.objects.all().order_by('-created_at') 
+class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니티작성
+        queryset = Community.objects.all().order_by('-created_at') # 전체조회
         serializer_class = CommunitySerializer
 
         
@@ -84,7 +84,7 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
 
                 serializer = CommunityDetailSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
-                        serializer.save()
+                        serializer.save(author=request.user)
                         return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
                         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -118,15 +118,6 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 community.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
         
-
-# class JournalSearchSet(ListAPIView): # 커뮤니티 검색
-#         queryset=Community.objects.all()
-#         serializer_class=CommunitySerializer
-
-#         filter_backends=[SearchFilter]
-#         search_fields=[ 'title'] # 내용, 작성자로 찾기 추가해야 함
-
-
 
 class CommunityUnusableAPIView(APIView): # 커뮤글 신고
     permission_classes = [IsAuthenticated]
