@@ -4,7 +4,7 @@ from django.conf import settings
 
 User = get_user_model()
 
-class Comment(models.Model):
+class Comment(models.Model): # 커뮤 댓글
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comments')
     community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='community_comments')
     content = models.TextField()
@@ -19,7 +19,7 @@ class Comment(models.Model):
         ordering = [ '-created_at']
     
 
-class CommentLike(models.Model):
+class CommentLike(models.Model): # 커뮤 댓글좋아요
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comment_likes')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='community_likes')
     like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
@@ -28,13 +28,12 @@ class CommentLike(models.Model):
         unique_together = ('user', 'comment')
 
 
-class Community(models.Model):
-    # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸
+class Community(models.Model): # 커뮤니티
+    # id=models.IntegerField(primary_key=True)
     title = models.CharField(max_length=40)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author',null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(null=True)
-
-    # author = models.ForeignKey(User, on_delete=models.CASCADE)
-    unusable=models.ManyToManyField(User, related_name='community_unusable') #글신고누적수 표시용
+    image = models.ImageField(null=True, blank=True)
+    unusables=models.ManyToManyField(User, related_name='community_unusable') #글신고

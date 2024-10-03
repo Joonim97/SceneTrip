@@ -6,7 +6,7 @@ class RecursiveSerializer(serializers.Serializer):
         serializer = self.parent.__class__(value, context=self.context)
         return serializer.data
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer): # 커뮤 댓글 시리얼라이저
     replies = RecursiveSerializer(many=True, read_only=True)
     
     class Meta:
@@ -20,7 +20,7 @@ class CommentSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
         return super().create(validated_data)
     
-class CommentLikeSerializer(serializers.ModelSerializer):
+class CommentLikeSerializer(serializers.ModelSerializer): # 커뮤 댓글좋아요 시리얼라이저
     class Meta:
         model = CommentLike
         fields = ['id', 'user', 'comment', 'like_type']
@@ -33,20 +33,41 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class CommunitySerializer(serializers.ModelSerializer) :
-    # author = serializers.ReadOnlyField(source='author.username')
-    image = serializers.ImageField(use_url=True, required=False)
-    unusables = Community.unusable
-    unusables_count= serializers.IntegerField(source='Community.unusable.count', read_only=True)
-    
+class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
+    unusables_count= serializers.SerializerMethodField() # 신고수 카운트
+    author = serializers.CharField(source='author.nickname', read_only=True)
+    comments_count= serializers.SerializerMethodField() # 댓글 수
+
     class Meta :
         model=Community
-        fields='__all__'
-        read_only_fields = ('id','created_at','updated_at','unusable')
+        fields=[ 'id','title','author','created_at', 'comments_count','unusables_count' ]
+        read_only_fields = ('id','author','created_at','updated_at'
+                            'unusables_count','comments_count')
 
+    def get_unusables_count(self, community_id) :
+        return community_id.unusables.count()
     
+    def get_comments_count(self, community_id):
+        return community_id.community_comments.count()
 
 
 
-class CommunityDetailSerializer(CommunitySerializer):
-    True # 댓글 보이게 추가해야 함
+class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
+    image = serializers.ImageField(use_url=True, required=False)
+    unusables_count= serializers.SerializerMethodField() # 신고수 카운트
+    author = serializers.CharField(source='author.nickname', read_only=True)
+    comments= CommentSerializer(many=True, read_only=True, source='community_comments')
+    comments_count= serializers.SerializerMethodField() # 댓글 수
+
+    class Meta :
+        model=Community
+        fields=[ 'id','title','author','created_at','updated_at',
+                'image','content', 'unusables_count','comments_count','comments' ]
+        read_only_fields = ('id','author','created_at','updated_at',
+                            'unusables','unusables_count','comments_count','comments')
+
+    def get_unusables_count(self, community_id) :
+        return community_id.unusables.count()
+    
+    def get_comments_count(self, community_id):
+        return community_id.community_comments.count()
