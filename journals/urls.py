@@ -20,3 +20,6 @@ urlpatterns = [
     path('search/', JournalSearchSet.as_view(), name='journal_search'), # 저널 검색
     path('<int:pk>/like/', JournalLikeAPIView.as_view(), name='journal_like') # 저널 좋아요/좋아요취소
 ] 
+
+
+ddfdf
