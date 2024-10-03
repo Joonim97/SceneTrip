@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comment, CommentLike, Journal
+from .models import Comment, CommentLike, Journal, JournalImage, User
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -48,14 +48,21 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 class JournalSerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
-    image = serializers.ImageField(use_url=True, required=False)
     likes= Journal.likes
     likes_count= serializers.IntegerField(source='Journal.likes.count()', read_only=True)
+    user_nickname = serializers.ReadOnlyField(source='user.nickname')  # 사용자 닉네임 읽기 전용 필드
+    journal_images = JournalImageSerializer(many=True, read_only=True)  # 다중 이미지 시리얼라이저
     
     class Meta :
         model=Journal
         fields='__all__'
-        read_only_fields = ('id','created_at','updated_at','likes','author','likes_count')
+        read_only_fields = ('id','created_at','updated_at','likes','author','likes_count', 'hit_count')
+        
+        
+class JournalImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JournalImage
+        fields = ['id', 'image']  # 이미지 필드만 포함
 
 
 class JournalDetailSerializer(JournalSerializer):
