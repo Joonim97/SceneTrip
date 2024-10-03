@@ -4,9 +4,34 @@ from django.conf import settings
 from rest_framework import serializers
 from collections import Counter
 
-User = get_user_model()
 
-class Comment(models.Model): # 저널 댓글
+User = get_user_model()
+ 
+class Journal(models.Model):
+    # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸
+    title = models.CharField(max_length=40)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author', null=True) 
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    image = models.ImageField(null=True, blank=True)
+    likes=models.ManyToManyField(User, related_name='journal_like')
+#   user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
+    hit_count = models.IntegerField(default=0)
+
+    def hit(self):
+        self.hit_count += 1
+        self.save()
+
+    def __str__(self):
+        return self.title
+    
+class JournalImage(models.Model):
+    journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_images')  # 저널과의 관계
+    image = models.ImageField(upload_to="journal_images/")
+
+    
+class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comments')
     journal = models.ForeignKey('Journal', on_delete=models.CASCADE, related_name='journal_comments')
     content = models.TextField()
@@ -18,25 +43,15 @@ class Comment(models.Model): # 저널 댓글
         return f'Comment by {self.user.username} on {self.journal.title}'
     
     class Meta:
-        ordering = [ '-created_at']
+        ordering = ['-created_at']
     
 
 class CommentLike(models.Model): # 저널 댓글좋아요
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comment_likes')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='journal_likes')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='journal_comment_likes')
     like_type = models.CharField(max_length=10, choices=[('like', 'Like'), ('dislike', 'Dislike')])
     
     class Meta:
         unique_together = ('user', 'comment')
 
 
-class Journal(models.Model): # 저널
-    #  id=models.IntegerField(primary_key=True)
-    title = models.CharField(max_length=40)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author', null=True) 
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(null=True, blank=True)
-    likes=models.ManyToManyField(User, related_name='journal_like')
-    
