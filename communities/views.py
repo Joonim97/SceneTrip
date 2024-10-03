@@ -87,9 +87,9 @@ class CommunityListAPIView(ListAPIView): # 전체목록조회, 커뮤니티작�
                 serializer = CommunitySerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
-                        return Response(serializer.data, status=201)
+                        return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                        return Response(serializer.errors, status=400)
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
@@ -111,7 +111,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def delete(self, request, pk): # 커뮤니티 삭제
                 community = self.get_object(pk)
                 community.delete()
-                return Response({'삭제되었습니다'}, status=204)
+                return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
         
 
 # class JournalSearchSet(ListAPIView): # 커뮤니티 검색
@@ -120,3 +120,20 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
 
 #         filter_backends=[SearchFilter]
 #         search_fields=[ 'title'] # 내용, 작성자로 찾기 추가해야 함
+
+
+
+class CommunityUnusableAPIView(APIView): # 커뮤글 신고
+    permission_classes = [IsAuthenticated]
+
+
+    def post(self, request, pk):
+        user = request.user
+        community = get_object_or_404(Community, pk=pk)
+
+        if user not in community.unusable.all():
+            community.unusable.add(user) 
+            
+            return Response({"신고가 접수되었습니다"},  status=status.HTTP_200_OK)
+        
+        return Response({"이미 신고되었습니다"},  status=status.HTTP_200_OK)

@@ -32,26 +32,19 @@ class CommentLikeSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
         return super().create(validated_data)
 
-# class CommentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Comment
-#         fields = '__all__'
-#         read_only_fields = ('article',)
-
-#     def to_representation(self, instance):
-#         ret = super().to_representation(instance)
-#         ret.pop('article')
-#         return ret
 
 class CommunitySerializer(serializers.ModelSerializer) :
     # author = serializers.ReadOnlyField(source='author.username')
-    # image = serializers.ImageField(use_url=True, required=False)
-
+    image = serializers.ImageField(use_url=True, required=False)
+    unusables = Community.unusable
+    unusables_count= serializers.IntegerField(source='Community.unusable.count', read_only=True)
+    
     class Meta :
         model=Community
-        # fields=['id','title','content','created_at','updated_at']
         fields='__all__'
-        read_only_fields = ('id','created_at','updated_at')
+        read_only_fields = ('id','created_at','updated_at','unusable')
+
+    
 
 
 
