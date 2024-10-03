@@ -106,9 +106,9 @@ class CommentLikeView(APIView): # 저널 댓글좋아요
         else:
             message = f'{like_type.capitalize()}!'
         
-        # 싫어요가 3개 이상일 경우 댓글 삭제
+        # 싫어요가 100개 이상일 경우 댓글 삭제
         dislike_count = CommentLike.objects.filter(comment=comment, like_type='dislike').count()
-        if dislike_count >= 3:
+        if dislike_count >= 100:
             comment.delete()
             return Response({'message': '댓글이 삭제되었습니다.'}, status=status.HTTP_201_CREATED)
         

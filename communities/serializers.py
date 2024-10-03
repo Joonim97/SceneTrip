@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Comment, CommentLike, Community
+from django.shortcuts import get_object_or_404
+
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -7,12 +9,20 @@ class RecursiveSerializer(serializers.Serializer):
         return serializer.data
 
 class CommentSerializer(serializers.ModelSerializer): # 커뮤 댓글 시리얼라이저
+    like_count = serializers.SerializerMethodField()
+    dislike_count = serializers.SerializerMethodField()
     replies = RecursiveSerializer(many=True, read_only=True)
     
     class Meta:
         model = Comment
-        fields = ['id', 'community', 'user', 'content', 'created_at', 'replies']
-        read_only_fields = ['user', 'created_at', 'replies']
+        fields = ['id', 'community', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies']
+        read_only_fields = ['community', 'user', 'created_at', 'like_count', 'dislike_count', 'replies']
+        
+    def get_like_count(self, comment):
+        return CommentLike.objects.filter(comment=comment, like_type='like').count()
+    
+    def get_dislike_count(self, comment):
+        return CommentLike.objects.filter(comment=comment, like_type='dislike').count()
         
     def create(self, validated_data):
         request = self.contex.get('request')

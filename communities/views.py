@@ -50,8 +50,9 @@ class CommentView(APIView): # 커뮤 댓글
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     
-    
 class CommentLikeView(APIView): # 커뮤 댓글좋아요
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, comment_id, like_type):
         comment = get_object_or_404(Comment, id=comment_id)
         like_instance, created = CommentLike.objects.get_or_create(
@@ -64,15 +65,21 @@ class CommentLikeView(APIView): # 커뮤 댓글좋아요
         if not created:
             if like_instance.like_type == like_type:
                 like_instance.delete()
-                return Response({'message': f'{like_type.capitalize()} 취소'}, status=status.HTTP_200_OK)
+                message = f'{like_type.capitalize()} 취소'
             else:
                 like_instance.like_type = like_type
                 like_instance.save()
-                return Response({'message': f'{like_type.capitalize()} 변경'}, status=status.HTTP_200_OK)
-            
-        # 좋아요/싫어요가 눌리지 않은 상태
-        return Response({'message': f'{like_instance.capitalize()}!'}, status=status.HTTP_201_CREATED)
-
+                message = f'{like_type.capitalize()} 변경됨'
+        else:
+            message = f'{like_type.capitalize()}!'
+        
+        # 싫어요가 100개 이상일 경우 댓글 삭제
+        dislike_count = CommentLike.objects.filter(comment=comment, like_type='dislike').count()
+        if dislike_count >= 100:
+            comment.delete()
+            return Response({'message': '댓글이 삭제되었습니다.'}, status=status.HTTP_201_CREATED)
+        
+        return Response({'message': message}, status=status.HTTP_200_OK)
 
 class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니티작성
         queryset = Community.objects.all().order_by('-created_at') # 전체조회
