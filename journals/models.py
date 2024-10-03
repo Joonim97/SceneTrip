@@ -40,7 +40,3 @@ class Journal(models.Model): # 저널
     image = models.ImageField(null=True, blank=True)
     likes=models.ManyToManyField(User, related_name='journal_like')
     
-
-# class JournalImage(models.Model): # 이미지 여러장 추가하기 위해 필요한 이미지용 모델
-#     journal=models.ForeignKey(Journal, related_name='journal_images', on_delete=models.CASCADE)
-#     image=models.ImageField(upload_to='journal_images/', blank=True, null=True)

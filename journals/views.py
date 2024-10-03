@@ -112,7 +112,7 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
 
             return queryset
             
-        def post(self, request): #  작성 
+        def post(self, request): # 저널 작성 
                 permission_classes = [IsAuthenticated] # 로그인권한
         
                 serializer = JournalDetailSerializer(data=request.data)

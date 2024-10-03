@@ -33,7 +33,7 @@ class CommentLikeSerializer(serializers.ModelSerializer): # 커뮤 댓글좋아�
         return super().create(validated_data)
 
 
-class CommunitySerializer(serializers.ModelSerializer) : # 커뮤
+class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     author = serializers.CharField(source='author.nickname', read_only=True)
     comments_count= serializers.SerializerMethodField() # 댓글 수
@@ -52,7 +52,7 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤
 
 
 
-class CommunityDetailSerializer(CommunitySerializer): #커뮤 디테일
+class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
     image = serializers.ImageField(use_url=True, required=False)
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
     author = serializers.CharField(source='author.nickname', read_only=True)
