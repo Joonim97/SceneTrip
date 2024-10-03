@@ -34,21 +34,13 @@ class CommentLikeSerializer(serializers.ModelSerializer): # 저널 댓글좋아�
         return super().create(validated_data)
 
 
-
-# class JournalImageSerializer(serializers.ModelSerializer): # 저널이미지
-#     class Meta :
-#         model= JournalImage
-#         fields=['id','image']
-
-
 class JournalSerializer(serializers.ModelSerializer) : # 저널
-    # image = serializers.ImageField(use_url=True, required=False)
     likes_count= serializers.SerializerMethodField() # likes 카운트 계산
     author = serializers.CharField(source='author.nickname', read_only=True)
 
     class Meta :
         model=Journal
-        fields= [  'id','title','author','created_at', 'likes_count' ]
+        fields= [  'id','title','author','created_at','content', 'likes_count' ]
         read_only_fields = ('id','author','created_at','updated_at','likes',
                             'likes_count')
 
