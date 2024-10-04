@@ -86,13 +86,13 @@ class JournalListAPIView(ListAPIView): # 전체목록조회, 저널작성
         #         return Response(journal)
         
         def post(self, request): # 작성
+            permission_classes = [IsAuthenticated] # 로그인권한
             serializer = JournalSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
-                journal = serializer.save(user=request.user)  # 현재 로그인한 유저 저장
-
-                images = request.FILES.getlist('images')
-                for image in images:
-                    JournalImage.objects.create(journal=journal, image=image)
+                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+                journal_images = request.FILES.getlist('images')
+                for journal_image in journal_images:
+                    JournalImage.objects.create(journal=journal, journal_image=journal_image)
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
