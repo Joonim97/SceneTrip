@@ -11,8 +11,11 @@ class Community(models.Model): # 커뮤니티
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(null=True, blank=True)
     unusables=models.ManyToManyField(User, related_name='community_unusable') #글신고
+
+class CommunityImage(models.Model): # 커뮤니티 이미지
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='community_images')  # 저널과의 관계
+    community_image = models.ImageField(upload_to="community_images/")
 
 class Comment(models.Model): # 커뮤 댓글
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comments')

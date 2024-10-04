@@ -2,7 +2,7 @@ from . import views
 from django.urls import path
 from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, PasswordResetRequestView,
                     PasswordResetConfirmView, EmailResetRequestView,
-                    EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI)
+                    EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
@@ -22,5 +22,6 @@ urlpatterns = [
     path('<str:nickname>/mypage/my_journals/', MyJournalsListAPIView.as_view(), name='my_journals'), # 내가 쓴 글 전체보기
     path('<str:nickname>/mypage/saved_locations/', SavedLocationsListAPIView.as_view(), name='saved_locations'), # 저장한 촬영지 전체보기
     path('<str:nickname>/mypage/subscribings/', SubscribingsListAPIView.as_view(), name='subscribings'), # 내가 구독한 사람 전체보기
+    path('<str:nickname>/mypage/communities_author/', MyCommunityListAPIView.as_view(), name='my_journals'), # 내가 쓴 글 전체보기
     path('<str:nickname>/mypage/<str:sub_nickname>/', SubsribingsjournalAPI.as_view(), name='subscribings_journal'), # 내가 구독한 인원 글 보기
 ]

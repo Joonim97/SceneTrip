@@ -71,10 +71,10 @@ class DislikedCommentsView(APIView):
         # 일정 수 이상의 싫어요를 받은 댓글을 필터링
         disliked_comments = Comment.objects.filter(
             id__in=CommentLike.objects.filter(like_type='dislike')
-                                      .values('comment')
-                                      .annotate(dislike_count=models.Count('comment'))
-                                      .filter(dislike_count__gte=min_dislikes)
-                                      .values('comment')
+                                    .values('comment')
+                                    .annotate(dislike_count=models.Count('comment'))
+                                    .filter(dislike_count__gte=min_dislikes)
+                                    .values('comment')
         )
 
         # 필터링된 댓글을 직렬화
@@ -166,7 +166,7 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             else:
                 return Response(serializer.errors, status=400)
 
-              
+
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def get_object(self, pk):
                 return get_object_or_404(Journal, pk=pk)

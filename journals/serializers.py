@@ -54,7 +54,7 @@ class JournalSerializer(serializers.ModelSerializer):
     likes_count= serializers.IntegerField(source='likes.count', read_only=True) # 좋아요 수 조회
     author_nickname = serializers.ReadOnlyField(source='author.nickname')  # 사용자 닉네임 읽기 전용 필드
     journal_images = JournalImageSerializer(many=True, read_only=True)  # 다중 이미지 시리얼라이저
-   
+
     class Meta:
         model = Journal
         fields = ['id','title','content','author','created_at','likes_count','author_nickname','journal_images','hit_count']  # 보이는 필드들

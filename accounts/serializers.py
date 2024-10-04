@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from communities.serializers import CommunitySerializer
 from journals.models import Journal
 from journals.serializers import JournalSerializer
 from locations.models import LocationSave
@@ -62,13 +63,14 @@ class SubUsernameSerializer(serializers.ModelSerializer):
 # 마이페이지 
 class MyPageSerializer(serializers.ModelSerializer):
     subscribings = serializers.SerializerMethodField()  # 구독 중인 사용자들
-    my_journals = serializers.SerializerMethodField()  # 내가 쓴 글 역참조
+    my_journals = serializers.SerializerMethodField()  # 저널에 내가 쓴 글 역참조
     location_save = serializers.SerializerMethodField()  # 저장한 촬영지
     profile_image = serializers.ImageField() # 프로필 이미지
+    communities_author = serializers.SerializerMethodField() # 커뮤니티에 내가 쓴 글
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author']
 
     def get_subscribings(self, obj):
         # 구독 중인 사용자 중 최대 5명 반환
@@ -84,3 +86,8 @@ class MyPageSerializer(serializers.ModelSerializer):
         # 저장한 촬영지 중 최대 5개 반환
         saved_locations = obj.location_save.all()[:5]  # 가장 최근 저장된 5개만 가져오기
         return LocationSaveSerializer(saved_locations, many=True).data
+    
+    def get_communities_author(self, obj):
+        # 저장한 촬영지 중 최대 5개 반환
+        communities_author = obj.communities_author.all()[:5]  # 가장 최근 커뮤니티 내가 쓴글 5개만 가져오기
+        return CommunitySerializer(communities_author, many=True).data

@@ -257,3 +257,16 @@ class SubsribingsjournalAPI(generics.ListAPIView):
             return Response({'구독한 사용자의 글': serializer.data}, status=200)
     
         return Response({"message": "구독한 사용자가 아닙니다."}, status=403)
+    
+
+class MyCommunityListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
+        if user == request.user:  # 요청한 사용자가 본인인지 확인
+            journals = user.communities_author.all()  # 사용자의 모든 커뮤니티 가져오기
+            serializer = JournalSerializer(journals, many=True)
+            return Response({'커뮤니티 내가 쓴 글': serializer.data}, status=200)
+        
+        return Response({"message": "다시 시도"}, status=400)  # 본인이 아닐 경우
