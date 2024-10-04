@@ -34,8 +34,9 @@ class Journal(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_journals')
     hit_count = models.IntegerField(default=0)
+    likes=models.ManyToManyField(User, related_name='journal_like')
 
     def hit(self):
         self.hit_count += 1
@@ -44,6 +45,7 @@ class Journal(models.Model):
     def __str__(self):
         return self.title
     
+
 class JournalImage(models.Model):
     journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_images')  # 저널과의 관계
-    image = models.ImageField(upload_to="journal_images/")
+    journal_image = models.ImageField(upload_to="journal_images/")
