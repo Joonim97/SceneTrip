@@ -94,6 +94,10 @@ class LocationSearchAPIView(APIView):
         sorted_location_data = sorted(
             location_data, key=lambda x: custom_sort_key(x['title'])
         )
+        
+        # 키워드에 해당하는 검색결과가 없을 때.
+        if not location_data or search_value.strip() == "":
+            return Response({"message": "검색 결과가 없습니다"}, status=status.HTTP_200_OK)
 
         return Response(sorted_location_data, status=status.HTTP_200_OK)
 
