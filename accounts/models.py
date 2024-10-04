@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 # 커스텀 유저 
@@ -17,6 +17,18 @@ class User(AbstractUser):
     subscribings = models.ManyToManyField('self', symmetrical=False, related_name='subscribes') # 구독
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # UUID 필드, 고유번호 필드 추가
+    new_email = models.EmailField(null=True, blank=True) # 새 이메일
+    
+    # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
+    AUTHOR= 'aj'
+    NOMAL = 'nm'
+    GRADE = [
+        (AUTHOR, 'author'),
+        (NOMAL, 'nomal'),
+    ]
+    grade = models.CharField(max_length=2, choices=GRADE, default=NOMAL)
+    
+
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드
     REQUIRED_FIELDS = ['email']  # 필수로 입력해야 할 필드
