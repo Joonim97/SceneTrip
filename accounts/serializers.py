@@ -7,11 +7,12 @@ from .models import User
 from django.db import models
 from django.core.paginator import Paginator
 from rest_framework.pagination import PageNumberPagination
+import re
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'nickname','email', 'user_id', 'birth_date', 'gender']
+        fields = ['username', 'password', 'nickname','email', 'user_id', 'birth_date', 'gender', 'grade']
 
         
     def validate(self, data):
@@ -19,12 +20,36 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("사용 중인 이메일입니다.")
         if User.objects.filter(username=data['username']).exists():
             raise serializers.ValidationError("사용 중인 username입니다.")
+        
+        # 닉네임 유효성 검사
+        if len(data['nickname']) > 20 and len(data['nickname']) >= 3:
+            raise serializers.ValidationError("닉네임은 3자 이상 20자 이하여야 합니다.")
+        if User.objects.filter(username=data['nickname']).exists():
+            raise serializers.ValidationError("사용 중인 닉네임 입니다.")
+        
+        # 비밀번호 유효성 검사
+        if not re.search(r"[a-zA-Z]", data['password']):
+            raise serializers.ValidationError("비밀번호는 하나 이상의 영문이 포함되어야 합니다.")
+        if not re.search(r"\d", data['password']):
+            raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
+        if not re.search(r"[!@#$%^&*()]", data['password']):
+            raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
+        
+        # 아이디 유효성 검사
+        if not re.search(r"[a-zA-Z]", data['user_id']):
+            raise serializers.ValidationError("아이디는 하나 이상의 영문이 포함되어야 합니다.")
+        if not re.search(r"\d", data['user_id']):
+            raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
+        if not re.search(r"[!@#$%^&*()]", data['user_id']):
+            raise serializers.ValidationError("아이디는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
         return data
-    
+
+
 # 비밀번호 재설정
 class PasswordCheckSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
 
+# 이메일 재설정
 class EmailCheckSerializer(serializers.Serializer):
     new_email = serializers.EmailField(write_only=True)
 
@@ -34,13 +59,12 @@ class SubUsernameSerializer(serializers.ModelSerializer):
         model = User
         fields = ['nickname']
 
-
+# 마이페이지 
 class MyPageSerializer(serializers.ModelSerializer):
     subscribings = serializers.SerializerMethodField()  # 구독 중인 사용자들
     my_journals = serializers.SerializerMethodField()  # 내가 쓴 글 역참조
     location_save = serializers.SerializerMethodField()  # 저장한 촬영지
-
-    profile_image = serializers.ImageField()
+    profile_image = serializers.ImageField() # 프로필 이미지
 
     class Meta:
         model = User

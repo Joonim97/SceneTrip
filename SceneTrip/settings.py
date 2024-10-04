@@ -13,8 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os, json
 from django.core.exceptions import ImproperlyConfigured
-from datetime import datetime, timedelta
-
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,22 +45,21 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 API_KEY = get_secret("API_KEY")  # OpenAI
 
+
+MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 SIMPLE_JWT = {
-REST_FRAMEWORK = {
-'DEFAULT_AUTHENTICATION_CLASSES': [
-'rest_framework_simplejwt.authentication.JWTAuthentication', # JWT 인증 추가
-],
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
-}}
-
+}
 # Application definition
 
 INSTALLED_APPS = [
@@ -81,6 +79,7 @@ INSTALLED_APPS = [
     'journals',
     'communities',
     'locations',
+
     'hitcount',
 ]
 
@@ -90,7 +89,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -135,18 +134,14 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
+
 # DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
 
@@ -184,12 +179,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-# static, media 경로 설정
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'SceneTrip' / 'static'
-MEDIA_URL = '/{}/'.format('media')
-MEDIA_ROOT= BASE_DIR / 'SceneTrip' / 'media'
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
