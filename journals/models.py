@@ -6,10 +6,6 @@ from collections import Counter
 
 
 User = get_user_model()
-    
-class JournalImage(models.Model):
-    journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_images')  # 저널과의 관계
-    image = models.ImageField(upload_to="journal_images/")
 
     
 class Comment(models.Model):
