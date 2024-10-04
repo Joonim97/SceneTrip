@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Comment, CommentLike, Community
+from .models import Comment, CommentLike, Community, CommunityImage
 from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -86,15 +86,19 @@ class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니�
         serializer_class = CommunitySerializer
 
         
-        def post(self, request): # 커뮤니티 작성      
-                permission_classes = [IsAuthenticated] # 로그인권한
+        def post(self, request): # 작성
+            permission_classes = [IsAuthenticated] # 로그인권한
+            serializer = CommunityDetailSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
 
-                serializer = CommunityDetailSerializer(data=request.data)
-                if serializer.is_valid(raise_exception=True):
-                        serializer.save(author=request.user)
-                        return Response(serializer.data, status=status.HTTP_201_CREATED)
-                else:
-                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                community = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+                community_images = request.FILES.getlist('images')
+                for community_image in community_images:
+                    CommunityImage.objects.create(community=community, community_image=community_image)
+
+                return Response(serializer.data, status=201)
+            else:
+                return Response(serializer.errors, status=400)
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
