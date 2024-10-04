@@ -47,23 +47,23 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class JournalImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = JournalImage
-        fields = ['id', 'image']  # 이미지 필드만 포함
-        
-class JournalSerializer(serializers.ModelSerializer) :
-    likes= Journal.likes
-    likes_count= serializers.IntegerField(source='Journal.likes.count()', read_only=True)
-    author = serializers.CharField(source='author.nickname', read_only=True)
-    user_nickname = serializers.ReadOnlyField(source='user.nickname')  # 사용자 닉네임 읽기 전용 필드
+
+        fields = ['id', 'journal_image']  # 이미지 필드만 포함
+
+class JournalSerializer(serializers.ModelSerializer):
+    likes_count= serializers.IntegerField(source='likes.count', read_only=True) # 좋아요 수 조회
+    author_nickname = serializers.ReadOnlyField(source='author.nickname')  # 사용자 닉네임 읽기 전용 필드
     journal_images = JournalImageSerializer(many=True, read_only=True)  # 다중 이미지 시리얼라이저
-    
-    class Meta :
-        model=Journal
-        fields= [  'id','title','author','created_at','content', 'likes_count' ]
-        read_only_fields = ('id','created_at','updated_at','likes','author','likes_count', 'hit_count')
-        
-    def get_likes_count(self, journal_id):
-        return journal_id.likes.count()
-        
+   
+    class Meta:
+        model = Journal
+        fields = ['id','title','content','author','created_at','likes_count','author_nickname','journal_images','hit_count']  # 보이는 필드들
+        read_only_fields = ('likes','likes_count','author_nickname', 'author', 'created_at', 'updated_at', 'hit_count')  # 읽기 전용 필드
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+
 
 class JournalDetailSerializer(JournalSerializer): # 저널디테일
     image = serializers.ImageField(use_url=True, required=False)
