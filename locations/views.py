@@ -24,8 +24,17 @@ def custom_sort_key(value):
 class LocationListAPIView(APIView):
     # 촬영지 목록 조회
     def get(self, request):
-        location_data = Location.objects.values('id', 'title', 'place_name')
-        sorted_location_data = sorted(location_data, key=lambda x: custom_sort_key(x['title']))
+        sort_by = request.query_params.get('sort_by', 'title') # parameter로 sort_by를 따로 지정해주지 않으면 title이 default.
+        location_data = Location.objects.values('id', 'title', 'place_name', 'save_count')
+        
+        if sort_by == 'title':
+            # 제목으로 정렬. 위의 custom_sort_key에 따라 정렬.
+            sorted_location_data = sorted(location_data, key=lambda x: custom_sort_key(x['title']))
+        elif sort_by == 'popularity':
+            # 저장수에 따라 정렬. 많이 저장된 촬영지 == 인기 촬영지.
+            sorted_location_data = sorted(location_data, key=lambda x: x['save_count'], reverse=True)
+        else:
+            return Response({"error": "Invalid sort_by parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(sorted_location_data)
     
@@ -43,9 +52,19 @@ class LocationRegionAPIView(APIView):
             return Response({"error": "Invalid region"}, status=400)
         
         region_data = {}
-        location_data = Location.objects.filter(address__contains=region)
-        serializer = LocationSerializer(location_data, many=True)
-        sorted_data = sorted(serializer.data, key=lambda x: custom_sort_key(x['title']))
+        location_data = Location.objects.filter(address__contains=region).values('id', 'title', 'place_name', 'save_count')
+
+        sort_by = request.query_params.get('sort_by', 'title') # parameter로 sort_by를 따로 지정해주지 않으면 title이 default.
+        
+        if sort_by == 'title':
+            # 제목으로 정렬. 위의 custom_sort_key에 따라 정렬.
+            sorted_data = sorted(location_data, key=lambda x: custom_sort_key(x['title']))
+        elif sort_by == 'popularity':
+            # 저장수에 따라 정렬. 많이 저장된 촬영지 == 인기 촬영지.
+            sorted_data = sorted(location_data, key=lambda x: x['save_count'], reverse=True)
+        else:
+            return Response({"error": "Invalid sort_by parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        
         region_data[region] = sorted_data
 
         return Response(region_data)
@@ -71,11 +90,10 @@ class LocationSearchAPIView(APIView):
             for field in filter_fields:
                 filters |= Q(**{f"{field}__icontains": search_value})
 
-        location_data = Location.objects.filter(filters).values('id', 'title', 'place_name')
+        location_data = Location.objects.filter(filters).values('id', 'title', 'place_name', 'save_count')
         sorted_location_data = sorted(
             location_data, key=lambda x: custom_sort_key(x['title'])
         )
-        # serializer = LocationSerializer(sorted_location_data, many=True)
 
         return Response(sorted_location_data, status=status.HTTP_200_OK)
 
@@ -86,10 +104,15 @@ class LocationSaveView(APIView):
     def post(self, request, id):
         user = request.user
         location = get_object_or_404(Location, id=id)
-
         location_save, created = LocationSave.objects.get_or_create(user=user, location=location)
+
         if created:
+            location.save_count += 1
+            location.save()
+            location_save.save()
             return Response({"message": "촬영지 정보가 저장되었습니다."}, status=status.HTTP_201_CREATED)
         else:
+            location.save_count -= 1
+            location.save()
             location_save.delete()
-            return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT) 
+            return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
