@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from journals.serializers import JournalSerializer
 from locations.serializers import LocationSaveSerializer
 from .serializers import EmailCheckSerializer, PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
-from .emails import send_verification_email
+from .emails import send_verification_email, send_verification_email_reset
 import uuid
 from django.http import HttpResponse
 from django.contrib.auth.models import User
@@ -48,6 +48,7 @@ class VerifyEmailAPIView(APIView):
         try:
             user = get_object_or_404(User, verification_token=token)
             user.verification_token = ''
+            user.grade = 1
             user.is_active = True # 활성화
             user.save()
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
@@ -61,23 +62,33 @@ class LogoutAPIView(APIView):
 
     def post(self, request):
         if request.user: # 사용자가 맞으면
-            refresh_token_str = request.data.get("refresh_token")
-            refresh_token = RefreshToken(refresh_token_str)
-            refresh_token.blacklist()
 
-            return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
-        return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            refresh_token = request.data.get("refresh") 
+            if not refresh_token: # refresh token 이 없을경우
+                return Response({"message": "리프레시 토큰이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                refresh_token = RefreshToken(refresh_token)
+                refresh_token.blacklist()
+                return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
+            except:
+                return Response({"message":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"로그인을 해주시길 바랍니다"}, status=status.HTTP_400_BAD_REQUEST)
 
 # 마이페이지
 class Mypage(ListAPIView): # 마이 페이지
     permission_classes = [IsAuthenticated]
     
     def get(self, request, nickname):
-        my_page = get_object_or_404(User, nickname=nickname)
+        try: # 사용자가 맞는지 아닌지에 대한 예외처리
+            my_page = get_object_or_404(User, nickname=nickname)
+        except:
+            return Response({"message": "해당 유저를 찾을 수 없습니다."}, status=404)
         if my_page == request.user:
             serializer = MyPageSerializer(my_page)
             return Response({'내 정보':serializer.data},status=200)
-        return Response({"message": "다시 시도"}, status=400)
+        return Response({"message": "다시 유저의 마이페이지는 볼 수 없습니다."}, status=400)
     
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
@@ -151,45 +162,47 @@ class PasswordResetConfirmView(APIView):
 
     
 
-# Eamil 리셋
+
+
+
+# 이메일 리셋 로직
 class EmailResetRequestView(APIView):
+    permission_classes = [IsAuthenticated]  # 로그인된 사용자만 가능
+
     def post(self, request):
-        username = request.data.get('username')
-        user = User.objects.filter(username=username).first()
-        if user:
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-            reset_url = f"{request.scheme}://{request.get_host()}/reset/{uid}/{token}/"
-            # message = f"안녕하세요 {user.username}님,\n\n비밀번호 재설정을 위해 아래 링크를 클릭하세요:\n{reset_url}\n\n감사합니다."
-            message = f'uid: {uid}  |  token: {token}'
-            send_mail(
-                '이메일 변경 요청',
-                message,
-                'noreply@gmail.com',
-                [user.email],
-                fail_silently=False,
-            )
-        return Response({"message": "해당 유저을 사용하는 계정이 있는 경우, 이메일 재설정 메일을 전송합니다."}, status=status.HTTP_200_OK)
-    
-# Email 재설정
+        user = request.user
+        new_email = request.data.get("new_email")
+
+        # 중복 이메일 확인
+        if User.objects.filter(email=new_email).exists():
+            return Response({"message": "이미 사용 중인 이메일입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 새로운 이메일에 대한 인증 토큰 생성
+        user.verification_token = str(uuid.uuid4())
+        user.new_email = new_email  # 새로운 이메일 필드 추가 필요
+        user.save()
+
+        # 이메일 전송
+        send_verification_email_reset(user)  # 새로운 이메일로 인증 메일 전송
+        return Response({"message": "이메일 변경 확인을 위한 이메일을 전송했습니다."}, status=status.HTTP_200_OK)
+
+
+# 이메일 인증 메일이 날아올 경우
 class EamilResetConfirmView(APIView):
-    def post(self, request, uidb64, token):
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-        if not default_token_generator.check_token(user, token):
-                    return Response({"message": "토큰 또는 아이디 값이 맞지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-                
-        serializer = EmailCheckSerializer(data=request.data)
-        if serializer.is_valid():
-            # 유효성 검사를 통과한 데이터에서 이메일을 가져오기
-            new_email = serializer.validated_data['new_email']
-            user.email = new_email
+    def get(self, request, token):
+        # 예외처리 해서 만약 안될경우 서버 안터지게
+        try:
+            user = get_object_or_404(User, verification_token=token)
+            user.email = user.new_email
+            user.new_email = ''
+            user.verification_token = ''
+            user.is_active = True # 활성화
             user.save()
-            return Response({"message": "이메일이 변경되었습니다."}, status=status.HTTP_200_OK)
-        else:
-            # 유효성 검사를 통과하지 못하면 오류 반환
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+            return HttpResponse('이메일 변경이 완료되었습니다.', status=status.HTTP_200_OK)
+        except:
+            return HttpResponse({'error':'이메일 변경이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # 내가 쓴 글
 class MyJournalsListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
