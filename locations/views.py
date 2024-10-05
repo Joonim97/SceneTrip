@@ -1,12 +1,17 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from .models import Location, LocationSave
 from .serializers import LocationSerializer
+from django.conf import settings
 import re
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 
 
 def custom_sort_key(value):
@@ -91,9 +96,7 @@ class LocationSearchAPIView(APIView):
                 filters |= Q(**{f"{field}__icontains": search_value})
 
         location_data = Location.objects.filter(filters).values('id', 'title', 'place_name', 'save_count')
-        sorted_location_data = sorted(
-            location_data, key=lambda x: custom_sort_key(x['title'])
-        )
+        sorted_location_data = sorted(location_data, key=lambda x: custom_sort_key(x['title']))
         
         # 키워드에 해당하는 검색결과가 없을 때.
         if not location_data or search_value.strip() == "":
@@ -120,3 +123,21 @@ class LocationSaveView(APIView):
             location.save()
             location_save.delete()
             return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+
+
+class RecommendAPIView(APIView):
+        # AI 여행 플래닝 서비스
+        permission_classes = [AllowAny]
+
+        def post(self, request):
+                llm = ChatOpenAI(model="gpt-4o-mini", api_key=settings.API_KEY)
+                template = '{text} 동안의 문경새재 도립공원을 포함한 여행 계획을 간략하게 알려줘.'
+                prompt = PromptTemplate(template=template, input_variables=['text'])
+                llm_chain = LLMChain(prompt=prompt, llm=llm)
+                text_to_summarize = request.data.get('text', '')
+                
+                if not text_to_summarize:
+                        return Response({'error': 'No text provided to summarize'}, status=400)
+        
+                response = llm_chain.run(text=text_to_summarize)
+                return Response(response)
