@@ -71,10 +71,10 @@ class DislikedCommentsView(APIView):
         # 일정 수 이상의 싫어요를 받은 댓글을 필터링
         disliked_comments = Comment.objects.filter(
             id__in=CommentLike.objects.filter(like_type='dislike')
-                                      .values('comment')
-                                      .annotate(dislike_count=models.Count('comment'))
-                                      .filter(dislike_count__gte=min_dislikes)
-                                      .values('comment')
+                                    .values('comment')
+                                    .annotate(dislike_count=models.Count('comment'))
+                                    .filter(dislike_count__gte=min_dislikes)
+                                    .values('comment')
         )
 
         # 필터링된 댓글을 직렬화
@@ -126,20 +126,23 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             search_query= self.request.query_params.get('search', None) # 통합검색 | 'search'라는 파라미터로 검색어를 받음
             title_query= self.request.query_params.get('title',None) # 제목 검색
             content_query= self.request.query_params.get('content',None) # 내용 검색
-            author_query= self.request.query_params.get('author',None) # 작성자 검색
+            # author_query= self.request.query_params.get('author',None) # 작성자 검색
             start_date= self.request.query_params.get('start_date', None) # 기간시작일
             end_date= self.request.query_params.get('end_date', None) # 기간종료일
             # 기간입력 예: ?start_date=2023-01-01&end_date=2023-12-31
             
+            # if search_query:
+            #     queryset=queryset.filter(
+            #         Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__nickname__icontains=author_query) )
             if search_query:
                 queryset=queryset.filter(
-                    Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__nickname__icontains=author_query) )
+                    Q(title__icontains=search_query) | Q(content__icontains=search_query))
             if title_query :
                 queryset=queryset.filter( Q(title__icontains=title_query) )
             if content_query :
                 queryset=queryset.filter( Q(content__icontains=content_query) )
-            if author_query :
-                queryset=queryset.filter( Q(author__nickname__icontains=author_query) )
+            # if author_query :
+            #     queryset=queryset.filter( Q(author__nickname__icontains=author_query) )
             
             if start_date:
                 start_date_parsed = parse_date(start_date) 
@@ -164,12 +167,14 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             else:
                 return Response(serializer.errors, status=400)
 
-              
+
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def get_object(self, pk):
                 return get_object_or_404(Journal, pk=pk)
 
         def get(self, request, pk): # 저널 상세조회
+                permission_classes = [AllowAny] # 로그인권한 필요X.
+
                 journal = self.get_object(pk)
                 journal.hit() # 저널 조회수 업데이트
                 serializer = JournalDetailSerializer(journal)
@@ -178,18 +183,20 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def put(self, request, pk): # 저널 수정
                 permission_classes = [IsAuthenticated] # 로그인권한
 
-                journal = self.get_object(pk)
-                serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
-                if serializer.is_valid(raise_exception=True):
+                if request.user.is_authenticated: # 로그인 상태일때
+                    journal = self.get_object(pk)
+                    serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
+                    if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         return Response(serializer.data)
                 
         def delete(self, request, pk): # 저널 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
-
-                journal = self.get_object(pk)
-                journal.delete()
-                return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)     
+                
+                if request.user.is_authenticated: # 로그인 상태일때
+                    journal = self.get_object(pk)
+                    journal.delete()
+                    return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)     
 
 
 class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소 
@@ -204,3 +211,4 @@ class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소
         else:
             journal.likes.add(request.user) # 좋아요 되어있지 않으면
             return Response({'좋아요 +1'},  status=status.HTTP_200_OK)
+Response

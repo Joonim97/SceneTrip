@@ -22,3 +22,9 @@ toposort==1.10
 typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.2
+openai==1.51.0
+langchain==0.3.2
+langchain-core==0.3.8
+langchain-openai==0.2.1
+langchain-text-splitters==0.3.0
+langsmith==0.1.131
