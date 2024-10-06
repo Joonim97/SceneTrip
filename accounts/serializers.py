@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", data['password']):
             raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(data['password']) > 6 or len(data['password']) < 20:
+        if len(data['password']) < 6 and len(data['password']) > 20:
             raise serializers.ValidationError("비밀번호는 5글자 이상 20글자 이하여야 합니다.")
         if len(data['password']) == 0:
             raise serializers.ValidationError("비밀번호를 입력해주십시오.")
@@ -47,8 +47,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(data['user_id']) > 6 or len(data['user_id']) < 20:
-            raise serializers.ValidationError("아이디는 5글자 이상 20글자 이하여야 합니다.")
+        if len(data['password']) < 6 or len(data['password']) > 20:
+            raise serializers.ValidationError("비밀번호는 6글자 이상 20글자 이하여야 합니다.")
         if len(data['user_id']) == 0:
             raise serializers.ValidationError("아이디를 입력해주십시오.")
 
@@ -67,7 +67,7 @@ class PasswordCheckSerializer(serializers.Serializer):
             raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", value):
             raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(value) < 6 or len(value) > 20:
+        if len(value) < 6 and len(value) > 20:
             raise serializers.ValidationError("비밀번호는 5글자 이상 20글자 이하여야 합니다.")
         if len(value) == 0:
             raise serializers.ValidationError("비밀번호를 입력해주십시오.")
@@ -91,10 +91,11 @@ class MyPageSerializer(serializers.ModelSerializer):
     location_save = serializers.SerializerMethodField()  # 저장한 촬영지
     profile_image = serializers.ImageField() # 프로필 이미지
     communities_author = serializers.SerializerMethodField() # 커뮤니티에 내가 쓴 글
+    journal_like = serializers.SerializerMethodField() # 내가 좋아요한 저널 글 목록 
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_like']
 
     def get_subscribings(self, obj):
         # 구독 중인 사용자 중 최대 5명 반환
@@ -112,6 +113,11 @@ class MyPageSerializer(serializers.ModelSerializer):
         return LocationSaveSerializer(saved_locations, many=True).data
     
     def get_communities_author(self, obj):
-        # 저장한 촬영지 중 최대 5개 반환
+        # 내가 쓴 커뮤니티 글
         communities_author = obj.communities_author.all()[:5]  # 가장 최근 커뮤니티 내가 쓴글 5개만 가져오기
         return CommunitySerializer(communities_author, many=True).data
+    
+    def get_journal_like(self, obj):
+        # 내가 좋아요한 저널 글
+        journal_like = obj.journal_like.all()[:5]  # 가장 최근 좋아요한 저널 글 5개만 가져오기
+        return JournalSerializer(journal_like, many=True).data
