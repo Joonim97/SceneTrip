@@ -245,6 +245,22 @@ class MyJournalsListAPIView(generics.ListAPIView):
         
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우
     
+# 내가 좋아요한 저널 글 목록
+class LikeJournalsListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, nickname):
+        try:
+            user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
+        except:
+            return Response({"error": "사용자를 찾을수 없습니다."}, status=404)
+        if user == request.user:  # 요청한 사용자가 본인인지 확인
+            journals = user.journal_like.all()  # 사용자의 모든 저널 가져오기
+            serializer = JournalSerializer(journals, many=True)
+            return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우    
+    
 # 촬영지 저장 전체목록
 class SavedLocationsListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
