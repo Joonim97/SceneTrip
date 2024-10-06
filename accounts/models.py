@@ -18,6 +18,7 @@ class User(AbstractUser):
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # UUID 필드, 고유번호 필드 추가
     new_email = models.EmailField(null=True, blank=True) # 새 이메일
+    new_password = models.CharField(max_length=20, null=True, blank=True) # 새 비밀번호
     
     # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
     AUTHOR= 'aj'
