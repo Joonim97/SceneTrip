@@ -44,6 +44,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
         return super().create(validated_data)
 
+
 class JournalImageSerializer(serializers.ModelSerializer): # 저널이미지 시리얼라이저
     class Meta:
         model = JournalImage
@@ -70,6 +71,7 @@ class JournalSerializer(serializers.ModelSerializer) :
     def get_likes_count(self, journal_id):
         return journal_id.journal_likes.count()
         
+
 
 class JournalDetailSerializer(JournalSerializer): # 저널디테일
     likes_count= serializers.SerializerMethodField() # 좋아요 수
