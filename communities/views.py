@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from .models import Comment, CommentLike, Community, CommunityImage
 from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
@@ -15,15 +16,19 @@ from django.conf import settings
 
 class CommentView(APIView): # 커뮤 댓글
     def get(self, request, community_id):
-        comments = Comment.objects.filter(community_id=community_id, parent=None)
+        comments = Comment.objects.filter(community_id=community_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
-    def post(self, request, community_id):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
+    def post(self, request, community_id, parent_id=None):
         data = request.data.copy()
+        community = get_object_or_404(Community, id=community_id)
         data['community'] = community_id
-        
-        parent_id = data.get('parent', None)
         
         if parent_id:
             parent_comment = get_object_or_404(Comment, id=parent_id)
@@ -32,12 +37,16 @@ class CommentView(APIView): # 커뮤 댓글
         
         serializer = CommentSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(community_id=community_id)
+            serializer.save(community=community)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request, comment_id): 
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("수정 권한이 없습니다.")
+        
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -46,6 +55,10 @@ class CommentView(APIView): # 커뮤 댓글
     
     def delete(self, request, comment_id):
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("삭제 권한이 없습니다.")
+        
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     

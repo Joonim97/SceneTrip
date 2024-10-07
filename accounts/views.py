@@ -26,6 +26,10 @@ User = get_user_model() # 필수 지우면 안됨
 
 # 회원가입
 class SignupAPIView(APIView):
+    
+    def get(self, request):
+        return render(request, 'accounts/signup.html')
+    
     def post(self, request):
         try:
             serializer = UserSerializer(data=request.data)

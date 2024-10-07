@@ -25,7 +25,7 @@ class CommentSerializer(serializers.ModelSerializer): # 커뮤 댓글 시리얼�
         return CommentLike.objects.filter(comment=comment, like_type='dislike').count()
         
     def create(self, validated_data):
-        request = self.contex.get('request')
+        request = self.context.get('request')
         if request and hasattr(request, 'user'):
             validated_data['user'] = request.user
         return super().create(validated_data)
