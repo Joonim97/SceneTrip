@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from communities.serializers import CommunitySerializer
 from journals.serializers import JournalSerializer
 from locations.serializers import LocationSaveSerializer
 from .serializers import EmailCheckSerializer, PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
@@ -230,8 +231,16 @@ class EamilResetConfirmView(APIView):
             return HttpResponse({'error':'이메일 변경이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# 커스텀 페이지네이션
+class CustomPagination(PageNumberPagination):
+        page_size = 5
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+
+
 # 내가 쓴 글
 class MyJournalsListAPIView(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request, nickname):
@@ -239,10 +248,20 @@ class MyJournalsListAPIView(generics.ListAPIView):
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             journals = user.my_journals.all()  # 사용자의 모든 저널 가져오기
+
+            # 페이지네이션 적용
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(journals, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = JournalSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            # 페이지네이션이 필요 없는 경우 전체 데이터 반환
             serializer = JournalSerializer(journals, many=True)
             return Response({'내가 쓴 글': serializer.data}, status=status.HTTP_200_OK)
         
-        return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우
+        return Response({"error": "다시 시도"}, status=status.HTTP_400_BAD_REQUEST)  # 본인이 아닐 경우
     
 # 촬영지 저장 전체목록
 class SavedLocationsListAPIView(generics.ListAPIView):
@@ -254,6 +273,14 @@ class SavedLocationsListAPIView(generics.ListAPIView):
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             saved_locations = user.location_save.all()  # 사용자의 모든 저장된 촬영지 가져오기
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(saved_locations, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = LocationSaveSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
             serializer = LocationSaveSerializer(saved_locations, many=True)
             return Response({'저장된 촬영지': serializer.data}, status=status.HTTP_200_OK)
 
@@ -269,6 +296,14 @@ class SubscribingsListAPIView(generics.ListAPIView):
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             subscribings = user.subscribings.all()  # 사용자의 모든 구독 가져오기
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(subscribings, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = SubUsernameSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
             serializer = SubUsernameSerializer(subscribings, many=True)
             return Response({'구독 중인 사용자들': serializer.data}, status=status.HTTP_200_OK)
 
@@ -286,6 +321,14 @@ class SubsribingsjournalAPI(generics.ListAPIView):
         if user.subscribings.filter(nickname=sub_nickname).exists(): 
         # 구독한 사용자가 작성한 저널들 가져오기
             journals = sub_user.my_journals.all() # my_journals = 역참조한 글들
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(journals, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = JournalSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
             serializer = JournalSerializer(journals, many=True)
             return Response({'구독한 사용자의 글': serializer.data}, status=status.HTTP_200_OK)
     
@@ -300,8 +343,16 @@ class MyCommunityListAPIView(generics.ListAPIView):
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
-            journals = user.communities_author.all()  # 사용자의 모든 커뮤니티 가져오기
-            serializer = JournalSerializer(journals, many=True)
+            communities = user.communities_author.all()  # 사용자의 모든 커뮤니티 가져오기
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(communities, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = CommunitySerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            serializer = CommunitySerializer(communities, many=True)
             return Response({'커뮤니티 내가 쓴 글': serializer.data}, status=status.HTTP_200_OK)
         
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우
@@ -315,6 +366,14 @@ class LikeJournalsListAPIView(generics.ListAPIView):
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             like_journal = user.journal_like.all()  # 사용자의 모든 저널 가져오기
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(like_journal, request)
+            
+            if page is not None:  # 페이지네이션이 적용된 경우
+                serializer = JournalSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
             serializer = JournalSerializer(like_journal, many=True)
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         
