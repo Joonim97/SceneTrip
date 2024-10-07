@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comment, CommentLike, Community, CommunityLike, CommunityDislike
+from .models import Comment, CommentLike, Community, CommunityLike, CommunityDislike, CommunityImage
 from django.shortcuts import get_object_or_404
 
 class RecursiveSerializer(serializers.Serializer):
