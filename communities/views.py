@@ -157,14 +157,17 @@ class CommunityLikeAPIView(APIView): # 커뮤 좋아요
     def post(self, request, pk):
         community = get_object_or_404(Community, pk=pk)
 
-        if CommunityLike.objects.filter(community=community, user=request.user).exists():
-            return Response({"이미 좋아요 했습니다"}, status=status.HTTP_200_OK)
-        elif CommunityDislike.objects.filter(community=community, user=request.user).exists():
+        if CommunityLike.objects.filter(community=community, user=request.user).exists(): # 좋아요 두번 누르면
+            CommunityLike.objects.filter(community=community, user=request.user).delete()
+            return Response({"좋아요 취소"}, status=status.HTTP_200_OK)
+        
+        elif CommunityDislike.objects.filter(community=community, user=request.user).exists(): # 싫어요 누르고 좋아요 누르면
             CommunityDislike.objects.filter(community=community, user=request.user).delete()
             CommunityLike.objects.create(community=community, user=request.user)
-            return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+            return Response({'좋아요 +1 | 싫어요 -1'}, status=status.HTTP_200_OK)
+        
         else:
-            CommunityLike.objects.create(community=community, user=request.user)
+            CommunityLike.objects.create(community=community, user=request.user) # 좋아요 처음 누르면
             return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
 
 class CommunityDislikeAPIView(APIView): # 커뮤 싫어요
@@ -173,14 +176,17 @@ class CommunityDislikeAPIView(APIView): # 커뮤 싫어요
     def post(self, request, pk):
         community = get_object_or_404(Community, pk=pk)
 
-        if CommunityDislike.objects.filter(community=community, user=request.user).exists():
-            return Response({"이미 싫어요 했습니다"}, status=status.HTTP_200_OK)
-        elif CommunityLike.objects.filter(community=community, user=request.user).exists():
+        if CommunityDislike.objects.filter(community=community, user=request.user).exists(): # 싫어요 두번 누르면
+            CommunityDislike.objects.filter(community=community, user=request.user).delete()
+            return Response({"싫어요 취소"}, status=status.HTTP_200_OK)
+        
+        elif CommunityLike.objects.filter(community=community, user=request.user).exists(): # 좋아요 누르고 싫어요 누르면
             CommunityLike.objects.filter(community=community, user=request.user).delete()
             CommunityDislike.objects.create(community=community, user=request.user)
-            return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
+            return Response({'좋아요 -1 | 싫어요 +1'}, status=status.HTTP_200_OK)
+        
         else:
-            CommunityDislike.objects.create(community=community, user=request.user)
+            CommunityDislike.objects.create(community=community, user=request.user) # 싫어요 처음 누르면
             return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
 
 class CommunityUnusableAPIView(APIView): # 커뮤글 신고
