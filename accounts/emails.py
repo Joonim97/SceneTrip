@@ -9,7 +9,7 @@ def send_verification_email(user):
     recipient_list = [user.email]
     send_mail(subject, message, email_from, recipient_list)
 
-    if user.grade == 'aj':
+    if user.grade == 'author':
         new_journal_subject = '새 journalist 신청이 들어왔습니다. 관리자는 인증을 완료해주세요.'
         new_journal_message = f'새로운 {user.nickname}님의 journalist 신청이 들어왔습니다.'
         recipient_list = [settings.MANAGER_EMAIL]

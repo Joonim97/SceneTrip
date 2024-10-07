@@ -51,7 +51,7 @@ class VerifyEmailAPIView(APIView):
         # 예외처리 해서 만약 안될경우 서버 안터지게
         try:
             user = get_object_or_404(User, verification_token=token)
-            user.verification_token = ''
+            user.verification_token = '' 
             user.grade = 1
             user.is_active = True # 활성화
             user.save()
@@ -96,6 +96,7 @@ class Mypage(ListAPIView): # 마이 페이지
             return Response({'내 정보':serializer.data},status=200)
         return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
     
+    # 프로필 수정
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
         if user != request.user:
@@ -110,8 +111,8 @@ class Mypage(ListAPIView): # 마이 페이지
         user.save()  # 변경 사항 저장
         return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
 
-
-class SubscribeView(APIView):  # 구독 기능
+# 구독 기능
+class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, nickname):
         # 구독 대상 사용자 조회
@@ -121,17 +122,19 @@ class SubscribeView(APIView):  # 구독 기능
         except:
             return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
         
-        if me in user.subscribes.all(): # 내가 대상 사용자를 이미 구독하고 있는지 확인
+        # 내가 대상 사용자를 구독하고 있는 상태인지 확인
+        if me in user.subscribes.all():
             user.subscribes.remove(me)
             return Response("구독취소를 했습니다.", status=status.HTTP_200_OK)
         else:
+            # 나한테 구독을 안할 경우
             if nickname != me.nickname:
                 user.subscribes.add(me)
                 return Response("구독했습니다.", status=status.HTTP_200_OK)
             else:
                 return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
 
-# 비밀번호 리셋 로직
+# 비밀번호 초기화
 class PasswordResetRequestView(APIView):
     permission_classes = [IsAuthenticated]  # 로그인된 사용자만 가능
 
@@ -166,7 +169,7 @@ class PasswordResetRequestView(APIView):
             return Response({"error": "사용자를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
 
-# 이메일 인증 메일이 날아올 경우
+# 비밀번호 리셋 이메일 인증 메일이 날아올 경우
 class PasswordResetConfirmView(APIView):
     def get(self, request, token):
         # 예외처리 해서 만약 안될경우 서버 안터지게
@@ -182,7 +185,7 @@ class PasswordResetConfirmView(APIView):
             return HttpResponse({'error':'비밀번호 변경이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)    
 
 
-# 이메일 리셋
+# 이메일 초기화
 class EmailResetRequestView(APIView):
     permission_classes = [IsAuthenticated]  # 로그인된 사용자만 가능
 
@@ -233,7 +236,6 @@ class CustomPagination(PageNumberPagination):
         page_size_query_param = 'page_size'
         max_page_size = 100
 
-
 # 내가 쓴 글
 class MyJournalsListAPIView(generics.ListAPIView):
     pagination_class = CustomPagination
@@ -245,11 +247,10 @@ class MyJournalsListAPIView(generics.ListAPIView):
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             journals = user.my_journals.all()  # 사용자의 모든 저널 가져오기
 
-            # 페이지네이션 적용
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(journals, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            if page is not None:
                 serializer = JournalSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -258,22 +259,23 @@ class MyJournalsListAPIView(generics.ListAPIView):
             return Response({'내가 쓴 글': serializer.data}, status=status.HTTP_200_OK)
         
         return Response({"error": "다시 시도"}, status=status.HTTP_400_BAD_REQUEST)  # 본인이 아닐 경우
-    
+
 # 촬영지 저장 전체목록
 class SavedLocationsListAPIView(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request, nickname):
-
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
             saved_locations = user.location_save.all()  # 사용자의 모든 저장된 촬영지 가져오기
 
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(saved_locations, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            # 페이지네이션이 될 경우
+            if page is not None: 
                 serializer = LocationSaveSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -284,19 +286,20 @@ class SavedLocationsListAPIView(generics.ListAPIView):
     
 # 구독자 전체목록
 class SubscribingsListAPIView(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request, nickname):
-
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
-        if user == request.user:  # 요청한 사용자가 본인인지 확인
+        if user == request.user:
             subscribings = user.subscribings.all()  # 사용자의 모든 구독 가져오기
 
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(subscribings, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            # 페이지네이션이 될 경우
+            if page is not None: 
                 serializer = SubUsernameSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -307,10 +310,10 @@ class SubscribingsListAPIView(generics.ListAPIView):
     
 # 구독자 글
 class SubsribingsjournalAPI(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated] 
 
     def get(self, request, nickname, sub_nickname):
-            
         user = get_object_or_404(User, nickname=nickname) # 닉네임으로 사용자 조회
         sub_user = get_object_or_404(User, nickname=sub_nickname) # 구독한 사용자를 조회
         
@@ -318,10 +321,11 @@ class SubsribingsjournalAPI(generics.ListAPIView):
         # 구독한 사용자가 작성한 저널들 가져오기
             journals = sub_user.my_journals.all() # my_journals = 역참조한 글들
 
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(journals, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            # 페이지네이션이 될 경우
+            if page is not None:
                 serializer = JournalSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -332,19 +336,20 @@ class SubsribingsjournalAPI(generics.ListAPIView):
     
 
 class MyCommunityListAPIView(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request, nickname):
-
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
-        if user == request.user:  # 요청한 사용자가 본인인지 확인
-            communities = user.communities_author.all()  # 사용자의 모든 커뮤니티 가져오기
+        if user == request.user:
+            communities = user.communities_author.all()  # 사용자가 작성한 모든 커뮤니티 가져오기
 
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(communities, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            # 페이지네이션이 될 경우
+            if page is not None:
                 serializer = CommunitySerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -355,18 +360,20 @@ class MyCommunityListAPIView(generics.ListAPIView):
     
 # 내가 좋아요한 저널 글 목록
 class LikeJournalsListAPIView(generics.ListAPIView):
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
-        if user == request.user:  # 요청한 사용자가 본인인지 확인
-            like_journal = user.journal_like.all()  # 사용자의 모든 저널 가져오기
+        if user == request.user:
+            like_journal = user.journal_like.all()  # 사용자가 좋아요 한 저널 글들 가져오기
 
+            # 페이지네이션
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(like_journal, request)
-            
-            if page is not None:  # 페이지네이션이 적용된 경우
+            # 페이지네이션이 될 경우
+            if page is not None:
                 serializer = JournalSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
@@ -386,9 +393,10 @@ class DeleteAPIView(APIView):  # 회원탈퇴
         if user != deleted_user:
             return Response({"error": "본인계정만 탈퇴하실수 있습니다"}, status=400)  # 본인이 아닐 경우
 
+        # 비밀번호 유효성 검사
         serializer = PasswordCheckSerializer(data=request.data)
         if serializer.is_valid():
-            password = serializer.validated_data['password']  # 수정된 부분
+            password = serializer.validated_data['password']
 
             # 비밀번호 확인
             if user.check_password(password):
