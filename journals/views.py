@@ -159,7 +159,7 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
                 return Response( {"error" : "저널리스트 회원이 아닙니다"}, status=status.HTTP_403_FORBIDDEN)
 
             if serializer.is_valid(raise_exception=True):
- journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
                 journal_images = request.FILES.getlist('images')
                 for journal_image in journal_images:
                     JournalImage.objects.create(journal=journal, journal_image=journal_image)

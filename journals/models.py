@@ -7,10 +7,8 @@ import uuid
 
 User = get_user_model()
 
-class Comment(models.Model): # 저널댓글
 
-    
-class Comment(models.Model):
+class Comment(models.Model): # 저널댓글
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_comments')
     journal = models.ForeignKey('Journal', on_delete=models.CASCADE, related_name='journal_comments')
     content = models.TextField()
