@@ -56,7 +56,7 @@ class VerifyEmailAPIView(APIView):
         try:
             user = get_object_or_404(User, verification_token=token)
             user.verification_token = ''
-            user.grade = 1
+            user.grade = 0
             user.is_active = True # 활성화
             user.save()
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
