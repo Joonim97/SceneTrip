@@ -118,10 +118,20 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def put(self, request, pk): # 커뮤니티 수정
                 permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
+                community_images = request.FILES.getlist('images')
                 serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
+
+                        if 'images' in request.FILES or not community_images:
+                        # 기존 이미지 삭제
+                            community.community_images.all().delete()
+                            # 새로운 이미지 저장
+                            for community_image in community_images:
+                                CommunityImage.objects.create(community=community, community_image=community_image)
+                                return Response(serializer.data)
                         return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         def delete(self, request, pk): # 커뮤니티 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
