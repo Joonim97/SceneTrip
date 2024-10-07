@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from communities.serializers import CommunitySerializer
-from journals.serializers import JournalSerializer
+from journals.serializers import JournalSerializer, JournalLikeSerializer
 from locations.serializers import LocationSaveSerializer
 from .serializers import EmailCheckSerializer, PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
 from .emails import send_verification_email, send_verification_email_reset, send_verification_password_reset
@@ -365,7 +365,7 @@ class LikeJournalsListAPIView(generics.ListAPIView):
         user = get_object_or_404(User, nickname=nickname)  # 닉네임으로 사용자 조회
 
         if user == request.user:  # 요청한 사용자가 본인인지 확인
-            like_journal = user.journal_like.all()  # 사용자의 모든 저널 가져오기
+            like_journal = user.journal_likes.all()  # 사용자의 모든 저널 가져오기
 
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(like_journal, request)
@@ -374,7 +374,7 @@ class LikeJournalsListAPIView(generics.ListAPIView):
                 serializer = JournalSerializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
-            serializer = JournalSerializer(like_journal, many=True)
+            serializer = JournalLikeSerializer(like_journal, many=True)
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우   
