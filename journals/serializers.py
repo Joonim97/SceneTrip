@@ -66,7 +66,7 @@ class JournalSerializer(serializers.ModelSerializer):
 
 
 class JournalDetailSerializer(JournalSerializer): # 저널디테일
-    image = serializers.ImageField(use_url=True, required=False)
+    journal_images = JournalImageSerializer(many=True, read_only=True)  # 다중 이미지 시리얼라이저
     
     likes_count= serializers.SerializerMethodField() # likes 수
     author = serializers.CharField(source='author.nickname', read_only=True)
@@ -76,7 +76,7 @@ class JournalDetailSerializer(JournalSerializer): # 저널디테일
     class Meta :
         model=Journal
         fields= [  'id','title','author','created_at','updated_at',
-                'image','content','likes_count','comments_count','comments']
+                'journal_images','content','likes_count','comments_count','comments']
         read_only_fields = ('id','author','created_at','updated_at','likes',
                             'likes_count','comments_count','comments')
 
