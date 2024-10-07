@@ -79,9 +79,8 @@ class DislikedCommentsView(APIView):
         # 필터링된 댓글을 직렬화
         serializer = CommentSerializer(disliked_comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    
-    
+
+
 class CommentLikeView(APIView): # 저널 댓글좋아요
     permission_classes = [IsAuthenticated]
 
@@ -180,19 +179,28 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 serializer = JournalDetailSerializer(journal)
                 return Response(serializer.data)
 
-        def put(self, request, pk): # 저널 수정
-                permission_classes = [IsAuthenticated] # 로그인권한
-
-                journal = self.get_object(pk)
-                serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
-                
-                if journal.author != request.user :
+        def put(self, request, pk):  # 저널 수정
+            journal = self.get_object(pk)
+            journal_images = request.FILES.getlist('images')
+            serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
+            
+            if journal.author != request.user :
                     return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
 
-                
-                if serializer.is_valid(raise_exception=True):
-                        serializer.save()
-                        return Response(serializer.data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+
+                # 만약 새로운 이미지가 있다면, 기존 이미지를 삭제하고 새로운 이미지를 추가
+                if 'images' in request.FILES or not journal_images:
+                    # 기존 이미지 삭제
+                    journal.journal_images.all().delete()
+                    # 새로운 이미지 저장
+                    for journal_image in journal_images:
+                        JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
                 
         def delete(self, request, pk): # 저널 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한

@@ -54,7 +54,6 @@ class CommunityDislikeSerializer(serializers.ModelSerializer):
 class CommunityImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityImage
-
         fields = ['id', 'community_image']  # 이미지 필드만 포함
 
 class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
@@ -66,18 +65,13 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
     dislikes_count= serializers.SerializerMethodField() # 싫어요수
     likes = CommunityLikeSerializer(source='community_likes', many=True, read_only=True)
     dislikes = CommunityDislikeSerializer(source='community_dislikes', many=True, read_only=True)
-
-
+    community_images = CommunityImageSerializer(many=True, read_only=True)
 
     class Meta :
         model=Community
-        fields=[ 'id','communityKey','title','content','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
+        fields=[ 'id','communityKey','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
         read_only_fields = ('id','author','created_at','updated_at'
                             'unusables_count','comments_count','likes_count','dislikes_count','likes','dislikes')
-
-    community_images = CommunityImageSerializer(many=True, read_only=True)
-
-
 
     def get_unusables_count(self, community_id) : # 신고수
         return community_id.unusables.count()
@@ -108,7 +102,7 @@ class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
     class Meta :
         model=Community
 
-        fields=[ 'id','communityKey','title','image','content','author','created_at','updated_at',
+        fields=[ 'id','communityKey','title','content','author','created_at','updated_at','community_images',
                 'likes_count','dislikes_count','unusables_count','comments_count','comments','likes_count','dislikes_count','likes','dislikes' ]
 
         read_only_fields = ('id','author','created_at','updated_at',

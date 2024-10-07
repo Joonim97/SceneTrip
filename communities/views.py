@@ -1,14 +1,11 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
-from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
+from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -122,7 +119,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def get(self, request, pk): # 커뮤니티 상세조회
                 community = self.get_object(pk)
 
-                if community.unusables.count() >=3 : # 3회 이상 신고된 글 접근 불가
+                if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
                     return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
 
                 serializer = CommunityDetailSerializer(community)
@@ -131,6 +128,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def put(self, request, pk): # 커뮤니티 수정
                 permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
+                community_images = request.FILES.getlist('images')
                 serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
                 
                 if community.author != request.user :
@@ -138,7 +136,16 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
+
+                        if 'images' in request.FILES or not community_images:
+                        # 기존 이미지 삭제
+                            community.community_images.all().delete()
+                            # 새로운 이미지 저장
+                            for community_image in community_images:
+                                CommunityImage.objects.create(community=community, community_image=community_image)
+                                return Response(serializer.data)
                         return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         def delete(self, request, pk): # 커뮤니티 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
