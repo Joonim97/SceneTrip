@@ -9,11 +9,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Comment, CommentLike, Journal, JournalImage
+from .models import Comment, CommentLike, Journal, JournalImage, JournalLike
 from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
 
 
@@ -71,10 +70,10 @@ class DislikedCommentsView(APIView):
         # 일정 수 이상의 싫어요를 받은 댓글을 필터링
         disliked_comments = Comment.objects.filter(
             id__in=CommentLike.objects.filter(like_type='dislike')
-                                      .values('comment')
-                                      .annotate(dislike_count=models.Count('comment'))
-                                      .filter(dislike_count__gte=min_dislikes)
-                                      .values('comment')
+                                    .values('comment')
+                                    .annotate(dislike_count=models.Count('comment'))
+                                    .filter(dislike_count__gte=min_dislikes)
+                                    .values('comment')
         )
 
         # 필터링된 댓글을 직렬화
@@ -133,7 +132,7 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             
             if search_query:
                 queryset=queryset.filter(
-                    Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__nickname__icontains=author_query) )
+                    Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__nickname__icontains=search_query) )
             if title_query :
                 queryset=queryset.filter( Q(title__icontains=title_query) )
             if content_query :
@@ -155,8 +154,12 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
         def post(self, request): # 작성
             permission_classes = [IsAuthenticated] # 로그인권한
             serializer = JournalSerializer(data=request.data)
+
+            if request.user.grade != 'author' :
+                return Response( {"error" : "저널리스트 회원이 아닙니다"}, status=status.HTTP_403_FORBIDDEN)
+
             if serializer.is_valid(raise_exception=True):
-                journal = serializer.save(user=request.user)  # 현재 로그인한 유저 저장
+                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
                 images = request.FILES.getlist('images')
                 for image in images:
                     JournalImage.objects.create(journal=journal, image=image)
@@ -164,7 +167,7 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             else:
                 return Response(serializer.errors, status=400)
 
-              
+
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def get_object(self, pk):
                 return get_object_or_404(Journal, pk=pk)
@@ -180,6 +183,11 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
 
                 journal = self.get_object(pk)
                 serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
+                
+                if journal.author != request.user :
+                    return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+
+                
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         return Response(serializer.data)
@@ -188,6 +196,9 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
 
                 journal = self.get_object(pk)
+                if journal.author != request.user :
+                    return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+
                 journal.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)     
 
@@ -197,10 +208,21 @@ class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소
     
     def post(self, request, pk):
         journal = get_object_or_404(Journal, pk=pk)
-    
-        if request.user in journal.likes.all():
-            journal.likes.remove(request.user) # 좋아요 이미 되어있으면
-            return Response({"좋아요 취소"},   status=status.HTTP_200_OK )
-        else:
-            journal.likes.add(request.user) # 좋아요 되어있지 않으면
-            return Response({'좋아요 +1'},  status=status.HTTP_200_OK)
+        journal = get_object_or_404(Journal, pk=pk)
+        journal_like, created = JournalLike.objects.get_or_create(journal=journal, user=request.user)
+
+        if not created:  # 이미 좋아요를 눌렀다면 취소
+            journal_like.delete()
+            return Response({"좋아요 취소"}, status=status.HTTP_200_OK)
+        return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+        
+
+class JournalLikeListAPIView(APIView): # 좋아요한 저널목록 보기
+    permission_classes = [IsAuthenticated] 
+
+    def get(self, request): 
+        liked_journals = Journal.objects.filter(likes=request.user).order_by('-created_at')
+        serializer=JournalSerializer(liked_journals, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
