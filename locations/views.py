@@ -9,9 +9,9 @@ from .serializers import LocationSerializer
 from django.conf import settings
 import re
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
+import requests
 
 
 def custom_sort_key(value):
@@ -127,17 +127,51 @@ class LocationSaveView(APIView):
 
 class RecommendAPIView(APIView):
         # AI 여행 플래닝 서비스
-        permission_classes = [AllowAny]
+        permission_classes = [IsAuthenticated]
+
+        def get_place_details(place_name):
+        # Google Maps API를 이용하여 장소 정보 검색
+            api_key = "YOUR_GOOGLE_MAPS_API_KEY"
+            url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query={place_name}&key={api_key}"
+            response = requests.get(url)
+            data = response.json()
+            # 검색 결과에서 필요한 정보 추출 (예: 장소 이름, 주소, 사진 등)
+
+            return data
 
         def post(self, request):
-                llm = ChatOpenAI(model="gpt-4o-mini", api_key=settings.API_KEY)
-                template = '{text} 동안의 문경새재 도립공원을 포함한 여행 계획을 간략하게 알려줘.'
-                prompt = PromptTemplate(template=template, input_variables=['text'])
-                llm_chain = LLMChain(prompt=prompt, llm=llm)
-                text_to_summarize = request.data.get('text', '')
-                
-                if not text_to_summarize:
-                        return Response({'error': 'No text provided to summarize'}, status=400)
+            llm = ChatOpenAI(model="gpt-4o-mini", api_key=settings.API_KEY)
+            query_params = request.query_params
+            place_name = query_params.get("place_name")
+            n = query_params.get("n", 0)
+            m = query_params.get("m", 0)
+            preference = query_params.get("preference", None)
+
+            if not place_name:
+                return Response({"방문하고자 하는 촬영지를 입력해주세요. 해당 촬영지를 포함한 여행 계획을 세워드립니다."}, status=status.HTTP_200_OK)
+
+            template = "{place_name} 방문을 포함한 "
+            if preference and len(preference)<=50:
+                template += f"{preference}한 여행취향의 "
+                if n and m: 
+                    # n, m 입력 받음.
+                    template += f"{n}박 {m}일 동안의 여행 계획을 자세히 알려줘."
+                else: 
+                    # n, m을 입력받지 않는 경우. (당일치기 여행계획 버튼을 따로 만들기.)
+                    template += "당일치기 여행 계획을 자세히 알려줘."
+            elif preference and len(preference)>50: 
+                # 선호하는 여행 스타일은 50자 이내로 입력해야 함.
+                return Response({"여행 취향을 50자 이내로 적어주세요."})
+            else:
+                if n and m: 
+                    template += f"{n}박 {m}일 동안의 여행 계획을 자세히 알려줘."
+                else:
+                    template += "당일치기 여행 계획을 자세히 알려줘."
+
+
+            prompt = PromptTemplate(template=template, input_variables=["place_name", "preference"])
+            llm_chain = LLMChain(prompt=prompt, llm=llm)
+
+            response = llm_chain.run(place_name=place_name)
+            return Response(response)
         
-                response = llm_chain.run(text=text_to_summarize)
-                return Response(response)
