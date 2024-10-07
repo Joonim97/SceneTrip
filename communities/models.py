@@ -5,6 +5,19 @@ import uuid
 
 User = get_user_model()
 
+class Community(models.Model): # 커뮤니티
+    # id=models.IntegerField(primary_key=True)
+    title = models.CharField(max_length=40)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author',null=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    unusables=models.ManyToManyField(User, related_name='community_unusable') #글신고
+
+class CommunityImage(models.Model): # 커뮤니티 이미지
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='community_images')  # 저널과의 관계
+    community_image = models.ImageField(upload_to="community_images/")
+
 class Comment(models.Model): # 커뮤 댓글
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comments')
     community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='community_comments')
@@ -62,3 +75,4 @@ class CommunityDislike(models.Model):  # 커뮤싫어요 모델
 
     class Meta:
         unique_together = ('community', 'user')  # 한 유저가 하나의 커뮤니티에 싫어요 한 번만 가능
+

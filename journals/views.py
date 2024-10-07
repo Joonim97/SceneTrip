@@ -105,9 +105,9 @@ class CommentLikeView(APIView): # 저널 댓글좋아요
         else:
             message = f'{like_type.capitalize()}!'
         
-        # 싫어요가 3개 이상일 경우 댓글 삭제
+        # 싫어요가 100개 이상일 경우 댓글 삭제
         dislike_count = CommentLike.objects.filter(comment=comment, like_type='dislike').count()
-        if dislike_count >= 3:
+        if dislike_count >= 100:
             comment.delete()
             return Response({'message': '댓글이 삭제되었습니다.'}, status=status.HTTP_201_CREATED)
         
@@ -159,10 +159,12 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
                 return Response( {"error" : "저널리스트 회원이 아닙니다"}, status=status.HTTP_403_FORBIDDEN)
 
             if serializer.is_valid(raise_exception=True):
-                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
-                images = request.FILES.getlist('images')
-                for image in images:
-                    JournalImage.objects.create(journal=journal, image=image)
+ journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+                journal_images = request.FILES.getlist('images')
+                for journal_image in journal_images:
+                    JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
+
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
@@ -208,21 +210,11 @@ class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소
     
     def post(self, request, pk):
         journal = get_object_or_404(Journal, pk=pk)
-        journal = get_object_or_404(Journal, pk=pk)
+
         journal_like, created = JournalLike.objects.get_or_create(journal=journal, user=request.user)
 
         if not created:  # 이미 좋아요를 눌렀다면 취소
             journal_like.delete()
             return Response({"좋아요 취소"}, status=status.HTTP_200_OK)
         return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
-        
-
-class JournalLikeListAPIView(APIView): # 좋아요한 저널목록 보기
-    permission_classes = [IsAuthenticated] 
-
-    def get(self, request): 
-        liked_journals = Journal.objects.filter(likes=request.user).order_by('-created_at')
-        serializer=JournalSerializer(liked_journals, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
         
