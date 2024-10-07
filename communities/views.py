@@ -1,14 +1,11 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
-from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
+from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -122,7 +119,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def get(self, request, pk): # 커뮤니티 상세조회
                 community = self.get_object(pk)
 
-                if community.unusables.count() >=3 : # 3회 이상 신고된 글 접근 불가
+                if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
                     return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
 
                 serializer = CommunityDetailSerializer(community)
