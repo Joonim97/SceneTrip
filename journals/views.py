@@ -177,14 +177,24 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 serializer = JournalDetailSerializer(journal)
                 return Response(serializer.data)
 
-        def put(self, request, pk): # 저널 수정
-                permission_classes = [IsAuthenticated] # 로그인권한
+        def put(self, request, pk):  # 저널 수정
+            journal = self.get_object(pk)
+            journal_images = request.FILES.getlist('images')
+            serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
 
-                journal = self.get_object(pk)
-                serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
-                if serializer.is_valid(raise_exception=True):
-                        serializer.save()
-                        return Response(serializer.data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+
+                # 만약 새로운 이미지가 있다면, 기존 이미지를 삭제하고 새로운 이미지를 추가
+                if 'images' in request.FILES or not journal_images:
+                    # 기존 이미지 삭제
+                    journal.journal_images.all().delete()
+                    # 새로운 이미지 저장
+                    for journal_image in journal_images:
+                        JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         def delete(self, request, pk): # 저널 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
