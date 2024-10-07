@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>저널 목록</h1>
+  <ul>
+    {% for journal in journals %}
+      <li>
+        <h3>{{ journal.title }}</h3>
+        <p>{{ journal.content }}</p>
+        <small>작성자: {{ journal.author.nickname }} | 조회수: {{ journal.views }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

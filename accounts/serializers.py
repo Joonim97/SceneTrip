@@ -43,10 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
         # 아이디 유효성 검사
         if not re.search(r"[a-zA-Z]", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 영문이 포함되어야 합니다.")
-        if not re.search(r"\d", data['user_id']):
-            raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
-        if not re.search(r"[!@#$%^&*()]", data['user_id']):
-            raise serializers.ValidationError("아이디는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
         if len(data['password']) < 6 or len(data['password']) > 20:
             raise serializers.ValidationError("비밀번호는 6글자 이상 20글자 이하여야 합니다.")
         if len(data['user_id']) == 0:

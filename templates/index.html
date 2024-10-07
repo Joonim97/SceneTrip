@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Filming Locations Service - Home
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <!-- 소개 섹션 -->
+  <div class="jumbotron text-center">
+    <h1>Scene Trip</h1>
+    <p>작품 속 그 공간을 당신의 눈 앞에</p>
+  </div>
+
+  <!-- 인기 촬영지 섹션 (카드 형식) -->
+  <div class="row">
+    <h2 class="text-center">인기 촬영지</h2>
+    {% for location in popular_locations %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <img src="{{ location.image.url }}" class="card-img-top" alt="{{ location.title }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ location.title }}</h5>
+          <p class="card-text">{{ location.place_name }}</p>
+          <a href="/locations/{{ location.id }}" class="btn btn-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+
+
+  <!-- 최신 저널 섹션 (카드 형식) -->
+  <div class="row mt-5">
+    <h2 class="text-center">최신 저널</h2>
+    <div class="container mt-5">
+      <!-- 저널 글 작성 버튼 -->
+      <div id="journal-write-btn"></div>
+    {% for journal in latest_journals %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ journal.title }}</h5>
+          <p class="card-text">{{ journal.content|slice:":100" }}...</p> <!-- 저널 내용 일부만 표시 -->
+          <a href="/journals/{{ journal.id }}" class="btn btn-primary">더 읽기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+    const journalWriteBtn = document.getElementById('journal-write-btn');
+
+    if (accessToken) {
+      // JWT 토큰에서 사용자 정보를 가져옴
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('사용자 정보를 가져오지 못했습니다.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 저널 글 작성 버튼 표시
+        journalWriteBtn.innerHTML = `
+          <div class="text-end mt-4">
+            <a href="{% url 'journals:jounal_list' %}" class="btn btn-success">저널 글 작성</a>
+          </div>
+        `;
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        // 에러 발생 시 토큰 삭제
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+  });
+</script>
+
+{% endblock %}

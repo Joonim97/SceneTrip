@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Filming Locations Service{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* 검색바의 placeholder 텍스트 중앙 정렬 */
+    input::placeholder {
+      text-align: center; /* 수평 중앙 정렬 */
+    }
+
+    /* 검색바 내부 텍스트 중앙 정렬 */
+    input {
+      text-align: center; /* 텍스트 중앙 정렬 */
+      line-height: normal; /* 텍스트 높이 조정 */
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <!-- 좌측 상단 브랜드 로고 -->
+      <a class="navbar-brand" href="{% url 'index' %}">
+        <img src="/static/brand_logo.png" alt="Brand Logo" height="40">
+      </a>
+
+      <!-- 검색 바를 중앙에 배치 -->
+      <div class="d-flex justify-content-start" style="width: 50%; margin-left: 280px;">
+        <form class="d-flex w-100" method="get" action="/search">
+          <input class="form-control" type="search" placeholder="검색어를 입력하세요" name="q" aria-label="Search" 
+                 style="border-radius: 20px; height: 38px;">
+        </form>
+      </div>
+
+      <!-- 우측 상단 로그인/회원가입 또는 마이페이지/로그아웃 -->
+      <ul class="navbar-nav ms-auto" id="navbar-auth-links">
+        <!-- 이 부분은 JavaScript로 로그인 상태에 따라 동적으로 변경 -->
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 페이지별 본문 콘텐츠 -->
+  <div class="container mt-5">
+    {% block content %} {% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const accessToken = localStorage.getItem('access_token');
+      const navbarAuthLinks = document.getElementById('navbar-auth-links');
+  
+      if (accessToken) {
+        // JWT 토큰을 사용해 서버로부터 사용자 정보를 가져옴
+        fetch("/api/accounts/user-info/", {
+          method: "GET",
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('사용자 정보를 가져오지 못했습니다.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // 사용자 정보를 가져와 성공적으로 처리된 경우 마이페이지와 로그아웃 링크 생성
+          navbarAuthLinks.innerHTML = `
+            <li class="nav-item">
+              <a class="nav-link" href="/api/accounts/${data.nickname}/mypage/"> ${data.nickname}님 👤</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="logout">로그아웃</a>
+            </li>
+          `;
+  
+          // 로그아웃 이벤트 처리
+          document.getElementById('logout').addEventListener('click', function () {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = "{% url 'index' %}";
+          });
+        })
+        .catch(error => {
+          console.error('에러 발생:', error);
+          // 에러 발생 시 토큰이 유효하지 않으면 토큰 삭제 후 로그인/회원가입 상태로 변경
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          navbarAuthLinks.innerHTML = `
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
+            </li>
+          `;
+        });
+      } else {
+        // 로그인이 안 되어 있을 경우 (JWT 토큰이 없을 경우)
+        navbarAuthLinks.innerHTML = `
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
+          </li>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

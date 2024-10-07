@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>촬영지 목록</h1>
+  <ul>
+    {% for location in locations %}
+      <li>
+        <h3>{{ location.title }}</h3>
+        <p>{{ location.place_name }}</p>
+        <small>저장 수: {{ location.save_count }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

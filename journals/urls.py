@@ -1,5 +1,6 @@
 from django.urls import path, include
 from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView
+from . import views
 
 app_name = "journals"
 
@@ -17,5 +18,5 @@ urlpatterns = [
     
     path('', JournalListAPIView.as_view(), name='jounal_list'), # 저널 전체목록, 저널작성
     path('<int:pk>/', JournalDetailAPIView.as_view(), name='jounal_detail'), # 저널 상세,수정,삭제
-    path('<int:pk>/like/', JournalLikeAPIView.as_view(), name='journal_like') # 저널 좋아요/좋아요취소
+    path('<int:pk>/like/', JournalLikeAPIView.as_view(), name='journal_like'), # 저널 좋아요/좋아요취소
 ] 

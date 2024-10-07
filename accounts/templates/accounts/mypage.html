@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}
+마이페이지
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ user.nickname }}님의 마이페이지</h2>
+  <p>이메일: {{ user.email }}</p>
+  <p>성별: {{ user.gender }}</p>
+  <p>생일: {{ user.birth_date }}</p>
+
+  <h3>구독 중인 사용자</h3>
+  <ul>
+    {% for subscriber in user.subscribings %}
+      <li>{{ subscriber.nickname }}</li>
+    {% endfor %}
+  </ul>
+
+  <h3>저장한 촬영지</h3>
+  <ul>
+    {% for location in user.location_save %}
+      <li>{{ location.title }}</li>
+    {% endfor %}
+  </ul>
+
+  <h3>내가 쓴 저널</h3>
+  <ul>
+    {% for journal in user.my_journals %}
+      <li>{{ journal.title }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

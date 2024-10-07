@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}
+로그인
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>로그인</h2>
+  <form id="login-form" method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="user_id" class="form-label">아이디</label>
+      <input type="text" class="form-control" id="user_id" name="user_id" required>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">비밀번호</label>
+      <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">로그인</button>
+  </form>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();  // 기본 폼 제출 막기
+
+      // 사용자 입력 값 가져오기
+      const userId = document.getElementById('user_id').value;
+      const password = document.getElementById('password').value;
+
+      // 디버깅을 위해 입력값 콘솔에 출력
+      console.log("User ID:", userId, "Password:", password);
+
+      // CSRF 토큰 가져오기
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      // POST 요청을 보냄
+      fetch("{% url 'accounts:token_obtain_pair' %}", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken  // CSRF 토큰을 헤더에 포함
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          password: password
+        })
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('네트워크 응답에 문제가 있습니다.');
+        }
+        return response.json();
+      }).then(data => {
+        if (data.access) {
+          // JWT 토큰을 로컬 스토리지에 저장
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('refresh_token', data.refresh);
+
+          // 메인 페이지로 리다이렉트
+          window.location.href = "{% url 'index' %}";
+        } else {
+          alert('로그인 실패: ' + (data.detail || '아이디 또는 비밀번호를 확인하세요.'));
+        }
+      }).catch(error => {
+        console.error('로그인 요청 중 에러 발생:', error);
+      });
+    });
+  </script>
+</div>
+{% endblock %}

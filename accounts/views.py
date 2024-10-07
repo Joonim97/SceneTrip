@@ -26,23 +26,33 @@ User = get_user_model() # 필수 지우면 안됨
 
 # 회원가입
 class SignupAPIView(APIView):
+    def get(self, request):
+        return render(request, 'accounts/signup.html')  # 회원가입 HTML 렌더링
+    
     def post(self, request):
-        try:
-            serializer = UserSerializer(data=request.data)
+            # 회원가입 폼에서 받은 데이터
+            data = {
+                "username": request.data.get("username"),
+                "password": request.data.get("password"),
+                "nickname": request.data.get("nickname"),
+                "email": request.data.get("email"),
+                "user_id": request.data.get("user_id"),  # user_id 필드 추가 확인
+                "birth_date": request.data.get("birth_date"),
+                "gender": request.data.get("gender"),
+                "grade": request.data.get("grade"),
+            }
+            
+            serializer = UserSerializer(data=data)
             if serializer.is_valid():
                 user = serializer.save()
-                user.set_password(user.password) # 비밀번호 해시
-                user.verification_token = str(uuid.uuid4()) # 토큰생성
-                user.is_active = False # 비활성화
+                user.set_password(user.password)  # 비밀번호 해시
+                user.verification_token = str(uuid.uuid4())  # 이메일 인증 토큰 생성
+                user.is_active = False  # 이메일 인증을 위해 계정 비활성화
                 user.save()
-                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
                 send_verification_email(user)
-                return Response({"message":"이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
-            return Response(
-                {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            return Response(
-                {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 # 이메일 인증 메일이 날아올 경우
 class VerifyEmailAPIView(APIView):
@@ -57,6 +67,12 @@ class VerifyEmailAPIView(APIView):
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class LoginView(APIView):
+    def get(self, request):
+        return render(request, 'accounts/login.html')  # login.html 템플릿 렌더링
+
 
 # 로그아웃
 class LogoutAPIView(APIView):
@@ -92,7 +108,7 @@ class Mypage(ListAPIView): # 마이 페이지
             return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
         if my_page == request.user:
             serializer = MyPageSerializer(my_page)
-            return Response({'내 정보':serializer.data},status=200)
+            return render(request, 'accounts/mypage.html', {'user': serializer.data})  # 마이페이지 HTML 렌더링
         return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
     
     def put(self, request, nickname):
@@ -397,3 +413,13 @@ class DeleteAPIView(APIView):  # 회원탈퇴
         # 유효성 검사를 통과하지 못한 경우
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
+
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'nickname': user.nickname,
+            'email': user.email
+        })

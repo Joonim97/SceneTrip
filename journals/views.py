@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Comment, CommentLike, Journal, JournalImage
+from locations.models import Location
 from .serializers import CommentSerializer, CommentLikeSerializer, JournalSerializer,JournalDetailSerializer
 
 
@@ -206,3 +207,7 @@ class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소
         else:
             journal.likes.add(request.user) # 좋아요 되어있지 않으면
             return Response({'좋아요 +1'},  status=status.HTTP_200_OK)
+        
+        
+        
+

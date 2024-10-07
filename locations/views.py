@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from .models import Location, LocationSave
+from journals.models import Journal
 from .serializers import LocationSerializer
 import re
 
@@ -120,3 +122,14 @@ class LocationSaveView(APIView):
             location.save()
             location_save.delete()
             return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+        
+        
+def index(request):
+    latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
+    popular_locations = Location.objects.order_by('-save_count')[:3]  # 인기 촬영지 3개 가져오기
+
+    context = {
+        'latest_journals': latest_journals,
+        'popular_locations': popular_locations
+    }
+    return render(request, 'index.html', context)
