@@ -22,10 +22,10 @@ class User(AbstractUser):
     
     # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
     AUTHOR= 'author'
-    NOMAL = 'nomal'
+    NOMAL = 'normal'
     GRADE = [
         (AUTHOR, 'author'),
-        (NOMAL, 'nomal'),
+        (NOMAL, 'normal'),
     ]
     grade = models.CharField(max_length=6, choices=GRADE, default=NOMAL)
     
