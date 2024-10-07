@@ -3,9 +3,11 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from rest_framework import serializers
 from collections import Counter
-
+import uuid
 
 User = get_user_model()
+
+class Comment(models.Model): # 저널댓글
 
     
 class Comment(models.Model):
@@ -53,4 +55,37 @@ class Journal(models.Model):
 class JournalImage(models.Model):
     journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_images')  # 저널과의 관계
     journal_image = models.ImageField(upload_to="journal_images/")
+
+class Journal(models.Model): # 저널
+    # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸
+    journalKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
+    title = models.CharField(max_length=40)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journals_author', null=True) 
+    hit_count = models.IntegerField(default=0)
+
+    def hit(self):
+        self.hit_count += 1
+        self.save()
+
+    def __str__(self):
+        return self.title
+    
+class JournalImage(models.Model): # 다중이미지용
+    journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_images')  # 저널과의 관계
+    image = models.ImageField(upload_to="journal_images/")
+
+
+class JournalLike(models.Model):
+    journal = models.ForeignKey(Journal, on_delete=models.CASCADE, related_name='journal_likes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_likes')
+    liked_at = models.DateTimeField(auto_now_add=True)
+    journalLikeKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
+    
+    class Meta:
+        unique_together = ('journal', 'user') # 한 저널에 좋아요 여러번 누르지 못하게 함
+
+
 

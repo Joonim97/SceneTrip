@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
-from .models import Comment, CommentLike, Community, CommunityImage
+from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
 from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -141,7 +141,39 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 community = self.get_object(pk)
                 community.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
-        
+
+
+class CommunityLikeAPIView(APIView): # 커뮤 좋아요
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        community = get_object_or_404(Community, pk=pk)
+
+        if CommunityLike.objects.filter(community=community, user=request.user).exists():
+            return Response({"이미 좋아요 했습니다"}, status=status.HTTP_200_OK)
+        elif CommunityDislike.objects.filter(community=community, user=request.user).exists():
+            CommunityDislike.objects.filter(community=community, user=request.user).delete()
+            CommunityLike.objects.create(community=community, user=request.user)
+            return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+        else:
+            CommunityLike.objects.create(community=community, user=request.user)
+            return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+
+class CommunityDislikeAPIView(APIView): # 커뮤 싫어요
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        community = get_object_or_404(Community, pk=pk)
+
+        if CommunityDislike.objects.filter(community=community, user=request.user).exists():
+            return Response({"이미 싫어요 했습니다"}, status=status.HTTP_200_OK)
+        elif CommunityLike.objects.filter(community=community, user=request.user).exists():
+            CommunityLike.objects.filter(community=community, user=request.user).delete()
+            CommunityDislike.objects.create(community=community, user=request.user)
+            return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
+        else:
+            CommunityDislike.objects.create(community=community, user=request.user)
+            return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
 
 class CommunityUnusableAPIView(APIView): # 커뮤글 신고
     permission_classes = [IsAuthenticated]
