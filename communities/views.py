@@ -108,6 +108,10 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
                 serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
+                
+                if community.author != request.user :
+                    return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+                
                 if serializer.is_valid(raise_exception=True):
                         serializer.save()
                         return Response(serializer.data)
@@ -115,6 +119,10 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def delete(self, request, pk): # 커뮤니티 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
                 community = self.get_object(pk)
+                
+                if community.author != request.user :
+                    return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+
                 community.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
 

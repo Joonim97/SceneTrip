@@ -194,8 +194,8 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 
         def delete(self, request, pk): # 저널 삭제
                 permission_classes = [IsAuthenticated] # 로그인권한
-
                 journal = self.get_object(pk)
+                
                 if journal.author != request.user :
                     return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
 
