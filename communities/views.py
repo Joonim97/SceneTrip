@@ -1,13 +1,11 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
-from .models import Comment, CommentLike, Community, CommunityImage
-from .serializers import CommentSerializer, CommentLikeSerializer, CommunitySerializer, CommunityDetailSerializer
+from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
+from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -15,15 +13,19 @@ from django.conf import settings
 
 class CommentView(APIView): # 커뮤 댓글
     def get(self, request, community_id):
-        comments = Comment.objects.filter(community_id=community_id, parent=None)
+        comments = Comment.objects.filter(community_id=community_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
-    def post(self, request, community_id):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
+    def post(self, request, community_id, parent_id=None):
         data = request.data.copy()
+        community = get_object_or_404(Community, id=community_id)
         data['community'] = community_id
-        
-        parent_id = data.get('parent', None)
         
         if parent_id:
             parent_comment = get_object_or_404(Comment, id=parent_id)
@@ -32,12 +34,16 @@ class CommentView(APIView): # 커뮤 댓글
         
         serializer = CommentSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(community_id=community_id)
+            serializer.save(community=community)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request, comment_id): 
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("수정 권한이 없습니다.")
+        
         serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -46,6 +52,10 @@ class CommentView(APIView): # 커뮤 댓글
     
     def delete(self, request, comment_id):
         comment = Comment.objects.get(id=comment_id)
+        
+        if comment.user != request.user:
+            raise PermissionDenied("삭제 권한이 없습니다.")
+        
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -109,7 +119,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         def get(self, request, pk): # 커뮤니티 상세조회
                 community = self.get_object(pk)
 
-                if community.unusables.count() >=3 : # 3회 이상 신고된 글 접근 불가
+                if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
                     return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
 
                 serializer = CommunityDetailSerializer(community)
@@ -138,7 +148,39 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 community = self.get_object(pk)
                 community.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
-        
+
+
+class CommunityLikeAPIView(APIView): # 커뮤 좋아요
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        community = get_object_or_404(Community, pk=pk)
+
+        if CommunityLike.objects.filter(community=community, user=request.user).exists():
+            return Response({"이미 좋아요 했습니다"}, status=status.HTTP_200_OK)
+        elif CommunityDislike.objects.filter(community=community, user=request.user).exists():
+            CommunityDislike.objects.filter(community=community, user=request.user).delete()
+            CommunityLike.objects.create(community=community, user=request.user)
+            return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+        else:
+            CommunityLike.objects.create(community=community, user=request.user)
+            return Response({'좋아요 +1'}, status=status.HTTP_200_OK)
+
+class CommunityDislikeAPIView(APIView): # 커뮤 싫어요
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        community = get_object_or_404(Community, pk=pk)
+
+        if CommunityDislike.objects.filter(community=community, user=request.user).exists():
+            return Response({"이미 싫어요 했습니다"}, status=status.HTTP_200_OK)
+        elif CommunityLike.objects.filter(community=community, user=request.user).exists():
+            CommunityLike.objects.filter(community=community, user=request.user).delete()
+            CommunityDislike.objects.create(community=community, user=request.user)
+            return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
+        else:
+            CommunityDislike.objects.create(community=community, user=request.user)
+            return Response({'싫어요 +1'}, status=status.HTTP_200_OK)
 
 class CommunityUnusableAPIView(APIView): # 커뮤글 신고
     permission_classes = [IsAuthenticated]

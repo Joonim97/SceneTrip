@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Comment, CommentLike, Journal, JournalImage, User
-from django.shortcuts import get_object_or_404
+from .models import Comment, CommentLike, Journal, JournalImage, JournalLike
 
 
 class RecursiveSerializer(serializers.Serializer):
@@ -13,76 +12,146 @@ class CommentSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     replies = RecursiveSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Comment
-        fields = ['id', 'journal', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies']
-        read_only_fields = ['journal', 'user', 'created_at', 'like_count', 'dislike_count', 'replies']
-        
+        fields = [
+            "id",
+            "journal",
+            "user",
+            "content",
+            "parent",
+            "created_at",
+            "like_count",
+            "dislike_count",
+            "replies",
+        ]
+        read_only_fields = [
+            "journal",
+            "user",
+            "created_at",
+            "like_count",
+            "dislike_count",
+            "replies",
+        ]
+
     def get_like_count(self, comment):
-        return CommentLike.objects.filter(comment=comment, like_type='like').count()
-    
+        return CommentLike.objects.filter(comment=comment, like_type="like").count()
+
     def get_dislike_count(self, comment):
-        return CommentLike.objects.filter(comment=comment, like_type='dislike').count()
-        
+        return CommentLike.objects.filter(comment=comment, like_type="dislike").count()
+
     def create(self, validated_data):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            validated_data['user'] = request.user
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            validated_data["user"] = request.user
         return super().create(validated_data)
-    
-    
+
+
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
-        fields = ['id', 'user', 'comment', 'like_type']
-        read_only_fields = ['user']
-        
+        fields = ["id", "user", "comment", "like_type"]
+        read_only_fields = ["user"]
+
     def create(self, validated_data):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            validated_data['user'] = request.user
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            validated_data["user"] = request.user
         return super().create(validated_data)
 
-class JournalImageSerializer(serializers.ModelSerializer):
+
+class JournalImageSerializer(serializers.ModelSerializer):  # 저널이미지 시리얼라이저
     class Meta:
         model = JournalImage
+        fields = ["id", "journal_image"]  # 이미지 필드만 포함
 
-        fields = ['id', 'journal_image']  # 이미지 필드만 포함
+
+class JournalLikeSerializer(serializers.ModelSerializer):  # 저널좋아요시리얼라이저
+    class Meta:
+        model = JournalLike
+        fields = ["journalLikeKey", "user", "liked_at"]  # 필요한 필드만 포함
+
 
 class JournalSerializer(serializers.ModelSerializer):
-    likes_count= serializers.IntegerField(source='likes.count', read_only=True) # 좋아요 수 조회
-    author_nickname = serializers.ReadOnlyField(source='author.nickname')  # 사용자 닉네임 읽기 전용 필드
-    journal_images = JournalImageSerializer(many=True, read_only=True)  # 다중 이미지 시리얼라이저
+    likes_count = serializers.SerializerMethodField()  # 좋아요 수
+    author_nickname = serializers.ReadOnlyField(source="author.nickname")
+    journal_images = JournalImageSerializer(
+        many=True, read_only=True
+    )  # 다중 이미지 시리얼라이저
+
+    journal_likes = JournalLikeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Journal
-        fields = ['id','title','content','author','created_at','likes_count','author_nickname','journal_images','hit_count']  # 보이는 필드들
-        read_only_fields = ('likes','likes_count','author_nickname', 'author', 'created_at', 'updated_at', 'hit_count')  # 읽기 전용 필드
-
-    def get_likes_count(self, obj):
-        return obj.likes.count()
-
-
-
-class JournalDetailSerializer(JournalSerializer): # 저널디테일
-    image = serializers.ImageField(use_url=True, required=False)
-    
-    likes_count= serializers.SerializerMethodField() # likes 수
-    author = serializers.CharField(source='author.nickname', read_only=True)
-    comments= CommentSerializer(many=True, read_only=True, source='journal_comments')
-    comments_count= serializers.SerializerMethodField() # 댓글 수
-
-    class Meta :
-        model=Journal
-        fields= [  'id','title','author','created_at','updated_at',
-                'image','content','likes_count','comments_count','comments']
-        read_only_fields = ('id','author','created_at','updated_at','likes',
-                            'likes_count','comments_count','comments')
+        fields = [
+            "id",
+            "journalKey",
+            "title",
+            "journal_images",
+            "content",
+            "created_at",
+            "likes_count",
+            "hit_count",
+            "author_nickname",
+            "journal_likes",
+        ]
+        read_only_fields = [
+            "id",
+            "author_nickname",
+            "created_at",
+            "updated_at",
+            "likes",
+            "likes_count",
+            "hit_count",
+            "journal_likes",
+        ]
 
     def get_likes_count(self, journal_id):
-        return journal_id.likes.count()
-    
+        return journal_id.journal_likes.count()
+
+
+class JournalDetailSerializer(JournalSerializer):  # 저널디테일
+    likes_count = serializers.SerializerMethodField()  # 좋아요 수
+    author_nickname = serializers.ReadOnlyField(source="author.nickname")
+    journal_images = JournalImageSerializer(
+        many=True, read_only=True
+    )  # 다중 이미지 시리얼라이저
+    comments = CommentSerializer(many=True, read_only=True, source="journal_comments")
+    comments_count = serializers.SerializerMethodField()  # 댓글 수
+    journal_likes = JournalLikeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Journal
+        fields = [
+            "id",
+            "journalKey",
+            "title",
+            "journal_images",
+            "content",
+            "created_at",
+            "updated_at",
+            "author_nickname",
+            "hit_count",
+            "likes_count",
+            "comments_count",
+            "comments",
+            "journal_likes",
+        ]
+        read_only_fields = (
+            "id",
+            "author",
+            "created_at",
+            "updated_at",
+            "likes",
+            "likes_count",
+            "comments_count",
+            "comments",
+            "journal_likes",
+        )
+
+    def get_likes_count(self, journal_id):
+        return journal_id.journal_likes.count()
+
     def get_comments_count(self, journal_id):
         return journal_id.journal_comments.count()
-    
