@@ -29,21 +29,20 @@ Filming Locations Service - Home
     {% endfor %}
   </div>
 
-
+  <div class="container mt-5">
+    <!-- 저널 글 작성 버튼 -->
+    <div id="journal-write-btn"></div>
 
   <!-- 최신 저널 섹션 (카드 형식) -->
   <div class="row mt-5">
     <h2 class="text-center">최신 저널</h2>
-    <div class="container mt-5">
-      <!-- 저널 글 작성 버튼 -->
-      <div id="journal-write-btn"></div>
     {% for journal in latest_journals %}
     <div class="col-md-4 mb-4">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">{{ journal.title }}</h5>
           <p class="card-text">{{ journal.content|slice:":100" }}...</p> <!-- 저널 내용 일부만 표시 -->
-          <a href="/journals/{{ journal.id }}" class="btn btn-primary">더 읽기</a>
+          <a href="api/journals/{{ journal.id }}/detail/" class="btn btn-primary">더 읽기</a>
         </div>
       </div>
     </div>
@@ -75,7 +74,7 @@ Filming Locations Service - Home
         // 저널 글 작성 버튼 표시
         journalWriteBtn.innerHTML = `
           <div class="text-end mt-4">
-            <a href="{% url 'journals:jounal_list' %}" class="btn btn-success">저널 글 작성</a>
+            <a href="{% url 'journals:journal_write' %}" class="btn btn-success">저널 글 작성</a>
           </div>
         `;
       })

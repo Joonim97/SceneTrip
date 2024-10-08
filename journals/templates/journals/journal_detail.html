@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ journal.title }} - 상세 페이지
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ journal.title }}</h2>
+  <p>작성자: {{ journal.author }}</p>
+  <p>작성일: {{ journal.created_at }}</p>
+
+  <div class="mb-3">
+    <h5>내용</h5>
+    <p>{{ journal.content }}</p>
+  </div>
+
+  {% if journal.journal_images.all %}
+  <div class="mb-3">
+    <h5>이미지</h5>
+    <div class="row">
+      {% for image in journal.journal_images.all %}
+      <div class="col-md-4">
+        <img src="{{ image.journal_image.url }}" class="img-fluid" alt="Journal Image">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

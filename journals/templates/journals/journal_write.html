@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}
+저널 글 작성
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>저널 글 작성</h2>
+  <form id="journal-write-form" enctype="multipart/form-data" method="POST">
+    <div class="mb-3">
+      <label for="title" class="form-label">제목</label>
+      <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="mb-3">
+      <label for="content" class="form-label">내용</label>
+      <textarea class="form-control" id="content" name="content" rows="6" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="images" class="form-label">이미지 업로드</label>
+      <input type="file" class="form-control" id="images" name="images" multiple>
+    </div>
+    <button type="submit" class="btn btn-primary">글 작성</button>
+  </form>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const accessToken = localStorage.getItem('access_token');
+  
+      // JWT 토큰 확인 후 POST 요청 시 헤더에 포함
+      document.getElementById('journal-write-form').onsubmit = function(event) {
+        event.preventDefault();  // 기본 폼 제출 막기
+
+        const formData = new FormData();
+        formData.append('title', document.getElementById('title').value);
+        formData.append('content', document.getElementById('content').value);
+
+        const imageFiles = document.getElementById('images').files;
+        for (let i = 0; i < imageFiles.length; i++) {
+          formData.append('images', imageFiles[i]);
+        }
+
+        fetch("/api/journals/write/", {
+          method: "POST",
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('저널 작성에 실패했습니다.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          alert('저널이 성공적으로 작성되었습니다.');
+          window.location.href = `/api/journals/${data.id}/detail/`;
+        })
+        .catch(error => {
+          console.error('에러 발생:', error);
+          alert('저널 작성 중 문제가 발생했습니다.');
+        });
+      };
+    });
+  </script>
+</div>
+{% endblock %}

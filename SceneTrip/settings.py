@@ -73,6 +73,8 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
     
+    'corsheaders',
+    
     # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
 
     'accounts',
@@ -93,7 +95,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS 미들웨어 추가
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
@@ -135,12 +140,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    ],
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
+
 
 # DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
@@ -180,6 +186,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

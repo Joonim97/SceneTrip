@@ -1,11 +1,12 @@
-from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.utils.dateparse import parse_date
 from rest_framework import status
-from rest_framework.views import APIView
+from rest_framework.views import APIView, View
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
@@ -153,20 +154,35 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
                     queryset = queryset.filter(created_at__lte=end_date_parsed)
             return queryset
 
-        def post(self, request): # 작성
-            permission_classes = [IsAuthenticated] # 로그인권한
-            serializer = JournalSerializer(data=request.data)
-            if serializer.is_valid(raise_exception=True):
+        # def post(self, request): # 작성
+        #     permission_classes = [IsAuthenticated] # 로그인권한
+        #     serializer = JournalSerializer(data=request.data)
+        #     if serializer.is_valid(raise_exception=True):
 
-                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
-                journal_images = request.FILES.getlist('images')
-                for journal_image in journal_images:
-                    JournalImage.objects.create(journal=journal, journal_image=journal_image)
+        #         journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+        #         journal_images = request.FILES.getlist('images')
+        #         for journal_image in journal_images:
+        #             JournalImage.objects.create(journal=journal, journal_image=journal_image)
 
-                return Response(serializer.data, status=201)
-            else:
-                return Response(serializer.errors, status=400)
+        #         return Response(serializer.data, status=201)
+        #     else:
+        #         return Response(serializer.errors, status=400)
 
+class JournalWriteView(View):
+    def get(self, request):
+        return render(request, 'journals/journal_write.html')
+
+    def post(self, request):
+        serializer = JournalSerializer(data=request.POST)
+        if serializer.is_valid():
+            journal = serializer.save(author=request.user)
+            journal_images = request.FILES.getlist('images')
+            for journal_image in journal_images:
+                JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
+            return redirect(f'/journals/{journal.id}/detail/')
+        else:
+            return render(request, 'journals/journal_write.html', {'errors': serializer.errors})
 
 class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         def get_object(self, pk):
@@ -193,6 +209,11 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
                 journal = self.get_object(pk)
                 journal.delete()
                 return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)     
+            
+class JournalDetailView(View):  # HTML 페이지 렌더링용 뷰
+    def get(self, request, pk):
+        journal = get_object_or_404(Journal, pk=pk)
+        return render(request, 'journals/journal_detail.html', {'journal': journal})
 
 
 class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소 
