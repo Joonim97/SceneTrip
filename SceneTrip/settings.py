@@ -45,12 +45,11 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 API_KEY = get_secret("API_KEY")  # OpenAI
 
-
 MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
