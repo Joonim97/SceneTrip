@@ -1,15 +1,12 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import PermissionDenied
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
 from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.generics import ListAPIView
-from rest_framework.views import APIView
-from django.conf import settings
 
 class CommentView(APIView): # 커뮤 댓글
     def get(self, request, community_id):
@@ -57,7 +54,7 @@ class CommentView(APIView): # 커뮤 댓글
             raise PermissionDenied("삭제 권한이 없습니다.")
         
         comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"댓글이 삭제되었습니다."},status=status.HTTP_204_NO_CONTENT)
     
     
 class CommentLikeView(APIView): # 커뮤 댓글좋아요
