@@ -190,7 +190,7 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
 
-                # 만약 새로운 이미지가 있다면, 기존 이미지를 삭제하고 새로운 이미지를 추가
+                # 내가 입력한 images에서 이미지가 있거나 없을때
                 if 'images' in request.FILES or not journal_images:
                     # 기존 이미지 삭제
                     journal.journal_images.all().delete()

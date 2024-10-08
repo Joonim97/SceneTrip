@@ -145,6 +145,7 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         try:
             user = request.user
+            # 이메일, 새 비밀번호 입력
             email = request.data.get("email")
             new_password = request.data.get("new_password")
 
