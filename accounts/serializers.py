@@ -1,14 +1,10 @@
 from rest_framework import serializers
 from communities.serializers import CommunitySerializer
-from journals.models import Journal
 from journals.serializers import JournalSerializer
-from locations.models import LocationSave
 from locations.serializers import LocationSaveSerializer
 from .models import User
-from django.db import models
-from django.core.paginator import Paginator
-from rest_framework.pagination import PageNumberPagination
 import re
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,21 +31,22 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", data['password']):
             raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(data['password']) < 6 and len(data['password']) > 20:
-            raise serializers.ValidationError("비밀번호는 5글자 이상 20글자 이하여야 합니다.")
+        if len(data['password']) < 10 or len(data['password']) > 20:
+            raise serializers.ValidationError("비밀번호는 10글자 이상 20글자 이하여야 합니다.")
         if len(data['password']) == 0:
             raise serializers.ValidationError("비밀번호를 입력해주십시오.")
         
         # 아이디 유효성 검사
         if not re.search(r"[a-zA-Z]", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 영문이 포함되어야 합니다.")
-        if len(data['password']) < 6 or len(data['password']) > 20:
-            raise serializers.ValidationError("비밀번호는 6글자 이상 20글자 이하여야 합니다.")
+        if not re.search(r"\d", data['user_id']):
+            raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
+        if len(data['user_id']) < 6 or len(data['user_id']) > 20:
+            raise serializers.ValidationError("아이디는 6글자 이상 20글자 이하여야 합니다.")
         if len(data['user_id']) == 0:
             raise serializers.ValidationError("아이디를 입력해주십시오.")
 
         return data
-    
 
 
 # 비밀번호 관련
@@ -63,22 +60,25 @@ class PasswordCheckSerializer(serializers.Serializer):
             raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", value):
             raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(value) < 6 and len(value) > 20:
-            raise serializers.ValidationError("비밀번호는 5글자 이상 20글자 이하여야 합니다.")
+        if len(value) < 10 or len(value) > 20:
+            raise serializers.ValidationError("비밀번호는 10글자 이상 20글자 이하여야 합니다.")
         if len(value) == 0:
             raise serializers.ValidationError("비밀번호를 입력해주십시오.")
         
         return value
 
+
 # 이메일 재설정
 class EmailCheckSerializer(serializers.Serializer):
     new_email = serializers.EmailField(write_only=True)
+
 
 # 구독자 이름만 보이게 만듬
 class SubUsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname']
+
 
 # 마이페이지 
 class MyPageSerializer(serializers.ModelSerializer):
@@ -87,11 +87,11 @@ class MyPageSerializer(serializers.ModelSerializer):
     location_save = serializers.SerializerMethodField()  # 저장한 촬영지
     profile_image = serializers.ImageField() # 프로필 이미지
     communities_author = serializers.SerializerMethodField() # 커뮤니티에 내가 쓴 글
-    journal_like = serializers.SerializerMethodField() # 내가 좋아요한 저널 글 목록 
+    journal_likes = serializers.SerializerMethodField() # 내가 좋아요한 저널 글 목록 
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_like']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
 
     def get_subscribings(self, obj):
         # 구독 중인 사용자 중 최대 5명 반환
@@ -113,7 +113,8 @@ class MyPageSerializer(serializers.ModelSerializer):
         communities_author = obj.communities_author.all()[:5]  # 가장 최근 커뮤니티 내가 쓴글 5개만 가져오기
         return CommunitySerializer(communities_author, many=True).data
     
-    def get_journal_like(self, obj):
+    def get_journal_likes(self, obj):
         # 내가 좋아요한 저널 글
-        journal_like = obj.journal_like.all()[:5]  # 가장 최근 좋아요한 저널 글 5개만 가져오기
-        return JournalSerializer(journal_like, many=True).data
+        journal_likes = obj.user_likes.all()[:5]  # 가장 최근 좋아요한 저널 글 5개만 가져오기
+        journals = [like.journal for like in journal_likes]
+        return JournalSerializer(journals, many=True).data
