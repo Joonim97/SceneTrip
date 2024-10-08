@@ -23,9 +23,9 @@ afadfsdfdsfdfdsfdsgsnvemioemc
 * FrontEnd
 * etc.
 
-# 개발기간
+## 개발기간
 
-## Requirements
+## 개발환경
 
 ## ERD
 
