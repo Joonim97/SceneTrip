@@ -8,7 +8,7 @@ class User(AbstractUser):
     # 성, 이름은 username 으로 대체
     # first_name = models.CharField(max_length=150, blank=False) # 성
     # last_name = models.CharField(max_length=150, blank=False) # 이름
-    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=150, blank=True, null=True)
     user_id = models.CharField(max_length=150, unique=True) # 아이디
     email = models.EmailField(unique=True, blank=False) # 이메일
     birth_date = models.DateField(blank=False) # 생년월일
