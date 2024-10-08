@@ -30,14 +30,23 @@ class SignupAPIView(APIView):
         try:
             serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
+                email = serializer.validated_data['email']
+                # 기존 사용자 확인
+                try:
+                    existing_user = User.objects.get(email=email)
+                    if not existing_user.is_active:
+                        # 비활성화된 사용자면 기존 사용자 삭제
+                        existing_user.delete()
+                except User.DoesNotExist:
+                    pass
                 user = serializer.save()
                 user.set_password(user.password) # 비밀번호 해시
                 user.verification_token = str(uuid.uuid4()) # 토큰생성
                 user.is_active = False # 비활성화
                 user.save()
-                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
                 send_verification_email(user)
                 return Response({"message":"이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
+                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
             return Response(
                 {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except:
