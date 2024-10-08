@@ -53,8 +53,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['54.180.149.228', 'localhost', '127.0.0.1']
 
-STATIC_ROOT = BASE_DIR / "static"
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
@@ -181,6 +179,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
