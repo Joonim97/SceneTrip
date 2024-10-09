@@ -28,7 +28,7 @@ class SignupAPIView(APIView):
     
     def post(self, request):
         try:
-            serializer = UserSerializer(data=data)
+            serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
                 email = serializer.validated_data['email']
                 # 기존 사용자 확인

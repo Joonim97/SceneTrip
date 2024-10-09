@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalWriteView, JournalDetailView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView
+from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView
 from . import views
 
 app_name = "journals"
@@ -15,11 +15,6 @@ urlpatterns = [
     path('comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view(), name='journal-comment-like'),
     # 일정 수 이상의 싫어요를 받은 댓글을 필터링. 100이상이면 삭제.
     path('comments/disliked/<int:min_dislikes>/', DislikedCommentsView.as_view(), name='disliked-comments'),
-    
-    # 저널 작성 페이지 URL 추가
-    path('write/', JournalWriteView.as_view(), name='journal_write'),
-    # HTML 응답
-    path('<int:pk>/detail/', JournalDetailView.as_view(), name='journal_detail_html'),
 
     # 저널 전체목록, 저널작성
     path('', JournalListAPIView.as_view(), name='journal_list'),
