@@ -65,10 +65,18 @@
 <br>
 
 ## 개발환경
+Django==4.2
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+django-seed==0.3.1
+Faker==30.0.0
+django-hitcount==1.3.5
+pillow==10.4.0
+pytz==2024.2
+tzdata==2024.2
+PyJWT==2.9.0
 <br>
 
-## 시작하기 (모바엑스텀 적을지말지)
-<br>
 
 ## ERD (나중)
 <br>
