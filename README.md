@@ -20,8 +20,8 @@
 <br>
 
 # 3. Team Introduction
-### 팀명 : Travelers  
-[팀노션 이동](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
+### Team name : Travelers  
+[Team Notion](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
 
 | - |주성현|강다영|김경민|조민희|
 |:---:|:---:|:---:|:---:|:---:|
@@ -41,10 +41,10 @@
 
 
 ## 5. Development Period
-    2024.09.23.(월) ~ 2024.09.25.(수) | Creation of SA Document
-    2024.09.26.(목) ~ 2024.10.03.(목) | Back-End Development Completed, GitHub Merge
-    2024.10.04.(금) ~ 2024.10.06.(월) | Complement Code
-    2024.10.07.(화) ~ 2024.10.08.(수) | Front-End Development
+    2024.09.23.(Mon.) ~ 2024.09.25.(Wed.) | Creation of SA Document
+    2024.09.26.(Thu.) ~ 2024.10.03.(Thu.) | Back-End Development Completed, GitHub Merge
+    2024.10.04.(Fri.) ~ 2024.10.06.(Mon.) | Complement Code
+    2024.10.07.(Tue.) ~ 2024.10.08.(Wed.) | Front-End Development
 
 <br>
 
@@ -145,5 +145,5 @@
 > * <b>Problems</b> : <br>(1) In order for the open API to be used to be linked to functions such as alignment and classification of our project, it had to go through a separately implemented API. <br>(2) Open APIs are slower because they are more than twice the number of data that can be retrieved at once.
 > * <b>Solutions</b> : <br> Instead of open API, we decided to receive data directly from csv file and use it. <br> * Whenever the data is updated, we need to get the csv file back and update the DB of our project.
 ### ◻ Safety Risks In Changing Password, Changing Email
-> * <b>Problems</b> : 개인정보를 알고 있기만 하면 회원정보를 변경할 수 있는 점.
-> * <b>Solutions</b> : 비밀번호변경, 이메일변경을 시도하면 이메일인증을 거치도록 단계를 강화함.
+> * <b>Problems</b> : As long as you know your personal information, you can change your membership information.
+> * <b>Solutions</b> : If you try to change your password or email, the steps will be strengthened to go through email authentication.
