@@ -53,12 +53,80 @@
 
 <br>
 
-## ERD (나중)
+## ERD (추후 첨부)
 
 <br>
 
 ## 프로젝트 파일 구조 
-
+```
+📦SceneTrip
+┣ 📂accounts
+ ┃ ┣ 📂migrations
+ ┃ ┃ ┣ 📜0001_initial.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📜admin.py
+ ┃ ┣ 📜apps.py
+ ┃ ┣ 📜emails.py
+ ┃ ┣ 📜models.py
+ ┃ ┣ 📜serializers.py
+ ┃ ┣ 📜tests.py
+ ┃ ┣ 📜urls.py
+ ┃ ┣ 📜views.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂communities
+ ┃ ┣ 📂migrations
+ ┃ ┃ ┣ 📜0001_initial.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📜admin.py
+ ┃ ┣ 📜apps.py
+ ┃ ┣ 📜models.py
+ ┃ ┣ 📜serializers.py
+ ┃ ┣ 📜tests.py
+ ┃ ┣ 📜urls.py
+ ┃ ┣ 📜views.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂journals
+ ┃ ┣ 📂migrations
+ ┃ ┃ ┣ 📜0001_initial.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📜admin.py
+ ┃ ┣ 📜apps.py
+ ┃ ┣ 📜models.py
+ ┃ ┣ 📜serializers.py
+ ┃ ┣ 📜tests.py
+ ┃ ┣ 📜urls.py
+ ┃ ┣ 📜views.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂locations
+ ┃ ┣ 📂management
+ ┃ ┃ ┗ 📂commands
+ ┃ ┃ ┃ ┗ 📜import_locations.py
+ ┃ ┣ 📂migrations
+ ┃ ┃ ┣ 📜0001_initial.py
+ ┃ ┃ ┗ 📜__init__.py
+ ┃ ┣ 📜admin.py
+ ┃ ┣ 📜apps.py
+ ┃ ┣ 📜check_tables.py
+ ┃ ┣ 📜models.py
+ ┃ ┣ 📜serializers.py
+ ┃ ┣ 📜tests.py
+ ┃ ┣ 📜urls.py
+ ┃ ┣ 📜views.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📂SceneTrip
+ ┃ ┣ 📜asgi.py
+ ┃ ┣ 📜settings.py
+ ┃ ┣ 📜urls.py
+ ┃ ┣ 📜wsgi.py
+ ┃ ┗ 📜__init__.py
+ ┣ 📜.gitignore
+ ┣ 📜.gitmessage.txt
+ ┣ 📜manage.py
+ ┣ 📜README.md
+ ┣ 📜requirements.txt
+ ┣ 📜secrets.json
+ ┗ 📜한국문화정보원_미디어콘텐츠 영상 촬영지 데이터_20221125.csv
+ ```
 <br>
 
 ## Trouble Shooting
