@@ -1,4 +1,4 @@
-## 📄 목차
+## 📄 Table of Contents
 1. [Project Title](#1-project-title)
 2. [Project Introduction](#2-project-introduction)
 3. [Team Introduction](#3-team-introduction)
