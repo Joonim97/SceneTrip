@@ -1,55 +1,54 @@
 ## 📄 목차
-1. [프로젝트명](#1-프로젝트명)
-2. [프로젝트 소개](#2-프로젝트-소개)
-3. [팀 소개](#3-travelers-팀-소개)
-4. [주요기능](#4-주요기능)
-5. [개발기간](#5-개발기간)
-6. [개발환경](#6-개발환경)
+1. [Project Title](#1-project-title)
+2. [Project Introduction](#2-project-introduction)
+3. [Team Introduction](#3-team-introduction)
+4. [Features](#4-features)
+5. [Development Period](#5-development-period)
+6. [Requirements](#6-requirements)
 7. [ERD](#7-erd)
-8. [프로젝트 파일 구조](#8-프로젝트-파일-구조)
+8. [Project Structure](#8-project-structure)
 9. [Trouble Shooting](#9-trouble-shooting)
 
 <br>
 
-# 1. 프로젝트명
-### SceneTrip
+# 1. Project Title
+        SceneTrip
 <br>
 
-# 2. 프로젝트 소개
-    국내 영화,드라마,예능 등 미디어콘텐츠 속 촬영지정보를 제공하고, 사용자에게 촬영지를 중심으로 한 여행플랜을 추천해주는 사이트
-
+# 2. Project Introduction
+        A site that provides information on filming locations in media contents such as domestic movies, dramas, and entertainment, and recommends travel plans centered on filming locations to users
 <br>
 
-# 3. Travelers 팀 소개
-  
+# 3. Team Introduction
+### 팀명 : Travelers  
 [팀노션 이동](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
 
 | - |주성현|강다영|김경민|조민희|
 |:---:|:---:|:---:|:---:|:---:|
 | <b>역할</b> |팀장|부팀장|서기|조원|
-| <b>Backend</b> |Journals/Comment <br>Communities/Comment | Locations <br>API활용(한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br>Communities/Article |
+| <b>Backend</b> |Journals/Comment <br>Communities/Comment | Locations <br>Interlocking an API(한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br>Communities/Article |
 | <b>Frontend</b> | 전체 | - | - | - |
 | <b>배포</b> | - | - | 전체 | - |
 
 <br>
 
-## 4. 주요기능
+## 4. Features
 |Accounts|Journals|Communities|Locations|
 |:---|:---|:---|:---|
-|-회원가입 <br>-로그인<br>-로그아웃 <br>-마이페이지 <br>-구독 <br>-회원탈퇴| 저널 조회&검색 <br>-저널 작성 <br>-저널 수정 <br>-저널 삭제 <br>-댓글 기능 <br>-대댓글 기능 <br>-댓글, 대댓글 신고 |-커뮤니티 조회&검색 <br>-커뮤니티 작성 <br>-커뮤니티 수정 <br>-커뮤니티 삭제 <br>-커뮤니티글 신고 <br>-댓글 기능 <br>-대댓글 기능 <br>-댓글, 대댓글 신고 |-촬영지 조회 <br>-촬영지 검색 <br>-촬영지 저장 <br>-여행플랜 추천 |
+|-Sign up <br>-Sign in<br>-Sign out <br>-Mypage <br>-Subscribing <br>-Withdrawl| Journal inquiry & search <br>-Journal creation <br>-Journal modification <br>-Delete journal <br>-Comment features <br>-Reply features <br>-Like for jouranl <br>-Report comment, reply |-Community inquiry & search <br>-Community creation <br>-Community modification <br>-Delete community <br>-Report community <br>-Comment features <br>-Reply features <br>-Report community, comment, reply |-Location inquiry <br>-Location search <br>-Save for locations <br>-Travel plan recommendation |
 
 <br>
 
 
-## 5. 개발기간
-    2024.09.23.(월) ~ 2024.09.25.(수) | SA문서 작성
-    2024.09.26.(목) ~ 2024.10.03.(목) | 1차개발 완료 후 머지
-    2024.10.04.(금) ~ 2024.10.06.(월) | 코드보완
-    2024.10.07.(화) ~ 2024.10.08.(수) | 프론트엔드 시작
+## 5. Development Period
+    2024.09.23.(월) ~ 2024.09.25.(수) | Creation of SA Document
+    2024.09.26.(목) ~ 2024.10.03.(목) | Back-End Development Completed, GitHub Merge
+    2024.10.04.(금) ~ 2024.10.06.(월) | Complement Code
+    2024.10.07.(화) ~ 2024.10.08.(수) | Front-End Development
 
 <br>
 
-## 6. 개발환경
+## 6. Requirements
     Django                           4.2
     djangorestframework              3.15.2
     djangorestframework-simplejwt    5.3.1
@@ -68,7 +67,7 @@
 (추후 첨부)
 <br>
 
-## 8. 프로젝트 파일 구조 
+## 8. Project Structure 
 ```
 📦SceneTrip
 ┣ 📂accounts
@@ -142,9 +141,9 @@
 
 ## 9. Trouble Shooting
 
-### ◻ 오픈API 사용 문제
-> * <b>문제</b> : <br>(1) 사용하려고 하는 오픈API가 우리프로젝트의 정렬, 분류 등의 기능에 연동되려면 별도로 구현한 API를 거쳐야 했음. <br>(2) 한번에 불러올 수 있는 데이터수보다 오픈API의 크기가 두배 이상 커서 속도가 느림.
-> * <b>해결</b> : <br> 오픈API 대신 csv파일로 데이터를 직접 받아서 사용하기로 함. <br> * 데이터가 업데이트 될 때마다 csv파일을 다시 받아와서 우리프로젝트의 DB를 최신화시켜야 함.
-### ◻ 비밀번호변경, 이메일변경 안전성 위험
-> * <b>문제</b> : 개인정보를 알고 있기만 하면 회원정보를 변경할 수 있는 점.
-> * <b>해결</b> : 비밀번호변경, 이메일변경을 시도하면 이메일인증을 거치도록 단계를 강화함.
+### ◻ Open API Usage Issues
+> * <b>Problems</b> : <br>(1) In order for the open API to be used to be linked to functions such as alignment and classification of our project, it had to go through a separately implemented API. <br>(2) Open APIs are slower because they are more than twice the number of data that can be retrieved at once.
+> * <b>Solutions</b> : <br> Instead of open API, we decided to receive data directly from csv file and use it. <br> * Whenever the data is updated, we need to get the csv file back and update the DB of our project.
+### ◻ Safety Risks In Changing Password, Changing Email
+> * <b>Problems</b> : 개인정보를 알고 있기만 하면 회원정보를 변경할 수 있는 점.
+> * <b>Solutions</b> : 비밀번호변경, 이메일변경을 시도하면 이메일인증을 거치도록 단계를 강화함.
