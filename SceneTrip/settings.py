@@ -49,7 +49,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['54.180.149.228', 'localhost', '127.0.0.1']
 
