@@ -74,8 +74,8 @@ class VerifyjJurnalEmailAPIView(APIView):
         try:
             user = get_object_or_404(User, verification_token=token)
             user.verification_token = ''
-            if user.grade != User.AUTHOR:  
-                user.grade = User.NORMAL
+            if user.grade == User.NORMAL:  
+                user.grade = User.AUTHOR
             user.save()
             return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
         except:
