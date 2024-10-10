@@ -11,7 +11,7 @@ def send_verification_email(user):
 
     if user.grade == 'author':
         new_journal_subject = '새 journalist 신청이 들어왔습니다. 관리자는 인증을 완료해주세요.'
-        new_journal_message = f'새로운 {user.nickname}님의 journalist 신청이 들어왔습니다.'
+        new_journal_message = f'새로운 {user.nickname}님의 journalist 신청이 들어왔습니다. \n\n http://52.79.199.253/api/accounts/journalists/verify/{user.verification_token}'
         recipient_list = [settings.MANAGER_EMAIL]
         send_mail(new_journal_subject, new_journal_message, email_from, recipient_list)
         # print(f'관리자 이메일 전송됨: {settings.MANAGER_EMAIL}')
