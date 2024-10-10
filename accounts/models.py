@@ -28,7 +28,7 @@ class User(AbstractUser):
         (AUTHOR, 'author'),
         (NORMAL, 'normal'),
     ]
-    grade = models.CharField(max_length=6, choices=GRADE, default='normal')
+    grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
     
 
 
