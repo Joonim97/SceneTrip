@@ -61,7 +61,7 @@ class VerifyEmailAPIView(APIView):
         try:
             user = get_object_or_404(User, verification_token=token)
             user.verification_token = ''
-            user.grade = 0
+            user.grade = 'normal'
             user.save()
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
