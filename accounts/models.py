@@ -8,6 +8,7 @@ class User(AbstractUser):
     # 성, 이름은 username 으로 대체
     # first_name = models.CharField(max_length=150, blank=False) # 성
     # last_name = models.CharField(max_length=150, blank=False) # 이름
+    username = models.CharField(max_length=150, blank=True, null=True)
     user_id = models.CharField(max_length=150, unique=True) # 아이디
     email = models.EmailField(unique=True, blank=False) # 이메일
     birth_date = models.DateField(blank=False) # 생년월일
@@ -22,14 +23,13 @@ class User(AbstractUser):
     
     # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
     AUTHOR= 'author'
-    NOMAL = 'normal'
+    NORMAL = 'normal'
     GRADE = [
         (AUTHOR, 'author'),
-        (NOMAL, 'normal'),
+        (NORMAL, 'normal'),
     ]
-    grade = models.CharField(max_length=6, choices=GRADE, default=0)
-    
+    grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
 
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드
-    REQUIRED_FIELDS = ['email']  # 필수로 입력해야 할 필드
+    REQUIRED_FIELDS = ['email', 'username', 'birth_date']  # 필수로 입력해야 할 필드

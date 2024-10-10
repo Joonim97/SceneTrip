@@ -25,6 +25,7 @@ class CommunityImage(models.Model): # 커뮤니티 이미지
     community_image = models.ImageField(upload_to="community_images/")
 
 class Comment(models.Model): # 커뮤 댓글
+    CommentKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_comments')
     community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='community_comments')
     content = models.TextField()
