@@ -61,12 +61,25 @@ class VerifyEmailAPIView(APIView):
         try:
             user = get_object_or_404(User, verification_token=token)
             user.verification_token = ''
-            if user.grade != User.AUTHOR:  
-                user.grade = User.NORMAL
+            user.grade = 0
             user.save()
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+# 회원가입시 grade가 journal, 관리자가 해당 link를 누른경우
+class VerifyjJurnalEmailAPIView(APIView):
+    def get(self, request, token):
+        # 예외처리 해서 만약 안될경우 서버 안터지게
+        try:
+            user = get_object_or_404(User, verification_token=token)
+            user.verification_token = ''
+            if user.grade != User.AUTHOR:  
+                user.grade = User.NORMAL
+            user.save()
+            return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
+        except:
+            return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 로그아웃
