@@ -3,7 +3,8 @@ from django.urls import path
 from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, PasswordResetRequestView,
                     PasswordResetConfirmView, EmailResetRequestView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
-                    LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView)
+                    LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView,
+                    VerifyjJurnalEmailAPIView)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
@@ -13,7 +14,7 @@ urlpatterns = [
     path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"), # 로그인
     path("<str:nickname>/subscribes/", SubscribeView.as_view(), name="subscribes"), # 구독
     path('verify/<str:token>/', VerifyEmailAPIView.as_view(), name='verify_email'), # 회원가입 이메일 인증, 이 path 없으면 이메일 인증시 Not Found 에러 발생
-    path('journalists/verify/<str:token>', VerifyEmailAPIView.as_view(), name='verify_journalemail'), # 회원가입 grade가 저널일 경우
+    path('journalists/verify/<str:token>', VerifyjJurnalEmailAPIView.as_view(), name='verify_journalemail'), # 회원가입 grade가 저널일 경우
     path('passwordreset/', PasswordResetRequestView.as_view(), name='password_reset'), # 비밀번호 초기화
     path('passwordchange/verify/<str:token>/', PasswordResetConfirmView.as_view(), name='passwordverifyemail'), # 비밀번호 변경 이메일 인증
     path('emailreset/', EmailResetRequestView.as_view(), name='email_reset'), # 이메일 초기화
