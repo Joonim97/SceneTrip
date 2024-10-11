@@ -1,8 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -45,8 +45,11 @@ class SignupAPIView(APIView):
                 user.is_active = False  # 이메일 인증을 위해 계정 비활성화
                 user.save()
                 send_verification_email(user)
-                return Response({"message":"이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
-                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
+
+                # 이메일 전송 완료 메시지 추가
+                messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
+                
+                return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
             return Response(
                 {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except:
@@ -430,5 +433,6 @@ class UserInfoView(APIView):
         user = request.user
         return Response({
             'nickname': user.nickname,
-            'email': user.email
+            'email': user.email,
+            'grade': user.grade  # grade 필드를 추가
         })

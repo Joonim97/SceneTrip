@@ -18,7 +18,7 @@ Filming Locations Service - Home
     {% for location in popular_locations %}
     <div class="col-md-4 mb-4">
       <div class="card">
-        <img src="{{ location.image.url }}" class="card-img-top" alt="{{ location.title }}">
+        <img src="{{ location.image.url|default:'/static/default_location.png' }}" class="card-img-top" alt="{{ location.title }}">
         <div class="card-body">
           <h5 class="card-title">{{ location.title }}</h5>
           <p class="card-text">{{ location.place_name }}</p>
@@ -71,16 +71,17 @@ Filming Locations Service - Home
         return response.json();
       })
       .then(data => {
-        // 저널 글 작성 버튼 표시
-        journalWriteBtn.innerHTML = `
-          <div class="text-end mt-4">
-            <a href="{% url 'journals:journal_write' %}" class="btn btn-success">저널 글 작성</a>
-          </div>
-        `;
+        // 유저의 grade가 'author'일 경우에만 저널 작성 버튼 표시
+        if (data.grade === 'author') {
+          journalWriteBtn.innerHTML = `
+            <div class="text-end mt-4">
+              <a href="{% url 'journals:journal-write' %}" class="btn btn-success">저널 글 작성</a>
+            </div>
+          `;
+        }
       })
       .catch(error => {
         console.error('에러 발생:', error);
-        // 에러 발생 시 토큰 삭제
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
       });

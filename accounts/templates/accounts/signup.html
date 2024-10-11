@@ -60,12 +60,44 @@
     <div class="mb-3">
       <label for="grade" class="form-label">등급 (저널리스트 활동을 원하시는 분은 저널리스트를 선택 후 가입해주시면 관리자의 승인 후 권한이 부여됩니다!)</label>
       <select class="form-control" id="grade" name="grade" required>
-        <option value="nm">일반 사용자</option>
-        <option value="aj">저널리스트</option>
+        <option value="normal">일반 사용자</option>
+        <option value="author">저널리스트</option>
       </select>
     </div>
 
     <button type="submit" class="btn btn-primary">회원가입</button>
   </form>
 </div>
+
+<!-- 팝업(모달) 추가 -->
+{% if messages %}
+<div id="message-popup" class="modal fade" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">알림</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const messagePopupElement = document.getElementById('message-popup');
+    if (messagePopupElement) {
+      const messagePopup = new bootstrap.Modal(messagePopupElement);
+      messagePopup.show();
+    }
+  });
+</script>
