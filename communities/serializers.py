@@ -69,8 +69,8 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
 
     class Meta :
         model=Community
-        fields=[ 'id','communityKey','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
-        read_only_fields = ('id','author','created_at','updated_at'
+        fields=[ 'id','communityKey','category','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
+        read_only_fields = ('id','author','created_at','updated_at',
                             'unusables_count','comments_count','likes_count','dislikes_count','likes','dislikes')
 
     def get_unusables_count(self, community_id) : # 신고수
@@ -91,7 +91,7 @@ class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
     comments_count= serializers.SerializerMethodField() # 댓글 수
     community_images = CommunityImageSerializer(many=True, read_only=True)
 
-    class Meta(CommunitySerializer) :
+    class Meta(CommunitySerializer.Meta) :
 
         fields= CommunitySerializer.Meta.fields + ['comments_count','comments' ]
 
