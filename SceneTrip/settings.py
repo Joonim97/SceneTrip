@@ -49,7 +49,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['52.79.199.253', 'localhost', '127.0.0.1']
 
@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'journals',
     'communities',
     'locations',
+    'chats',
 
     'hitcount',
 ]
@@ -113,6 +114,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
+ASGI_APPLICATION = 'SceneTrip.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(os.environ.get('REDIS_HOST', 'localhost'), 6379)],
+        },
+    },
+}
 
 
 # Database
