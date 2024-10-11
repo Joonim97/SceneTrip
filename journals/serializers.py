@@ -116,7 +116,7 @@ class JournalDetailSerializer(JournalSerializer):  # 저널디테일
     comments_count = serializers.SerializerMethodField()  # 댓글 수
 
     class Meta(JournalSerializer.Meta):
-        fields = JournalSerializer.Meta.fields [
+        fields = JournalSerializer.Meta.fields + [
             "updated_at",
             "comments_count",
             "comments",
