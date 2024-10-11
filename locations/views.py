@@ -132,4 +132,4 @@ def index(request):
         'latest_journals': latest_journals,
         'popular_locations': popular_locations
     }
-    return render(request, 'index.html', context)
+    return render(request, 'journals/index.html', context)

@@ -54,24 +54,50 @@ Filming Locations Service - Home
   document.addEventListener('DOMContentLoaded', function () {
     const accessToken = localStorage.getItem('access_token');
     const journalWriteBtn = document.getElementById('journal-write-btn');
-
+  
     if (accessToken) {
-      // JWT 토큰에서 사용자 정보를 가져옴
       fetch("/api/accounts/user-info/", {
         method: "GET",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,  // 변수로 가져온 토큰 사용
           'Content-Type': 'application/json'
         }
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error('사용자 정보를 가져오지 못했습니다.');
+          if (response.status === 401) {  // 토큰 만료에 따른 리프레시
+            return fetch("/api/token/refresh/", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+            })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('토큰 갱신 실패');
+              }
+              return res.json();
+            })
+            .then(data => {
+              // 새로 발급된 액세스 토큰 저장
+              localStorage.setItem('access_token', data.access);
+              return fetch("/api/accounts/user-info/", {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                  'Content-Type': 'application/json'
+                }
+              });
+            });
+          } else {
+            throw new Error('인증 실패');
+          }
         }
         return response.json();
       })
       .then(data => {
-        // 유저의 grade가 'author'일 경우에만 저널 작성 버튼 표시
+        // 새 요청의 응답 데이터를 처리
         if (data.grade === 'author') {
           journalWriteBtn.innerHTML = `
             <div class="text-end mt-4">
@@ -88,5 +114,6 @@ Filming Locations Service - Home
     }
   });
 </script>
+
 
 {% endblock %}
