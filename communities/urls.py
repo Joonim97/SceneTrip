@@ -14,7 +14,7 @@ urlpatterns = [
     path('comments/<int:comment_id>/', CommentView.as_view(), name='community-comment_detatil'),
     #댓글 좋아요, 싫어요
     path('comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view(), name='community-comment-like'),
-    # 커뮤글 전체목록조회
+    # 커뮤글 전체목록조회, 작성
     path('', CommunityListAPIView.as_view(), name='community-list'),
     # 커뮤글 상세조회
     path('<int:pk>/', CommunityDetailAPIView.as_view(), name='community-detail'),
