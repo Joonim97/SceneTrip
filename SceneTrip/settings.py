@@ -38,7 +38,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['52.79.199.253', 'localhost', '127.0.0.1']
 
@@ -51,6 +51,8 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels', # 채널
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,12 +63,14 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
     
-    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
-
+    # app
+    'chats',
     'accounts',
     'journals',
     'communities',
     'locations',
+
+
 
     'hitcount',
 ]
@@ -102,6 +106,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
+ASGI_APPLICATION = 'SceneTrip.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
