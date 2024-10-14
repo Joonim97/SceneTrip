@@ -21,7 +21,11 @@ def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생
     except KeyError:
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
+    
 SECRET_KEY = get_secret("SECRET_KEY")
+API_KEY = get_secret("API_KEY")  # OpenAI
+NAVER_CLIENT_ID = get_secret("NAVER_CLIENT_ID") # Naver search Client Id
+NAVER_SECRET_KEY = get_secret("NAVER_SECRET_KEY") # Naver Search API Secret Key
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
@@ -30,9 +34,6 @@ EMAIL_HOST_USER = get_secret("EMAIL")
 EMAIL_HOST_PASSWORD = get_secret("EMAIL_PASSWORD")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-API_KEY = get_secret("API_KEY")  # OpenAI
-
 MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
