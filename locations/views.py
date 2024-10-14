@@ -129,29 +129,6 @@ class LocationSaveView(APIView):
             return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
 
 
-# def get_path(place_name, nearby_places):
-#     client_id = settings.NAVER_CLIENT_ID
-#     client_secret = settings.NAVER_SECRET_KEY
-#     paths = []
-    
-#     for nearby_place in nearby_places:
-#         encText = urllib.parse.quote(f"{place_name}에서 {nearby_place} 가는 법")
-#         url = "https://openapi.naver.com/v1/search/local.json?query=" + encText
-#         request = urllib.request.Request(url)
-#         request.add_header("X-Naver-Client-Id", client_id)
-#         request.add_header("X-Naver-Client-Secret", client_secret)
-#         response = urllib.request.urlopen(request)
-#         rescode = response.getcode()
-
-#         if rescode == 200:
-#             response_body = response.read()
-#             paths.append(response_body.decode('utf-8'))
-#         else:
-#             paths.append(f"Error Code: {rescode}")
-    
-#     return paths
-
-
 def get_nearby_place(place_name):
         client_id = settings.NAVER_CLIENT_ID
         client_secret = settings.NAVER_SECRET_KEY
@@ -206,7 +183,6 @@ def get_nearby_place(place_name):
         return nearby_places
 
 
-
 class AiPlanningAPIView(APIView):
         # AI 여행 플래닝 서비스
         permission_classes = [IsAuthenticated]
@@ -224,7 +200,7 @@ class AiPlanningAPIView(APIView):
             
             nearby_places = get_nearby_place(place_name)
             if isinstance(nearby_places, Response):
-                return nearby_places  # Return the error response if there was an error
+                return nearby_places 
 
             nearby_places_formatted = [
             f"Title: {place['title']}, Category: {place['category']}, Link: {place['link']}, Road Address: {place['roadaddress']}, Address: {place['address']}"
@@ -270,70 +246,3 @@ class AiPlanningAPIView(APIView):
                     "message": "죄송합니다. 여행플래닝 서비스 제공에 실패했습니다. 다시 시도해주세요.",
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class TestAPIView(APIView):
-    def post(self, request):
-        client_id = settings.NAVER_CLIENT_ID
-        client_secret = settings.NAVER_SECRET_KEY
-        query_params = request.query_params
-        place_name = query_params.get("place_name")
-        start = 1
-        end = 100
-        display = 5
-        sort = "comment"
-        
-        if not place_name:
-            return Response({"error": "place_name is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        place_name_for_search = ''.join(place_name.strip().split())
-        
-        try:
-            location = Location.objects.annotate(place_name_no_spaces=Replace('place_name', Value(' '), Value(''))).filter(place_name_no_spaces__icontains=place_name_for_search).first()
-            if not location:
-                return Response({"error": f"No location found for place_name '{place_name}'"}, status=status.HTTP_404_NOT_FOUND)
-            address = location.address
-            short_address = " ".join(address.split()[:2])
-        except Exception as e:
-            return Response({"error": f"Error retrieving address: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        nearby_places = []
-        categories = ["식당", "관광지", "숙소"]
-        
-        # i = 0
-        # for i in range(3):
-            # i = i + 1
-        for category in categories:
-            for idx in range(start, end, display):
-                query = f"{short_address} 근처 {category}"
-                encText = urllib.parse.quote(query)
-                # start = i * 5 - 5 + 1
-                print("---------------------------------------------------------------------")
-                print(start)
-                url = f"https://openapi.naver.com/v1/search/local.json?query={encText}&display={display}&start={start}&end={end}&sort={sort}"
-                try:
-                    req = urllib.request.Request(url)
-                    req.add_header("X-Naver-Client-Id", client_id)
-                    req.add_header("X-Naver-Client-Secret", client_secret)
-                    response = urllib.request.urlopen(req)
-                    rescode = response.getcode()
-                    
-                    if rescode == 200:
-                        response_body = response.read()
-                        result = json.loads(response_body)
-                        if 'items' in result and result['items']:
-                            for item in result['items']:
-                                nearby_places.append({
-                                    "title": item['title'], # 업체명, 기관명
-                                    "link": item.get('link'), # 업체, 기관의 상세정보(URL)
-                                    "category": item.get('category'), # 업체, 기관의 분류 정보
-                                    "roadaddress": item.get('roadAddress'), # 도로명 주소
-                                    "address": item.get('address') # 지번 주소
-                                })
-                    else:
-                        return Response({"error": f"Error Code: {rescode}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                        
-                except urllib.error.URLError as e:
-                    return Response({"error": f"Error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-        return Response(nearby_places)
