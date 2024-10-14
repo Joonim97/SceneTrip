@@ -109,14 +109,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
 ASGI_APPLICATION = 'SceneTrip.asgi.application'
 
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379), ('43.203.201.216', 6379)],
+#         },
+#     },
+# }
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379), ('43.203.201.216', 6379)],
+            "hosts": [('redis', 6379)],
         },
     },
 }
+
 
 
 # Database
