@@ -91,7 +91,6 @@ class CommentLikeView(APIView): # 커뮤 댓글좋아요
 class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니티작성
         queryset = Community.objects.all().order_by('-created_at') # 전체조회
         serializer_class = CommunitySerializer
-
         
         def post(self, request): # 작성
             permission_classes = [IsAuthenticated] # 로그인권한
