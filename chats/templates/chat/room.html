@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -44,6 +44,78 @@
             }));
             messageInputDom.value = '';
         };
+    </script>
+</body>
+</html> {% endcomment %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 방</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat-box {
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #message-input {
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <h1>채팅 방</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+    <button id="send-button">전송</button>
+
+    <script>
+        // URL에서 방 이름 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomName = urlParams.get('room');  // 방 이름
+
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/api/chats/' + roomName + '/',
+            null,
+            {
+                headers: {
+                    'Authorization': 'Bearer ' + token // JWT 토큰
+                }
+            }
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<p>${data.message}</p>`;  // 메시지 표시
+            chatBox.scrollTop = chatBox.scrollHeight;  // 스크롤을 아래로
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.getElementById('send-button').onclick = function() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+            if (message) {
+                sendMessage(message);
+                messageInput.value = '';  // 입력창 초기화
+            }
+        };
+
+        function sendMessage(message) {
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+        }
     </script>
 </body>
 </html>
