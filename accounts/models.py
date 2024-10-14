@@ -28,8 +28,7 @@ class User(AbstractUser):
         (AUTHOR, 'author'),
         (NORMAL, 'normal'),
     ]
-    grade = models.CharField(max_length=6, choices=GRADE, default=0)
-    
+    grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
 
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드
