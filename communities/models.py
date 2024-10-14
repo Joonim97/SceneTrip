@@ -8,9 +8,9 @@ User = get_user_model()
 
 class Community(models.Model): # 커뮤니티
     categories = [
-        ( 'A', 'Category A' ), # 카테고리 선택
-        ( 'B', 'Category B' ),
-        ( 'C', 'Category C' )
+        ( 'A', '정보' ), # 카테고리 선택
+        ( 'B', '잡담' ),
+        ( 'C', '홍보' )
     ]
     
     # id=models.IntegerField(primary_key=True)
