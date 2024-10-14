@@ -5,13 +5,12 @@ from locations.serializers import LocationSaveSerializer
 from .models import User
 import re
 
-
+# 회원가입
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password', 'nickname','email', 'user_id', 'birth_date', 'gender', 'grade']
 
-        
     def validate(self, data):
         if User.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError("사용 중인 이메일입니다.")
@@ -48,7 +47,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         return data
 
-
 # 비밀번호 관련
 class PasswordCheckSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -67,18 +65,15 @@ class PasswordCheckSerializer(serializers.Serializer):
         
         return value
 
-
 # 이메일 재설정
 class EmailCheckSerializer(serializers.Serializer):
     new_email = serializers.EmailField(write_only=True)
-
 
 # 구독자 이름만 보이게 만듬
 class SubUsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname']
-
 
 # 마이페이지 
 class MyPageSerializer(serializers.ModelSerializer):
@@ -91,7 +86,8 @@ class MyPageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings',
+                'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
 
     def get_subscribings(self, obj):
         # 구독 중인 사용자 중 최대 5명 반환
