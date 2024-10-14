@@ -62,6 +62,8 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels', # 채널
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,13 +74,14 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
     
-    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
-
+    # app
+    'chats',
     'accounts',
     'journals',
     'communities',
     'locations',
-    'chats',
+
+
 
     'hitcount',
 ]
@@ -120,7 +123,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [(os.environ.get('REDIS_HOST', 'localhost'), 6379)],
+            "hosts": [('127.0.0.1', 6379)],
         },
     },
 }
