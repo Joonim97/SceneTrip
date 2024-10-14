@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'journals',
     'communities',
     'locations',
+    'questions',
 
     'hitcount',
 ]
