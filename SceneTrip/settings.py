@@ -51,8 +51,9 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
+    'daphne', # asgi
     'channels', # 채널
+    'corsheaders', # CORS 해결
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,15 +71,14 @@ INSTALLED_APPS = [
     'communities',
     'locations',
     'questions',
-
-
-
+    # 조회수
     'hitcount',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
