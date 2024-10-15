@@ -69,8 +69,8 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
 
     class Meta :
         model=Community
-        fields=[ 'id','communityKey','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
-        read_only_fields = ('id','author','created_at','updated_at'
+        fields=[ 'id','communityKey','category','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
+        read_only_fields = ('id','author','created_at','updated_at',
                             'unusables_count','comments_count','likes_count','dislikes_count','likes','dislikes')
 
     def get_unusables_count(self, community_id) : # 신고수
@@ -87,35 +87,16 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
 
 
 class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
-    unusables_count= serializers.SerializerMethodField() # 신고수 카운트
-    likes_count= serializers.SerializerMethodField() # 좋아요수
-    dislikes_count= serializers.SerializerMethodField() # 싫어요수
-    author = serializers.CharField(source='author.nickname', read_only=True)
-
     comments= CommentSerializer(many=True, read_only=True, source='community_comments')
     comments_count= serializers.SerializerMethodField() # 댓글 수
     community_images = CommunityImageSerializer(many=True, read_only=True)
 
-    likes = CommunityLikeSerializer(source='community_likes', many=True, read_only=True)
-    dislikes = CommunityDislikeSerializer(source='community_dislikes', many=True, read_only=True)
+    class Meta(CommunitySerializer.Meta) :
 
-    class Meta :
-        model=Community
-
-        fields=[ 'id','communityKey','title','content','author','created_at','updated_at','community_images',
-                'likes_count','dislikes_count','unusables_count','comments_count','comments','likes_count','dislikes_count','likes','dislikes' ]
+        fields= CommunitySerializer.Meta.fields + ['comments_count','comments' ]
 
         read_only_fields = ('id','author','created_at','updated_at',
                             'unusables','unusables_count','comments_count','comments','likes_count','dislikes_count','likes','dislikes')
-
-    def get_unusables_count(self, community_id) : # 신고수
-        return community_id.unusables.count()
-    
+  
     def get_comments_count(self, community_id): # 댓글수
         return community_id.community_comments.count()
-    
-    def get_likes_count(self, community_id): # 좋아요수
-        return community_id.community_likes.count()
-    
-    def get_dislikes_count(self, community_id): # 싫어요수
-        return community_id.community_dislikes.count()
