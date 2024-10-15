@@ -1,52 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 방</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+    <h1>채팅 방</h1>
+    <div id="chat-log"></div>
+    <input id="chat-message-input" type="text" size="100" placeholder="메시지 입력">
+    <input id="chat-message-submit" type="button" value="전송">
+    
     <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        
+        // URL 쿼리에서 방 이름을 가져오는 함수
+        function getRoomNameFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('room'); // 'room' 쿼리 매개변수의 값을 가져옴
+        }
+
+        const roomName = getRoomNameFromURL(); // 방 이름을 가져옴
+
+        // WebSocket 연결 설정
         const chatSocket = new WebSocket(
-            protocol + window.location.host + '/ws/api/chats/' + roomName + '/'
+            'ws://' + window.location.host + '/ws/api/chats/' + roomName + '/'
         );
 
+        // WebSocket 연결 성공 시
+        chatSocket.onopen = function(e) {
+            console.log('WebSocket 연결 성공:', e);
+        };
+
+        // 메시지 수신 처리
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            const message = data.message;
+            document.querySelector('#chat-log').innerHTML += (message + '<br>');
         };
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        chatSocket.onerror = function(e) {
-            console.error('WebSocket error:', e);
-        };
-
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
-
+        // 메시지 전송 처리
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value.trim(); // 공백 제거
-
-            if (message) { // 비어있지 않은 경우에만 전송
-                chatSocket.send(JSON.stringify({
-                    'message': message
-                }));
-                messageInputDom.value = '';
-            }
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = ''; // 입력란 초기화
         };
     </script>
 </body>
