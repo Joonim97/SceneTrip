@@ -53,7 +53,7 @@ SIMPLE_JWT = {
 INSTALLED_APPS = [
     'daphne', # asgi
     'channels', # 채널
-    'corsheaders', # CORS 해결
+    # 'corsheaders', # CORS 해결
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -78,7 +78,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', 
+    # 'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -89,34 +89,34 @@ MIDDLEWARE = [
 ]
 
 
-# CORS 관련
-CORS_ORIGIN_ALLOW_ALL = False  # 모든 출처 허용을 비활성화
-CORS_ALLOWED_ORIGINS = [
-    "http://43.203.201.216",  # 배포 주소
-    "http://localhost",        # 로컬 개발 주소
-]
-CORS_ALLOW_CREDENTIALS = True
+# # CORS 관련
+# CORS_ORIGIN_ALLOW_ALL = False  # 모든 출처 허용을 비활성화
+# CORS_ALLOWED_ORIGINS = [
+#     "http://43.203.201.216",  # 배포 주소
+#     "http://localhost",        # 로컬 개발 주소
+# ]
+# CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_METHODS = (
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-)
+# CORS_ALLOW_METHODS = (
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# )
 
-CORS_ALLOW_HEADERS = (
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-)
+# CORS_ALLOW_HEADERS = (
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+# )
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
