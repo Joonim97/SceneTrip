@@ -88,7 +88,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = ['43.203.201.216', 'localhost']
+CORS_ORIGIN_ALLOW_ALL = False  # 모든 출처 허용을 비활성화
+CORS_ALLOWED_ORIGINS = [
+    "http://43.203.201.216",  # 배포 주소
+    "http://localhost",        # 로컬 개발 주소
+]
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = (
