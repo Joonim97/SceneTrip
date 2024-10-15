@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}
+커뮤니티 목록
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1>커뮤니티 목록</h1>
+  <div class="row">
+    {% for community in communities %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ community.title }}</h5>
+          <p class="card-text">{{ community.content|slice:":100" }}...</p> <!-- 커뮤니티 내용 일부만 표시 -->
+          <p class="card-text"><small>작성자: {{ community.author.nickname }} | 조회수: {{ community.views }}</small></p>
+          <a href="{% url 'communities:community-detail' community.id %}" class="btn btn-primary">더 읽기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,12 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import ListView
+from django.db.models import Q, Count
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from .models import Location, LocationSave
 from journals.models import Journal
+from communities.models import Community
 from .serializers import LocationSerializer
 import re
 
@@ -39,6 +40,15 @@ class LocationListAPIView(APIView):
             return Response({"error": "Invalid sort_by parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(sorted_location_data)
+    
+class LocationListView(ListView):
+    model = Location
+    template_name = 'locations/location_list.html'  # 사용할 템플릿
+    context_object_name = 'locations'  # 템플릿에서 사용할 변수명
+    paginate_by = 6  # 페이지당 표시할 촬영지 수
+
+    def get_queryset(self):
+        return Location.objects.all().order_by('-save_count')  # 저장 수에 따라 정렬
     
 
 class LocationRegionAPIView(APIView):
@@ -127,9 +137,18 @@ class LocationSaveView(APIView):
 def index(request):
     latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
     popular_locations = Location.objects.order_by('-save_count')[:3]  # 인기 촬영지 3개 가져오기
+    popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
 
     context = {
+        'popular_locations': popular_locations,
         'latest_journals': latest_journals,
-        'popular_locations': popular_locations
+        'popular_community_posts': popular_community_posts,  # 인기 커뮤니티 글 추가
     }
+    
     return render(request, 'journals/index.html', context)
+
+
+def location_detail(request, pk):
+    # 촬영지 상세 정보를 가져와 템플릿에 렌더링
+    location = get_object_or_404(Location, pk=pk)
+    return render(request, 'locations/location_detail.html', {'location': location})

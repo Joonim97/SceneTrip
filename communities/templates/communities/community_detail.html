@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}
+커뮤니티 글 상세
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ community.title }}</h2>
+  <p>작성자: {{ community.author.nickname }} | 작성일: {{ community.created_at }}</p>
+  
+  <div class="mt-4">
+    <p>{{ community.content }}</p>
+  </div>
+  
+  <!-- 이미지 목록 -->
+  <div class="mt-4">
+    <h5>첨부 이미지</h5>
+    <div class="row">
+      {% for image in community.community_images.all %}
+      <div class="col-md-4 mb-3">
+        <img src="{{ image.community_image.url }}" class="img-fluid" alt="community image">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 좋아요 / 싫어요 버튼 -->
+  <div class="mt-4">
+    <button id="like-btn" class="btn btn-outline-success">좋아요</button>
+    <button id="dislike-btn" class="btn btn-outline-danger">싫어요</button>
+    <span>좋아요 수: {{ community.community_likes.count }} | 싫어요 수: {{ community.community_dislikes.count }}</span>
+  </div>
+
+  <!-- 댓글 섹션 -->
+  <div class="mt-5">
+    <h5>댓글</h5>
+    <div id="comments-section">
+      {% for comment in community.community_comments.all %}
+      <div class="comment mb-4">
+        <strong>{{ comment.user.nickname }}</strong> - {{ comment.created_at }}
+        <p>{{ comment.content }}</p>
+        <button class="btn btn-sm btn-outline-success">좋아요</button>
+        <button class="btn btn-sm btn-outline-danger">싫어요</button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 댓글 작성 폼 -->
+  <div class="mt-4">
+    <h5>댓글 작성</h5>
+    <form id="comment-form" method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // 좋아요 버튼 동작
+  document.getElementById('like-btn').addEventListener('click', function() {
+    // 좋아요 처리 로직 추가
+    alert("좋아요 클릭됨");
+  });
+
+  // 싫어요 버튼 동작
+  document.getElementById('dislike-btn').addEventListener('click', function() {
+    // 싫어요 처리 로직 추가
+    alert("싫어요 클릭됨");
+  });
+
+  // 댓글 작성 폼 제출 시
+  document.getElementById('comment-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const commentContent = document.getElementById('comment-content').value;
+    if (commentContent) {
+      // 댓글 작성 처리 로직 추가
+      alert("댓글이 작성되었습니다.");
+    }
+  });
+</script>
+
+{% endblock %}

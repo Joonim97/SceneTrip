@@ -130,16 +130,19 @@ class DeleteAPIView(APIView):  # 회원탈퇴
 # 마이페이지
 class Mypage(ListAPIView): # 마이 페이지
     permission_classes = [IsAuthenticated]
+    serializer_class = MyPageSerializer
     
     def get(self, request, nickname):
-        try: # 사용자가 맞는지 아닌지에 대한 예외처리
-            my_page = get_object_or_404(User, nickname=nickname)
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-        if my_page == request.user:
-            serializer = MyPageSerializer(my_page)
-            return render(request, 'accounts/mypage.html', {'user': serializer.data})  # 마이페이지 HTML 렌더링
-        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
+            print(request.user)
+            try:
+                my_page = get_object_or_404(User, nickname=nickname)
+            except:
+                return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+            
+            if my_page.id == request.user.id:
+                serializer = MyPageSerializer(my_page)
+                return render(request, 'accounts/mypage.html', {'user': serializer.data})
+            return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
     
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)

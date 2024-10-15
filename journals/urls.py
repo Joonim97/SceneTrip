@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView, JournalWriteView
+from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView, JournalWriteView, JournalListView
 from . import views
 
 app_name = "journals"
@@ -25,5 +25,6 @@ urlpatterns = [
     
     
     path('write/', JournalWriteView.as_view(), name='journal-write'),
+    path('list/', JournalListView.as_view(), name='journal_list'),
 ] 
 

@@ -1,12 +1,18 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect
+from django.http import JsonResponse
+from django.views.generic import ListView
 from rest_framework import status
-from rest_framework.views import APIView
+from rest_framework.views import APIView, View
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
 from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .forms import CommunityForm  # 커뮤니티 글 작성 폼
 
 class CommentView(APIView): # 커뮤 댓글
     def get(self, request, community_id):
@@ -106,6 +112,16 @@ class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니�
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
+            
+            
+class CommunityListView(ListView):
+    model = Community
+    template_name = 'communities/community_list.html'  # 사용할 템플릿
+    context_object_name = 'communities'  # 템플릿에서 사용할 변수명
+    paginate_by = 6  # 페이지당 표시할 글 수
+
+    def get_queryset(self):
+        return Community.objects.all().order_by('-created_at')  # 최신 글 순으로 정렬
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
@@ -114,13 +130,18 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                 return get_object_or_404(Community, pk=pk)
 
         def get(self, request, pk): # 커뮤니티 상세조회
-                community = self.get_object(pk)
+                community = get_object_or_404(Community, pk=pk)
 
                 if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
                     return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
 
                 serializer = CommunityDetailSerializer(community)
-                return Response(serializer.data)
+                context = {
+                'community': community
+                }
+            
+            # 템플릿을 렌더링하여 반환
+                return render(request, 'communities/community_detail.html', context)
 
         def put(self, request, pk): # 커뮤니티 수정
                 permission_classes = [IsAuthenticated] # 로그인권한
@@ -207,3 +228,28 @@ class CommunityUnusableAPIView(APIView): # 커뮤글 신고
             return Response({"신고가 접수되었습니다"},  status=status.HTTP_200_OK)
         
         return Response({"이미 신고되었습니다"},  status=status.HTTP_200_OK) # 신고는 취소 불가
+
+
+class CommunityWriteView(APIView):
+
+    def get(self, request):
+        # 커뮤니티 글 작성 페이지 렌더링
+        form = CommunityForm()
+        return render(request, 'communities/community_write.html', {'form': form})
+
+    def post(self, request):
+        form = CommunityForm(request.POST, request.FILES)
+        if form.is_valid():
+            community = form.save(commit=False)
+            community.author = request.user
+            community.save()
+
+            # 이미지 파일 처리
+            for image in request.FILES.getlist('community_images'):
+                CommunityImage.objects.create(community=community, community_image=image)
+
+            # 성공적으로 작성한 경우 JSON 응답 반환
+            return JsonResponse({'message': 'Community post created successfully', 'id': community.id}, status=201)
+        else:
+            # 유효성 검사 실패 시 JSON 응답 반환
+            return JsonResponse({'errors': form.errors}, status=400)
