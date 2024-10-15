@@ -14,7 +14,8 @@
         document.getElementById('join-button').onclick = function() {
             const roomName = document.getElementById('room-input').value;
             if (roomName) {
-                window.location.href = `room.html?room=${roomName}`;  // 방으로 이동
+                // 방 이름에 따른 방으로 이동
+                window.location.href = `room.html?room=${encodeURIComponent(roomName)}`;  // 방으로 이동
             }
         };
     </script>
