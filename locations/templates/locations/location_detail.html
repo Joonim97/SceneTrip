@@ -33,7 +33,8 @@
       return;
     }
 
-    fetch(`/api/locations/save/${location.id}/`, {  // 여기서 중첩된 중괄호 제거
+    // location.id 값을 JavaScript로 넘겨줌
+    fetch(`/api/locations/{{ location.id }}/saves/`, {  // 중괄호 안에 location.id 적용
       method: "POST",
       headers: {
         'Authorization': `Bearer ${accessToken}`,

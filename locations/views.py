@@ -4,7 +4,7 @@ from django.db.models import Q, Count
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Location, LocationSave
 from journals.models import Journal
 from communities.models import Community
@@ -116,6 +116,7 @@ class LocationSearchAPIView(APIView):
 
 class LocationSaveView(APIView):
     permission_classes = [IsAuthenticated]
+    
 
     def post(self, request, id):
         user = request.user
