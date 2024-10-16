@@ -38,7 +38,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
@@ -78,7 +78,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', 
+    # 'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,36 +88,36 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_METHODS = [  # 허용할 옵션
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
+# CORS_ALLOW_METHODS = [  # 허용할 옵션
+#     "DELETE",
+#     "GET",
+#     "OPTIONS",
+#     "PATCH",
+#     "POST",
+#     "PUT",
+# ]
 
-CORS_ALLOW_HEADERS = [ # 허용할 헤더
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
-CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_HEADERS = [ # 허용할 헤더
+#     "accept",
+#     "accept-encoding",
+#     "authorization",
+#     "content-type",
+#     "dnt",
+#     "origin",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# ]
+# CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://3.34.143.41"
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8080",
+#     "http://3.34.143.41"
+# ]
 
-CORS_ALLOWED_ORIGIN_REGEXES = []
+# CORS_ALLOWED_ORIGIN_REGEXES = []
 
-CORS_ALLOW_ALL_ORIGINS: False 
+# CORS_ALLOW_ALL_ORIGINS: False 
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
