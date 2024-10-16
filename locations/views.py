@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView
 from django.db.models import Q, Count
@@ -43,12 +44,40 @@ class LocationListAPIView(APIView):
     
 class LocationListView(ListView):
     model = Location
-    template_name = 'locations/location_list.html'  # 사용할 템플릿
-    context_object_name = 'locations'  # 템플릿에서 사용할 변수명
-    paginate_by = 6  # 페이지당 표시할 촬영지 수
-
+    template_name = 'locations/location_list.html'
+    context_object_name = 'locations'
+    paginate_by = 12  # 한 페이지에 표시할 촬영지 수
+    
     def get_queryset(self):
-        return Location.objects.all().order_by('-save_count')  # 저장 수에 따라 정렬
+        queryset = super().get_queryset()
+        keyword = self.request.GET.get('keyword', None)
+        
+        if keyword:
+            queryset = queryset.filter(
+                Q(title__icontains=keyword) |
+                Q(place_name__icontains=keyword) |
+                Q(address__icontains=keyword) |
+                Q(place_description__icontains=keyword)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_obj = context['page_obj']
+
+        # 현재 페이지와 페이지 그룹을 계산
+        current_page = page_obj.number
+        current_group = (current_page - 1) // 5 + 1
+        start_page = (current_group - 1) * 5 + 1
+        end_page = start_page + 4
+
+        # 총 페이지 수를 넘지 않도록 조정
+        if end_page > page_obj.paginator.num_pages:
+            end_page = page_obj.paginator.num_pages
+
+        # 템플릿으로 start_page와 end_page 전달
+        context['page_range'] = range(start_page, end_page + 1)
+        return context
     
 
 class LocationRegionAPIView(APIView):
