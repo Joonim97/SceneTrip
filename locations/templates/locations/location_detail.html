@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ location.title }} - 촬영지 정보
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1>{{ location.title }}</h1>
+  <p><strong>장소 이름:</strong> {{ location.place_name }}</p>
+  <p><strong>설명:</strong> {{ location.place_description }}</p>
+  <p><strong>영업 시간:</strong> {{ location.opening_hours }}</p>
+  <p><strong>휴식 시간:</strong> {{ location.break_time }}</p>
+  <p><strong>휴무일:</strong> {{ location.closed_day }}</p>
+  <p><strong>주소:</strong> {{ location.address }}</p>
+  <p><strong>전화번호:</strong> {{ location.tel }}</p>
+  <p><strong>저장 수:</strong> {{ location.save_count }}</p>
+
+  <!-- 촬영지 저장 버튼 -->
+  <div class="mt-4">
+    <button id="save-location-btn" class="btn btn-success">촬영지 저장</button>
+    <a href="{% url 'locations:location_list' %}" class="btn btn-secondary">목록으로 돌아가기</a>
+  </div>
+</div>
+
+<script>
+  document.getElementById('save-location-btn').addEventListener('click', function() {
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (!accessToken) {
+      alert('로그인 후 이용해주세요.');
+      window.location.href = "{% url 'accounts:login_page' %}";
+      return;
+    }
+
+    // location.id 값을 JavaScript로 넘겨줌
+    fetch(`/api/locations/{{ location.id }}/saves/`, {  // 중괄호 안에 location.id 적용
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('촬영지 저장 실패');
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert(data.message);
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      alert('촬영지 저장 중 문제가 발생했습니다.');
+    });
+  });
+</script>
+{% endblock %}

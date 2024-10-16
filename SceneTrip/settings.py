@@ -38,15 +38,19 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 # Application definition
 
@@ -64,6 +68,8 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
     
+    'corsheaders',
+  
     # app
     'chats',
     'accounts',
@@ -82,12 +88,14 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS 미들웨어 추가
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_METHODS = [  # 허용할 옵션
     "DELETE",
     "GET",
@@ -186,6 +194,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
 
+
 # DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
 
@@ -207,6 +216,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/api/accounts/login/'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -225,6 +236,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "static"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -40,8 +40,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("아이디는 하나 이상의 영문이 포함되어야 합니다.")
         if not re.search(r"\d", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
-        if len(data['password']) < 4 or len(data['password']) > 20:
-            raise serializers.ValidationError("아이디는 4글자 이상 20글자 이하여야 합니다.")
+        if len(data['user_id']) < 6 or len(data['user_id']) > 20:
+            raise serializers.ValidationError("아이디는 6글자 이상 20글자 이하여야 합니다.")
         if len(data['user_id']) == 0:
             raise serializers.ValidationError("아이디를 입력해주십시오.")
 

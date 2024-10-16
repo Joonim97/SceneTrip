@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}
+저널 목록
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1>저널 목록</h1>
+  <div class="row">
+    {% for journal in journals %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ journal.title }}</h5>
+          <p class="card-text">{{ journal.content|slice:":100" }}...</p> <!-- 저널 내용 일부만 표시 -->
+          <p class="card-text"><small>작성자: {{ journal.author.nickname }} | 조회수: {{ journal.views }}</small></p>
+          <a href="{% url 'journals:journal_detail' journal.id %}" class="btn btn-primary">더 읽기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

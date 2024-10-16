@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Scene Trip
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <!-- 소개 섹션 -->
+  <div class="jumbotron text-center">
+    <h1>Scene Trip</h1>
+    <p>작품 속 그 공간을 당신의 눈 앞에</p>
+  </div>
+
+  <!-- 인기 촬영지 섹션 (카드 형식) -->
+  <div class="row">
+    <h2 class="text-center">인기 촬영지</h2>
+    {% for location in popular_locations %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        {% comment %} <img src="{{ location.image.url|default:'/static/default_location.png' }}" class="card-img-top" alt="{{ location.title }}"> {% endcomment %}
+        <div class="card-body">
+          <h5 class="card-title">{{ location.title }}</h5>
+          <p class="card-text">{{ location.place_name }}</p>
+          <a href="/api/locations/{{ location.id }}" class="btn btn-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="container mt-5">
+    <!-- 저널 글 작성 버튼 -->
+    <div id="journal-write-btn"></div>
+
+  <!-- 최신 저널 섹션 (카드 형식) -->
+  <div class="row mt-5">
+    <h2 class="text-center">최신 저널</h2>
+    {% for journal in latest_journals %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ journal.title }}</h5>
+          <p class="card-text">{{ journal.content|slice:":100" }}...</p> <!-- 저널 내용 일부만 표시 -->
+          <a href="api/journals/{{ journal.id }}/" class="btn btn-primary">더 읽기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<div id="community-write-btn"></div> <!-- 여기에 글 작성 버튼이 표시됨 -->
+
+
+  <!-- 인기 커뮤니티 글 섹션 추가 -->
+  <div class="row mt-5">
+    <h2 class="text-center">인기 커뮤니티 글</h2>
+    {% for post in popular_community_posts %}
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ post.title }}</h5>
+          <p class="card-text">{{ post.content|slice:":100" }}...</p>
+          <a href="/api/communities/{{ post.id }}" class="btn btn-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+    const journalWriteBtn = document.getElementById('journal-write-btn');
+
+    if (accessToken) {
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,  // 변수로 가져온 토큰 사용
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 401) {  // 토큰 만료에 따른 리프레시
+            return fetch("/api/accounts/token/refresh/", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+            })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('토큰 갱신 실패');
+              }
+              return res.json();
+            })
+            .then(data => {
+              // 새로 발급된 액세스 토큰 저장
+              localStorage.setItem('access_token', data.access);
+              return fetch("/api/accounts/user-info/", {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                  'Content-Type': 'application/json'
+                }
+              });
+            });
+          } else {
+            throw new Error('인증 실패');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 새 요청의 응답 데이터를 처리
+        if (data.grade === 'author') {
+          journalWriteBtn.innerHTML = `
+            <div class="text-end mt-4">
+              <a href="api/journals/write/" class="btn btn-success">저널 글 작성</a>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+  });
+
+  // 커뮤니티 글 작성 버튼 설정
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+    const communityWriteBtn = document.getElementById('community-write-btn');
+  
+    if (accessToken) {
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,  // JWT 토큰 사용
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 401) {  // 토큰 만료 처리
+            return fetch("/api/accounts/token/refresh/", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+            })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('토큰 갱신 실패');
+              }
+              return res.json();
+            })
+            .then(data => {
+              localStorage.setItem('access_token', data.access);  // 새로 발급된 액세스 토큰 저장
+              return fetch("/api/accounts/user-info/", {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                  'Content-Type': 'application/json'
+                }
+              });
+            });
+          } else {
+            throw new Error('인증 실패');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 모든 회원에게 커뮤니티 글 작성 버튼을 표시
+        communityWriteBtn.innerHTML = `
+          <div class="text-end mt-4">
+            <a href="{% url 'communities:community_write' %}" class="btn btn-success">커뮤니티 글 작성</a>
+          </div>
+        `;
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+  });
+</script>
+
+
+{% endblock %}
