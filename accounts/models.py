@@ -11,8 +11,9 @@ class User(AbstractUser):
     username = models.CharField(max_length=150, blank=True, null=True)
     user_id = models.CharField(max_length=150, unique=True) # 아이디
     email = models.EmailField(unique=True, blank=False) # 이메일
-    birth_date = models.DateField(blank=False) # 생년월일
+    birth_date = models.DateField() # 생년월일
     gender = models.CharField(max_length=10, null=True, blank=True) # 성별
+    author_verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
     verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
     nickname = models.CharField(max_length=20, unique=True)
     subscribings = models.ManyToManyField('self', symmetrical=False, related_name='subscribes') # 구독
@@ -22,11 +23,11 @@ class User(AbstractUser):
     new_password = models.CharField(max_length=20, null=True, blank=True) # 새 비밀번호
     
     # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
-    AUTHOR= 'author'
-    NORMAL = 'normal'
+    AUTHOR= 'AUTHOR'
+    NORMAL = 'NORMAL'
     GRADE = [
-        (AUTHOR, 'author'),
-        (NORMAL, 'normal'),
+        (AUTHOR, 'AUTHOR'),
+        (NORMAL, 'NORMAL'),
     ]
     grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
 

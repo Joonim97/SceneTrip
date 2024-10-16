@@ -22,7 +22,7 @@
 
         // WebSocket 연결 설정
         const chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/api/chats/' + roomName + '/'
+            'ws://' + (window.location.hostname === 'localhost' ? 'localhost' : window.location.host) + '/ws/api/chats/' + roomName + '/'
         );
 
         // WebSocket 연결 성공 시

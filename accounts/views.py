@@ -53,54 +53,71 @@ class SignupAPIView(APIView):
             serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
                 email = serializer.validated_data['email']
-                # 기존 사용자 확인
-                try:
-                    existing_user = User.objects.get(email=email)
-                    if not existing_user.is_active:
-                        # 비활성화된 사용자면 기존 사용자 삭제
-                        existing_user.delete()
-                except User.DoesNotExist:
-                    pass
+            else:
+                email = request.data.get('email')
+            
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    # 비활성화된 사용자라면 기존 사용자 삭제
+                    existing_user.delete()
+                return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if serializer.is_valid():
                 user = serializer.save()
-                user.set_password(user.password) # 비밀번호 해시
-                user.verification_token = str(uuid.uuid4()) # 토큰생성
-                user.is_active = False # 비활성화
+                user.set_password(serializer.validated_data['password'])  # 비밀번호 해시 처리
+                user.verification_token = str(uuid.uuid4())  # 토큰 생성
+                user.author_verification_token = str(uuid.uuid4())  # 토큰 생성
+                user.is_active = False  # 비활성화 상태
                 user.save()
-                send_verification_email(user)
-                return Response({"message":"이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
-                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
-            return Response(
-                {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            return Response(
-                {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+                send_verification_email(user)  # 이메일 전송
+                return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": "오류가 발생했습니다.", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 이메일 인증 메일이 날아올 경우
+# 이메일 인증 
+
 class VerifyEmailAPIView(APIView):
     def get(self, request, token):
         try:
+            # 토큰으로 사용자를 조회
             user = get_object_or_404(User, verification_token=token)
-            user.verification_token = ''
-            user.grade = User.NORMAL
-            user.is_active = True
-            user.save()
-            return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
-        except:
-            return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            # 이메일 인증 후 상태 업데이트
+            if not user.is_active:  # 만약 사용자 비활성화 상태라면
+                user.verification_token = ''  # 토큰 초기화
+                user.is_active = True  # 사용자 활성화
+                
+                # 유저 등급 업데이트
+                if user.grade == 'AUTHOR':
+                    user.grade = 'NO_AUTHOR'  # 이메일 인증 후 NORMAL로 설정
+                user.save()  # 변경 사항 저장
+                return Response('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
+            else:
+                return Response('이메일이 이미 인증되었습니다.', status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': '정상적으로 처리되지 않으셨습니다.', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)    
+        
 
-# 회원가입시 grade가 journal, 관리자가 해당 link를 누른경우
+
+# 회원가입 시 grade가 journal, 관리자가 해당 link를 누른 경우
 class VerifyjJurnalEmailAPIView(APIView):
     def get(self, request, token):
         try:
-            user = get_object_or_404(User, verification_token=token)
-            user.verification_token = ''
-            if user.grade == User.NORMAL:  
-                user.grade = User.AUTHOR
-            user.save()
-            return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
-        except:
-            return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            user = get_object_or_404(User, author_verification_token=token)
+            if user.grade == 'NO_AUTHOR':
+                user.grade = 'AUTHOR' # 등급을 AUTHOR로 변경
+                user.is_active = True  # 사용자 활성화
+                user.author_verification_token = ''  # 인증 토큰 초기화
+                user.save()
+                return Response(f'{user.username}님이 관리자에 의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
+            else:
+                return Response({'error': '이메일 인증이 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': '정상적으로 처리되지 않으셨습니다.', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # 비밀번호 리셋 로직
 class PasswordResetRequestView(PermissionAPIView):
