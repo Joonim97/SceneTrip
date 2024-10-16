@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Filming Locations Service - Home
+Scene Trip
 {% endblock %}
 
 {% block content %}
@@ -22,7 +22,7 @@ Filming Locations Service - Home
         <div class="card-body">
           <h5 class="card-title">{{ location.title }}</h5>
           <p class="card-text">{{ location.place_name }}</p>
-          <a href="/locations/{{ location.id }}" class="btn btn-primary">자세히 보기</a>
+          <a href="/api/locations/{{ location.id }}" class="btn btn-primary">자세히 보기</a>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@ Filming Locations Service - Home
   document.addEventListener('DOMContentLoaded', function () {
     const accessToken = localStorage.getItem('access_token');
     const journalWriteBtn = document.getElementById('journal-write-btn');
-  
+
     if (accessToken) {
       fetch("/api/accounts/user-info/", {
         method: "GET",

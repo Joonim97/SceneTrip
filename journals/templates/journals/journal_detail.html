@@ -7,7 +7,12 @@
 {% block content %}
 <div class="container mt-5">
   <h2>{{ journal.title }}</h2>
-  <p>작성자: {{ journal.author }}</p>
+  <p>작성자: {{ journal.author_nickname }}
+    <!-- 구독 버튼 추가 -->
+    <button id="subscribe-btn" class="btn btn-primary" onclick="toggleSubscribe('{{ journal.author_nickname }}')">
+      구독하기
+    </button>
+  </p>
   <p>작성일: {{ journal.created_at }}</p>
 
   <div class="mb-3">
@@ -27,5 +32,294 @@
     </div>
   </div>
   {% endif %}
+
+  <!-- 좋아요 및 댓글 수 -->
+  <div class="mb-3">
+    <span>좋아요 수: {{ journal.likes_count }}</span>
+    <span>댓글 수: {{ journal.comments_count }}</span>
+  </div>
+
+  <div class="mt-4">
+    <!-- 좋아요 버튼 -->
+    <button id="like-btn" class="btn">
+      🤍 <!-- 기본 상태는 빈 하트 -->
+    </button>
+  </div>
+
+  <!-- 댓글 목록 -->
+  <div class="mb-3">
+    <h5>댓글</h5>
+    {% if journal.comments %}
+      {% for comment in journal.comments %}
+        {% if not comment.parent %} <!-- 부모 댓글이 없는 댓글만 출력 (원댓글) -->
+        <div class="comment mb-3">
+          <p><strong>{{ comment.user_nickname }}:</strong> {{ comment.content }}</p>
+          <p><small>{{ comment.created_at }}</small></p>
+  
+          <!-- 댓글 좋아요/싫어요 버튼 및 카운트 -->
+          <div class="d-flex align-items-center">
+            <button class="btn btn-link like-btn" data-comment-id="{{ comment.id }}" data-like-type="like">
+              👍 좋아요 (<span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>)
+            </button>
+            <button class="btn btn-link dislike-btn" data-comment-id="{{ comment.id }}" data-like-type="dislike">
+              👎 싫어요 (<span id="dislike-count-{{ comment.id }}">{{ comment.dislike_count }}</span>)
+            </button>
+          </div>
+  
+          <!-- 대댓글 작성 버튼 -->
+          <button class="btn btn-link reply-btn" data-comment-id="{{ comment.id }}">대댓글 작성</button>
+  
+          <!-- 대댓글 작성 폼 (처음에는 숨김 상태) -->
+          <form id="reply-form-{{ comment.id }}" class="reply-form" style="display: none;" method="POST">
+            <textarea class="form-control" rows="2" placeholder="대댓글을 입력하세요"></textarea>
+            <button type="submit" class="btn btn-primary mt-2">대댓글 작성</button>
+          </form>
+  
+          <!-- 대댓글 출력 -->
+          <div class="replies ml-4">
+            {% for reply in journal.comments %}
+            {% if reply.parent.id == comment.id %} <!-- parent 필드가 원댓글의 id와 일치하는 경우만 -->
+            <div class="reply mb-2" style="border-left: 2px solid #ccc; padding-left: 10px;">
+              <p><strong>{{ reply.user_nickname }}:</strong> {{ reply.content }}</p>
+              <p><small>{{ reply.created_at }}</small></p>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p>댓글이 없습니다.</p>
+    {% endif %}
+  </div>
+
+  
+
+  <!-- 댓글 작성 -->
+  <div class="mb-3">
+    <h5>댓글 작성</h5>
+    <form id="comment-form" method="POST">
+      <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+      <button type="submit" class="btn btn-primary mt-2">댓글 작성</button>
+    </form>
+  </div>
 </div>
+
+<script>
+
+  function toggleSubscribe(authorNickname) {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+      alert("로그인 후 이용해주세요.");
+      window.location.href = "{% url 'accounts:login_page' %}";
+      return;
+    }
+
+    fetch(`/api/accounts/${authorNickname}/subscribes/`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      location.reload();  // 구독 상태 변경 후 페이지 새로고침
+    })
+    .catch(error => {
+      console.error("구독 처리 중 에러 발생:", error);
+    });
+  }
+
+  // 댓글 좋아요/싫어요 처리
+  document.querySelectorAll('.like-btn, .dislike-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      const likeType = button.getAttribute('data-like-type');
+      const accessToken = localStorage.getItem('access_token');
+
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.');
+        window.location.href = "{% url 'accounts:login_page' %}";
+        return;
+      }
+
+      fetch(`/api/journals/comments/${commentId}/${likeType}/`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 좋아요/싫어요 카운트 업데이트
+        document.getElementById(`like-count-${commentId}`).textContent = data.like_count;
+        document.getElementById(`dislike-count-${commentId}`).textContent = data.dislike_count;
+
+        // 메시지 알림
+        alert(data.message);
+
+        // 댓글이 삭제되었을 경우 페이지 새로고침
+        if (data.message.includes('댓글이 삭제되었습니다')) {
+          location.reload();
+        }
+      })
+      .catch(error => {
+        console.error('댓글 좋아요/싫어요 처리 중 에러:', error);
+      });
+    });
+  });
+
+  // 좋아요 상태 확인 함수
+  function checkLikeStatus() {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+      return;  // 토큰이 없으면 좋아요 상태를 확인하지 않음
+    }
+
+    fetch(`/api/journals/{{ journal.id }}/like-status/`, {
+      method: "GET",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.is_liked) {
+        document.getElementById('like-btn').innerHTML = '❤️';  // 꽉 찬 하트로 변경
+      } else {
+        document.getElementById('like-btn').innerHTML = '🤍';  // 빈 하트로 변경
+      }
+    })
+    .catch(error => {
+      console.error('좋아요 상태 확인 실패:', error);
+    });
+  }
+
+  // 페이지 로드 시 좋아요 상태 확인
+  document.addEventListener('DOMContentLoaded', checkLikeStatus);
+
+  // 좋아요 버튼 클릭 시 처리
+  document.getElementById('like-btn').addEventListener('click', function() {
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+      alert('로그인 후 이용해주세요.');
+      window.location.href = "{% url 'accounts:login_page' %}";
+      return;
+    }
+
+    fetch(`/api/journals/{{ journal.id }}/like/`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.is_liked) {
+        document.getElementById('like-btn').innerHTML = '❤️';  // 꽉 찬 하트로 변경
+      } else {
+        document.getElementById('like-btn').innerHTML = '🤍';  // 빈 하트로 변경
+      }
+    })
+    .then(data => {
+      alert('좋아요!');
+      location.reload();  // 페이지 새로고침
+    })
+    .catch(error => {
+      console.error('좋아요 처리 중 에러:', error);
+    });
+  });
+
+  // 대댓글 폼 토글
+  document.querySelectorAll('.reply-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      const replyForm = document.getElementById(`reply-form-${commentId}`);
+      replyForm.style.display = (replyForm.style.display === 'none') ? 'block' : 'none';
+    });
+  });
+
+  // 대댓글 작성 처리
+  document.querySelectorAll('.reply-form').forEach(form => {
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const parentCommentId = form.id.split('-')[2];
+      const replyContent = form.querySelector('textarea').value;
+      const accessToken = localStorage.getItem('access_token');
+
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.');
+        window.location.href = "{% url 'accounts:login_page' %}";
+        return;
+      }
+
+      fetch(`/api/journals/{{ journal.id }}/comments/${parentCommentId}/`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: replyContent
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('대댓글 작성 실패');
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert('대댓글이 성공적으로 작성되었습니다.');
+        location.reload();  // 페이지 새로고침
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        alert('대댓글 작성 중 문제가 발생했습니다.');
+      });
+    });
+  });
+
+  // 댓글 작성 처리
+  document.getElementById('comment-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const commentContent = document.getElementById('comment-content').value;
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+      alert('로그인 후 이용해주세요.');
+      window.location.href = "{% url 'accounts:login_page' %}";
+      return;
+    }
+
+    fetch(`/api/journals/{{ journal.id }}/comments/`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: commentContent
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('댓글 작성 실패');
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert('댓글이 성공적으로 작성되었습니다.');
+      location.reload();  // 페이지 새로고침
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      alert('댓글 작성 중 문제가 발생했습니다.');
+    });
+  });
+</script>
+
 {% endblock %}
