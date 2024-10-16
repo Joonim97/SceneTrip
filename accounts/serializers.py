@@ -14,8 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if User.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError("사용 중인 이메일입니다.")
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError("사용 중인 username입니다.")
+        # if User.objects.filter(username=data['username']).exists():
+        #     raise serializers.ValidationError("사용 중인 username입니다.")
         
         # 닉네임 유효성 검사
         if len(data['nickname']) > 20 and len(data['nickname']) >= 3:

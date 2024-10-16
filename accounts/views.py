@@ -53,27 +53,45 @@ class SignupAPIView(APIView):
             serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
                 email = serializer.validated_data['email']
-                # 기존 사용자 확인
-                try:
-                    existing_user = User.objects.get(email=email)
-                    if not existing_user.is_active:
-                        # 비활성화된 사용자면 기존 사용자 삭제
-                        existing_user.delete()
-                except User.DoesNotExist:
-                    pass
+            else:
+                email = request.data.get('email')
+            
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    # 비활성화된 사용자라면 기존 사용자 삭제
+                    existing_user.delete()
+                    serializer = UserSerializer(data=request.data)
+
+                    if serializer.is_valid():
+                        # email = serializer.validated_data['email']
+                        user = serializer.save()
+                        user.set_password(request.data.get('password'))
+                        user.verification_token = str(uuid.uuid4())
+                        user.is_active = False
+                        user.save()
+
+                        print(request.data)
+                        
+                        send_verification_email(user)  # 이메일 전송
+                        return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
                 user = serializer.save()
-                user.set_password(user.password) # 비밀번호 해시
-                user.verification_token = str(uuid.uuid4()) # 토큰생성
-                user.is_active = False # 비활성화
+                user.set_password(request.data.get('password'))
+                user.verification_token = str(uuid.uuid4())
+                user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
+                user.is_active = False
                 user.save()
                 send_verification_email(user)
-                return Response({"message":"이메일을 전송하였습니다!!, 이메일을 확인해주세요"}, status=status.HTTP_201_CREATED)
-                # 이메일 전송, 내용은 emails.py 에 적혀있는 내용들 전달
-            return Response(
-                {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            return Response(
-                {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
+        
+                
+            
+        except Exception as e:
+            return Response({"error": "오류가 발생했습니다.", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 이메일 인증 메일이 날아올 경우
@@ -93,8 +111,8 @@ class VerifyEmailAPIView(APIView):
 class VerifyjJurnalEmailAPIView(APIView):
     def get(self, request, token):
         try:
-            user = get_object_or_404(User, verification_token=token)
-            user.verification_token = ''
+            user = get_object_or_404(User, author_verification_token=token)
+            user.author_verification_token = ''
             if user.grade == User.NORMAL:  
                 user.grade = User.AUTHOR
             user.save()
