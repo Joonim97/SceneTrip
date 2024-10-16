@@ -91,8 +91,8 @@ class VerifyEmailAPIView(APIView):
                 user.is_active = True  # 사용자 활성화
                 
                 # 유저 등급 업데이트
-                if user.grade == 'AUTHOR':
-                    user.grade = 'NO_AUTHOR'  # 이메일 인증 후 NORMAL로 설정
+                if user.grade == 'author':
+                    user.grade = 'no_author'  # 이메일 인증 후 NORMAL로 설정
                 user.save()  # 변경 사항 저장
                 return Response('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
             else:
@@ -107,8 +107,8 @@ class VerifyjJurnalEmailAPIView(APIView):
     def get(self, request, token):
         try:
             user = get_object_or_404(User, author_verification_token=token)
-            if user.grade == 'NO_AUTHOR':
-                user.grade = 'AUTHOR' # 등급을 AUTHOR로 변경
+            if user.grade == 'no_author':
+                user.grade = 'author' # 등급을 AUTHOR로 변경
                 user.is_active = True  # 사용자 활성화
                 user.author_verification_token = ''  # 인증 토큰 초기화
                 user.save()

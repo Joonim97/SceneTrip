@@ -23,11 +23,11 @@ class User(AbstractUser):
     new_password = models.CharField(max_length=20, null=True, blank=True) # 새 비밀번호
     
     # 저널리스트(AUTHOR) 이나 일반(NOMAL) 선택 필드
-    AUTHOR= 'AUTHOR'
-    NORMAL = 'NORMAL'
+    AUTHOR= 'author'
+    NORMAL = 'normal'
     GRADE = [
-        (AUTHOR, 'AUTHOR'),
-        (NORMAL, 'NORMAL'),
+        (AUTHOR, 'author'),
+        (NORMAL, 'normal'),
     ]
     grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
 

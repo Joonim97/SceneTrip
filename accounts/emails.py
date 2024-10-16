@@ -12,7 +12,7 @@ def send_verification_email(user):
     send_mail(subject, message, email_from, recipient_list)
 
     # grade가 author 일 경웅에 관리자가 링크를 눌러야 grade가 바뀜
-    if user.grade == 'AUTHOR':
+    if user.grade == 'author':
         new_journal_subject = '새 journalist 신청이 들어왔습니다. 관리자는 인증을 완료해주세요.'
         new_journal_message = f'새로운 {user.nickname}님의 journalist 신청이 들어왔습니다. \n\n http://127.0.0.1:8000/api/accounts/journalists/verify/{user.author_verification_token}'
         recipient_list = [settings.MANAGER_EMAIL]
