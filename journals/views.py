@@ -117,6 +117,15 @@ class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
         }
 
         return render(request, 'journals/journal_detail.html', context)
+      
+                # 내가 입력한 images에서 이미지가 있거나 없을때
+                if 'images' in request.FILES or not journal_images:
+                    # 기존 이미지 삭제
+                    journal.journal_images.all().delete()
+                    # 새로운 이미지 저장
+                    for journal_image in journal_images:
+                        JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
 
     def put(self, request, pk):  # 저널 수정
         journal = self.get_object(pk)

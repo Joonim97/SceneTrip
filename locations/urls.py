@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import LocationListAPIView, LocationSearchAPIView, LocationRegionAPIView, LocationDetailAPIView, LocationSaveView, LocationListView, location_detail
+from .views import LocationListAPIView, LocationSearchAPIView, LocationRegionAPIView, LocationDetailAPIView, LocationSaveView, LocationListView, location_detail, AiPlanningAPIView
+
 app_name = "locations"
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     # path("lists/plans/"),
     path('list/', LocationListView.as_view(), name='location_list'),
     path('<int:pk>/', location_detail, name='location_detail'),
+    path("plans/", AiPlanningAPIView.as_view(), name="trip-planning"), # AI 여행 플래닝 서비스
 ]
