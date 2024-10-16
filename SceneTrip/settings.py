@@ -40,7 +40,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['43.203.201.216', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
@@ -53,7 +53,7 @@ SIMPLE_JWT = {
 INSTALLED_APPS = [
     'daphne', # asgi
     'channels', # 채널
-    # 'corsheaders', # CORS 해결
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -78,7 +78,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
-    # 'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,35 +88,36 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_METHODS = [  # 허용할 옵션
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
-# # CORS 관련
-# CORS_ORIGIN_ALLOW_ALL = False  # 모든 출처 허용을 비활성화
-# CORS_ALLOWED_ORIGINS = [
-#     "http://43.203.201.216",  # 배포 주소
-#     "http://localhost",        # 로컬 개발 주소
-# ]
-# CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [ # 허용할 헤더
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_ALLOW_CREDENTIALS = True
 
-# CORS_ALLOW_METHODS = (
-#     'DELETE',
-#     'GET',
-#     'OPTIONS',
-#     'PATCH',
-#     'POST',
-#     'PUT',
-# )
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "http://3.34.143.41"
+]
 
-# CORS_ALLOW_HEADERS = (
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-# )
+CORS_ALLOWED_ORIGIN_REGEXES = []
+
+CORS_ALLOW_ALL_ORIGINS: False 
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
@@ -143,7 +144,7 @@ ASGI_APPLICATION = 'SceneTrip.asgi.application'
 #     'default': {
 #         'BACKEND': 'channels_redis.core.RedisChannelLayer',
 #         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379), ('43.203.201.216', 6379)],
+#             "hosts": [('127.0.0.1', 6379), ('3.34.143.41', 6379)],
 #         },
 #     },
 # }

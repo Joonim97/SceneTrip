@@ -1,26 +1,22 @@
-<!-- chat/templates/chat/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="utf-8"/>
-    <title>Chat Rooms</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 방 선택</title>
 </head>
 <body>
-    What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="room-name-submit" type="button" value="Enter">
+    <h1>채팅 방 선택</h1>
+    <input type="text" id="room-input" placeholder="방 이름 입력">
+    <button id="join-button">방 들어가기</button>
 
     <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#room-name-submit').click();
+        document.getElementById('join-button').onclick = function() {
+            const roomName = document.getElementById('room-input').value;
+            if (roomName) {
+                // 방 이름에 따른 방으로 이동
+                window.location.href = `room.html?room=${encodeURIComponent(roomName)}`;  // 방으로 이동
             }
-        };
-
-        document.querySelector('#room-name-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
-            window.location.pathname = 'api/chats/' + roomName + '/';
         };
     </script>
 </body>
