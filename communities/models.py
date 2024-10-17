@@ -14,7 +14,7 @@ class Community(models.Model): # 커뮤니티
     ]
     
     # id=models.IntegerField(primary_key=True)
-    communityKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
+    communityKey = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, unique=True) # UUID 통한 고유번호필드
     category = models.CharField(max_length=1, choices=categories, default='A')  # 카테고리 필드 추가
     title = models.CharField(max_length=40)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author',null=True)

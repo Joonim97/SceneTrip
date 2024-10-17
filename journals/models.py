@@ -7,7 +7,7 @@ User = get_user_model()
 
 class Journal(models.Model): # 저널
     # id=models.IntegerField(primary_key=True) # 주석 안 하면 생성했을 때 id:null로 뜸
-    journalKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
+    journalKey = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, unique=True) # UUID 통한 고유번호필드
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
