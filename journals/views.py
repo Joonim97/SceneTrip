@@ -209,9 +209,10 @@ class CommentLikeView(APIView): # 저널 댓글좋아요
 
 class DislikedCommentsView(APIView):
     def get(self, request, min_dislikes):
+        if request.user.is_superuser : # 관리자일 경우에
         # 일정 수 이상의 싫어요를 받은 댓글을 필터링
-        disliked_comments = Comment.objects.filter(
-            id__in=CommentLike.objects.filter(like_type='dislike')
+            disliked_comments = Comment.objects.filter(
+                id__in=CommentLike.objects.filter(like_type='dislike')
                                     .values('comment')
                                     .annotate(dislike_count=models.Count('comment'))
                                     .filter(dislike_count__gte=min_dislikes)
@@ -219,5 +220,5 @@ class DislikedCommentsView(APIView):
         )
 
         # 필터링된 댓글을 직렬화
-        serializer = CommentSerializer(disliked_comments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer = CommentSerializer(disliked_comments, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
