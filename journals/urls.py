@@ -10,7 +10,7 @@ urlpatterns = [
     # 대댓글
     path('<int:journal_id>/comments/<int:parent_id>/', CommentView.as_view(), name='journal-reply'),
     # 댓글 수정, 삭제
-    path('comments/<int:comment_id>/', CommentView.as_view(), name='journal-comment-detatil'),
+    path('comments/<int:comment_id>/', CommentView.as_view(), name='journal-comment-detail'),
     # 댓글 좋아요, 싫어요
     path('comments/<int:comment_id>/<str:like_type>/', CommentLikeView.as_view(), name='journal-comment-like'),
     # 일정 수 이상의 싫어요를 받은 댓글을 필터링. 100이상이면 삭제.
