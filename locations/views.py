@@ -20,6 +20,10 @@ import re
 import requests
 import urllib
 import json
+import redis
+
+
+redis_client = redis.Redis(host='localhost', port=8000, db=0)
 
 
 def custom_sort_key(value):
@@ -205,6 +209,7 @@ def get_nearby_place(place_name):
             if not location:
                 return Response({"error": f"No location found for place_name '{place_name}'"}, status=status.HTTP_404_NOT_FOUND)
             address = location.address
+            print(address)
             short_address = " ".join(address.split()[:2])
         except Exception as e:
             return Response({"error": f"Error retrieving address: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -247,8 +252,16 @@ def get_nearby_place(place_name):
 
 class AiPlanningAPIView(APIView):
         # AI 여행 플래닝 서비스
-        permission_classes = [IsAuthenticated]
+        # permission_classes = [IsAuthenticated]
 
+        # def get_permissions(self):
+        #     if self.request.method == 'GET':
+        #         return [AllowAny()]
+        #     return [IsAuthenticated()]
+
+        def get(self, request):
+            return render(request, 'locations/plan.html')
+        
         def post(self, request):
             llm = ChatOpenAI(model="gpt-4o-mini", api_key=settings.API_KEY)
             query_params = request.query_params
@@ -289,22 +302,40 @@ class AiPlanningAPIView(APIView):
                 if n and m: 
                     template += f"{n}박 {m}일 동안의 여행을 갈거야."
                 else:
-                    template += "당일치기 여행을 갈거야."
+                    template += "당일치기 여행을 갈거야. 숙소는 추천하지 마."
 
             prompt = PromptTemplate(template=template, input_variables=["place_name", "preference", "nearby_places"])
             llm_chain = LLMChain(prompt=prompt, llm=llm)
 
             try:
                 response = llm_chain.run(place_name=place_name, preference=preference, nearby_places=nearby_places)
+                print(response)
+                # request.session['travel_plan'] = response
+                
+                cache_key = f"user:{request.user.id}:travel_plan"
+                redis_client.set(cache_key, json.dumps(response), ex=3000)
 
-                return Response({
-                    "message": "여행플래닝이 완료되었습니다. 각 장소는 여건에 따라 현재 이용 불가 할 수 있으니 반드시 사전에 알아보고 가시길 바랍니다.",
-                    "travel_plan": response,
-                    "nearby_places": nearby_places
-                }, status=status.HTTP_200_OK)
+                return render(request, 'locations/plan.html', {"travel_plan": response})
+                # return Response({
+                #     "message": "여행플래닝이 완료되었습니다. 각 장소는 여건에 따라 현재 이용 불가 할 수 있으니 반드시 사전에 알아보고 가시길 바랍니다.",
+                #     "travel_plan": response,
+                #     "nearby_places": nearby_places
+                # }, status=status.HTTP_200_OK)
 
             except Exception as e:
                 return Response({
                     "message": "죄송합니다. 여행플래닝 서비스 제공에 실패했습니다. 다시 시도해주세요.",
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PlanResultView(APIView):
+    
+    def get(self, request):
+        cache_key = f"user:{request.user.id}:travel_plan"
+        cached_plan = redis_client.get(cache_view=True)
+        if cached_plan:
+            travel_plan = json.loads(cached_plan)
+            return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
+        else:
+            return Response({"error": "No travel plan found"}, status=404)
