@@ -1,13 +1,9 @@
-from datetime import timezone
-from json import JSONDecodeError
-import os
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.views.generic import TemplateView
 import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,17 +12,19 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import ListAPIView
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
+
 from SceneTrip import settings
 from communities.serializers import CommunitySerializer
 from journals.serializers import JournalSerializer, JournalLikeSerializer
 from locations.serializers import LocationSaveSerializer
 from .serializers import PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
 from .emails import send_verification_email, send_verification_email_reset, send_verification_password_reset
+import requests
 import uuid
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.kakao import views as kakao_view
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 User = get_user_model() # 필수 지우면 안됨
+
+#################################################################################################################
+#################################################################################################################
 
 # Parents Class 모음
 # 커스텀 페이지네이션 // 마이페이지에 들어가는 내용들 페이지네이션
@@ -47,116 +45,8 @@ class BaseListAPIView(generics.ListAPIView):
 class PermissionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-########################################################
-
-# from django.shortcuts import render
-
-# class LoginView(TemplateView):
-#     template_name = 'accounts/index.html'  # 로그인 템플릿
-
-
-# class SocialLoginView(APIView):
-#     def get(self, request, provider):
-#         if provider == "kakao":
-#             client_id = settings.KAKAO_REST_API_KEY
-#             redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-#             auth_url = (
-#                 f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}"
-#                 f"&redirect_uri={redirect_uri}&response_type=code"
-#             )
-#         else:
-#             return Response(
-#                 {"error": "지원되지 않는 소셜 로그인 제공자입니다."}, status=400
-#             )
-#         return redirect(auth_url)
-
-# class SocialCallbackView(APIView):
-#     def get(self, request, provider):
-#         code = request.GET.get("code")
-
-#         access_token = self.get_token(provider, code)
-#         user_info = self.get_user_info(provider, access_token)
-
-#         if provider == "kakao":
-#             email = user_info["kakao_account"].get("email", None)
-#             nickname = user_info["properties"].get("nickname", None)
-#             profile_image = user_info["properties"].get("profile_image", None)  # 프로필 이미지 추가
-
-#         if not nickname:
-#             return Response({"error": "카카오 계정에 닉네임 정보가 없습니다."}, status=400)
-#         if not email:
-#             return Response({"error": "카카오 계정에 이메일 정보가 없습니다."}, status=400)
-#         if not profile_image:
-#             profile_image = None
-        
-
-#         user_data = self.get_or_create_user(provider, email, nickname, profile_image)
-#         tokens = self.create_jwt_token(user_data)
-
-#         redirect_url = (
-#             f"{settings.BASE_URL}/api/accounts/sociallogin/index.html"
-#             f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
-#             f"&nickname={nickname}&email={email}&profile_image={profile_image}"
-#         )
-#         return redirect(redirect_url)
-    
-#     def get_token(self, provider, code):
-#         if provider == "kakao":
-#             token_url = "https://kauth.kakao.com/oauth/token"
-#             client_id = settings.KAKAO_REST_API_KEY
-#         else:
-#             raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
-
-#         redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-#         data = {
-#             "grant_type": "authorization_code",
-#             "client_id": client_id,
-#             "redirect_uri": redirect_uri,
-#             "code": code,
-#         }
-#         response = requests.post(token_url, data=data)
-#         return response.json().get("access_token")
-    
-#     def get_user_info(self, provider, access_token):
-#         if provider == "kakao":
-#             user_info_url = "https://kapi.kakao.com/v2/user/me"
-#         else:
-#             raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
-        
-#         headers = {"Authorization": f"Bearer {access_token}"}
-#         response = requests.get(user_info_url, headers=headers)
-#         return response.json()
-    
-#     def get_or_create_user(self, provider, email, nickname, profile_image):
-#         user, created = User.objects.get_or_create(
-#             email=email,
-#             defaults={
-#                 "nickname": nickname,
-#                 "profile_image": profile_image
-#             },
-#         )
-#         print(email, nickname, profile_image)
-#         if created:
-#             user.set_unusable_password()
-#             print("새로운 사용자가 생성되었습니다.")
-#             user.save()
-#         else:
-#             print("기존 사용자의 정보가 업데이트되었습니다.")
-        
-#         return user 
-
-#     def create_jwt_token(self, user_data):
-#         if isinstance(user_data, dict):
-#             email = user_data.get("email")
-#             user = User.objects.get(email=email)
-#         else:
-#             user = user_data
-
-#         refresh = RefreshToken.for_user(user)
-#         return {
-#             "refresh": str(refresh),
-#             "access": str(refresh.access_token),
-#         }
+#################################################################################################################
+#################################################################################################################
 
 # 회원가입
 class SignupAPIView(APIView):
@@ -540,90 +430,39 @@ class LikeJournalsListAPIView(BaseListAPIView):
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우   
 
-# # 카카오 로그인 페이지를 렌더링하는 뷰
-# def kakaologinpage(request):
-#     return render(request, 'accounts/kakao_login.html')  # HTML 파일 경로를 적절하게 수정
-
-# # 카카오 로그인 요청을 리다이렉트하는 뷰
-# def kakao_login(request):
-#     client_id = settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-#     KAKAO_CALLBACK_URI = settings.BASE_URL + 'api/accounts/kakao/callback/'
-#     return redirect(f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email")
-
-# # 카카오 로그인 후 콜백을 처리하는 뷰
-# def kakao_callback(request):
-#     client_id = settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-#     KAKAO_CALLBACK_URI = settings.BASE_URL + 'api/accounts/kakao/callback/'
-#     code = request.GET.get("code")
-
-#     # code로 access token 요청
-#     token_request = requests.get(
-#         f"https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&code={code}"
-#     )
-    
-#     token_response_json = token_request.json()
-
-#     # 에러 발생 시 중단
-#     error = token_response_json.get("error", None)
-#     if error is not None:
-#         return JsonResponse({'error': error}, status=status.HTTP_400_BAD_REQUEST)
-
-#     access_token = token_response_json.get("access_token")
-
-#     # access token으로 카카오톡 프로필 요청
-#     profile_request = requests.post(
-#         "https://kapi.kakao.com/v2/user/me",
-#         headers={"Authorization": f"Bearer {access_token}"},
-#     )
-    
-#     profile_json = profile_request.json()
-    
-#     # 카카오 계정 정보 추출
-#     kakao_account = profile_json.get("kakao_account")
-#     email = kakao_account.get("email", None)  # 이메일
-
-#     # 이메일이 없을 경우 오류 응답
-#     if email is None:
-#         return JsonResponse({'err_msg': 'failed to get email'}, status=status.HTTP_400_BAD_REQUEST)
-
-#     # 이메일이 정상적으로 받아졌을 때 처리 (예: 사용자 로그인 처리)
-#     # 여기서 추가적인 사용자 등록 로직을 추가할 수 있습니다.
-#     # 예를 들어:
-#     # user = get_user_by_email(email)  # 이메일로 사용자 조회
-#     # if not user:
-#     #     user = create_user(email)  # 새로운 사용자 생성
-#     # login(request, user)  # 사용자 로그인 처리
-
-#     return JsonResponse({'msg': 'login successful', 'email': email}, status=status.HTTP_200_OK)
-
-# class KakaoLogin(SocialLoginView):
-#     KAKAO_CALLBACK_URI = settings.BASE_URL + 'api/accounts/kakao/callback/'
-#     adapter_class = kakao_view.KakaoOAuth2Adapter
-#     callback_url = KAKAO_CALLBACK_URI
-#     client_class = OAuth2Client
+#################################################################################################################
+#################################################################################################################
 
 # 카카오 로그인 페이지를 렌더링하는 뷰
 def kakaologinpage(request):
-    return render(request, 'accounts/kakao_login.html')  # HTML 파일 경로를 적절하게 수정
+    context = {
+        'KAKAO_JAVA_SCRIPTS_API_KEY': settings.KAKAO_JAVA_SCRIPTS_API_KEY,  # settings.py에 정의된 설정 값
+    }
+    return render(request, 'accounts/kakao_login.html', context)  # HTML 파일 경로를 적절하게 수정
 
+# 카카오 로그인 완료 창(실패창은 안나옴)
 def index(request):
     return render(request, 'accounts/index.html')
 
+# 소셜로그인(카카오,) 추가가능
 class SocialLoginView(APIView):
     def get(self, request, provider):
         if provider == "kakao":
             client_id = settings.KAKAO_REST_API_KEY
             redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+            scope = "account_email, gender, birthday, birthyear" # 선택 제공 동의를 요청
             auth_url = (
                 f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}"
                 f"&redirect_uri={redirect_uri}&response_type=code"
+                f"&scope={scope}"
             )
         else:
             return Response(
                 {"error": "지원되지 않는 소셜 로그인 제공자입니다."}, status=400
             )
         return redirect(auth_url)
-    
+
+# 소셜로그인 callback(카카오,) 추가가능
 class SocialCallbackView(APIView):
     def get(self, request, provider):
         code = request.GET.get("code")
@@ -631,21 +470,32 @@ class SocialCallbackView(APIView):
         access_token = self.get_token(provider, code)
         user_info = self.get_user_info(provider, access_token)
 
+        # 제공받는 데이터들
         if provider == "kakao":
-            email = user_info["kakao_account"]["email"]
-            nickname = user_info["properties"]["nickname"]
-            print(nickname)
+            username = user_info['kakao_account'].get('name')
+            email = user_info['kakao_account'].get('email')
+            gender = user_info['kakao_account'].get('gender')
+            nickname = user_info["properties"].get("nickname")
+            birthday = user_info['kakao_account'].get('birthday')
+            birthyear = user_info['kakao_account'].get('birthyear')
 
-        user_data = self.get_or_create_user(provider, email, nickname)
+        # model 에서 birth_date 양식 통일 (0000-00-00)
+        if birthyear and birthday:
+            birth_date = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
+        else:
+            birth_date = None
+
+        user_data = self.get_or_create_user(provider, email, nickname, username, gender, birth_date)
         tokens = self.create_jwt_token(user_data)
 
         redirect_url = (
             f"{settings.BASE_URL}/api/accounts/index/"
             f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
-            f"&nickname={nickname}&email={email}"
+            f"&nickname={nickname}&email={email}&email={gender}&email={username}&email={birth_date}"
         )
         return redirect(redirect_url)
     
+    # 토큰
     def get_token(self, provider, code):
         if provider == "kakao":
             token_url = "https://kauth.kakao.com/oauth/token"
@@ -673,11 +523,14 @@ class SocialCallbackView(APIView):
         response = requests.get(user_info_url, headers=headers)
         return response.json()
 
-    def get_or_create_user(self, provider, email, nickname):
+    def get_or_create_user(self, provider, email, nickname, username, gender, birth_date):
         user, created = User.objects.get_or_create(
             email=email,
+            gender=gender,
+            birth_date=birth_date,
             defaults={
                 "nickname": nickname,
+                "username": username,
             },
         )
         if created:
@@ -686,10 +539,15 @@ class SocialCallbackView(APIView):
 
         return user
 
+    # 토큰에 담을 내용
     def create_jwt_token(self, user_data):
         if isinstance(user_data, dict):
             email = user_data.get("email")
-            user = User.objects.get(email=email)
+            nickname = user_data.get("nickname")
+            username = user_data.get("username")
+            gender = user_data.get("gender")
+            birth_date = user_data.get("birth_date")
+            user = User.objects.get(email=email, nickname=nickname, username=username, gender=gender, birth_date=birth_date)
         else:
             user = user_data
 
