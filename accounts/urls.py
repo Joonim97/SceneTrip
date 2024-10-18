@@ -1,10 +1,10 @@
 from . import views
 from django.urls import path
-from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, 
+from .views import (SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, 
                     PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, 
-                    MyCommunityListAPIView, DeleteAPIView, VerifyjJurnalEmailAPIView)
+                    MyCommunityListAPIView, DeleteAPIView, VerifyjJurnalEmailAPIView, SocialCallbackView)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
@@ -31,5 +31,13 @@ urlpatterns = [
     path('<str:nickname>/mypage/<str:sub_nickname>/', SubsribingsjournalAPI.as_view(), name='subscribings_journal'), # 내가 구독한 인원 글 보기
     # 회원탈퇴 및 로그아웃
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
-    path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete') # 회원탈퇴
+    path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete'), # 회원탈퇴
+    # path('sociallogin/index.html', LoginView.as_view(template_name='accounts/index.html'), name='sologin'),
+    # path('social/login/<str:provider>/', SocialLoginView.as_view(), name='social_login'),
+    # path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='social_callback')
+    path('kakaologinpage/', views.kakaologinpage, name='kakaologinpage'),
+    path('index/', views.index, name='index'),
+    path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao_login'),  # 카카오 로그인 URL
+    path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao_callback'),  # 카카오 콜백 URL
+    # path('kakao/login/callback/', views.KakaoLogin.as_view(), name='kakao_login_callback'),  # Django-Allauth나 Django-Rest-Framework와 연동된 로그인 콜백
 ]
