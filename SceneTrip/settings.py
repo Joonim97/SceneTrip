@@ -6,28 +6,30 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
+# Secrets.json
 secret_file = os.path.join(BASE_DIR, 'secrets.json')
 with open(secret_file, 'r') as f:
     secrets = json.loads(f.read())
-def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생을 검출합니다.
+def get_secret(setting, secrets=secrets):
     try:
         return secrets[setting]
     except KeyError:
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
-    
 
+# API KEY
 SECRET_KEY = get_secret("SECRET_KEY")
 API_KEY = get_secret("API_KEY")  # OpenAI
 NAVER_CLIENT_ID = get_secret("NAVER_CLIENT_ID") # Naver search Client Id
 NAVER_SECRET_KEY = get_secret("NAVER_SECRET_KEY") # Naver Search API Secret Key
-
+KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY") # Kakao Rest API key
+KAKAO_JAVA_SCRIPTS_API_KEY = get_secret("KAKAO_JAVA_SCRIPTS_API_KEY") # Kakao javascripts key
+# EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -37,15 +39,14 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
-
-
 # SECURITY WARNING: don't run with debug turned on in production!
+# 배포 시 False
 DEBUG = True
 
+# Hosts
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
 # Application definition
-
 INSTALLED_APPS = [
     # 기본 Django 앱들
     'daphne',  # asgi
@@ -56,13 +57,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # 반드시 포함해야 함
+    'django.contrib.sites', # allauth 관련 app
 
     # 외부 앱들
     'corsheaders',
     'rest_framework',  # Django REST framework
     'rest_framework.authtoken',  # authtoken 추가
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
+    # 외부앱(allauth)
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -75,17 +77,18 @@ INSTALLED_APPS = [
     'communities',
     'locations',
     'questions',
-    'hitcount',  # 조회수
+    'hitcount',
 ]
-KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY")
+
+# BASE_URL 주소
 BASE_URL = 'http://127.0.0.1:8000'
 
+# 사이트
 SITE_ID = 1
 
 AUTH_USER_MODEL = 'accounts.User'
 
-MIDDLEWARE = [
-    # 'corsheaders.middleware.CorsMiddleware', 
+MIDDLEWARE = [ 
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -114,10 +117,8 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
 ASGI_APPLICATION = 'SceneTrip.asgi.application'
-
 
 CHANNEL_LAYERS = {
     'default': {
@@ -127,8 +128,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
-
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -147,7 +146,6 @@ DATABASES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
     'rest_framework.permissions.IsAuthenticated',
@@ -157,13 +155,9 @@ REST_FRAMEWORK = {
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
-    'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination', # 페이지네이션
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
-
-REST_AUTH_REGISTER_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "accounts.serializers.CustomUserRegisterSerializer"
-}  # 유저 회원가입
 
 REST_AUTH = {
     'USE_JWT' : True,
@@ -201,7 +195,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -213,7 +206,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -223,9 +215,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "accounts/static",
 ]
 
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
