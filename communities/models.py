@@ -10,7 +10,7 @@ class Community(models.Model): # 커뮤니티
     categories = [
         ( '정보', '정보' ), # 카테고리 선택
         ( '잡담', '잡담' ),
-        ( '잡담', '홍보' )
+        ( '홍보', '홍보' )
     ]
     
     # id=models.IntegerField(primary_key=True)
