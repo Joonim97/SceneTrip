@@ -88,7 +88,6 @@ INSTALLED_APPS = [
     'communities',
     'locations',
     'questions',
-    'chats',
     # 조회수
     'hitcount',
 ]
