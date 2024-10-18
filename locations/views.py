@@ -1,19 +1,22 @@
+from django.core.paginator import Paginator
+from django.conf import settings
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import ListView
+from django.db.models import Q, Count
+from django.db.models.functions import Replace
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from django.db.models.functions import Replace
-from django.conf import settings
 from .models import Location, LocationSave
+from journals.models import Journal
+from communities.models import Community
 from .serializers import LocationSerializer
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from django.db.models import Value
 import re
-import requests
 import urllib
 import json
 
@@ -46,6 +49,43 @@ class LocationListAPIView(APIView):
             return Response({"error": "Invalid sort_by parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(sorted_location_data)
+    
+class LocationListView(ListView):
+    model = Location
+    template_name = 'locations/location_list.html'
+    context_object_name = 'locations'
+    paginate_by = 12  # 한 페이지에 표시할 촬영지 수
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        keyword = self.request.GET.get('keyword', None)
+        
+        if keyword:
+            queryset = queryset.filter(
+                Q(title__icontains=keyword) |
+                Q(place_name__icontains=keyword) |
+                Q(address__icontains=keyword) |
+                Q(place_description__icontains=keyword)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_obj = context['page_obj']
+
+        # 현재 페이지와 페이지 그룹을 계산
+        current_page = page_obj.number
+        current_group = (current_page - 1) // 5 + 1
+        start_page = (current_group - 1) * 5 + 1
+        end_page = start_page + 4
+
+        # 총 페이지 수를 넘지 않도록 조정
+        if end_page > page_obj.paginator.num_pages:
+            end_page = page_obj.paginator.num_pages
+
+        # 템플릿으로 start_page와 end_page 전달
+        context['page_range'] = range(start_page, end_page + 1)
+        return context
     
 
 class LocationRegionAPIView(APIView):
@@ -111,6 +151,7 @@ class LocationSearchAPIView(APIView):
 
 class LocationSaveView(APIView):
     permission_classes = [IsAuthenticated]
+    
 
     def post(self, request, id):
         user = request.user
@@ -246,3 +287,23 @@ class AiPlanningAPIView(APIView):
                     "message": "죄송합니다. 여행플래닝 서비스 제공에 실패했습니다. 다시 시도해주세요.",
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+def index(request):
+    latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
+    popular_locations = Location.objects.order_by('-save_count')[:4]  # 인기 촬영지 3개 가져오기
+    popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
+
+    context = {
+        'popular_locations': popular_locations,
+        'latest_journals': latest_journals,
+        'popular_community_posts': popular_community_posts,  # 인기 커뮤니티 글 추가
+    }
+    
+    return render(request, 'journals/index.html', context)
+
+
+def location_detail(request, pk):
+    # 촬영지 상세 정보를 가져와 템플릿에 렌더링
+    location = get_object_or_404(Location, pk=pk)
+    return render(request, 'locations/location_detail.html', {'location': location})

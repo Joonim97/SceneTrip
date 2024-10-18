@@ -38,15 +38,19 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 # Application definition
 
@@ -64,13 +68,14 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
     
-    # app
-    'chats',
+    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
+
     'accounts',
     'journals',
     'communities',
     'locations',
     'questions',
+    'chats',
     # 조회수
     'hitcount',
 ]
@@ -82,6 +87,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS 미들웨어 추가
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -105,19 +111,16 @@ CORS_ALLOW_HEADERS = [ # 허용할 헤더
     "dnt",
     "origin",
     "user-agent",
-    "x-csrftoken",
     "x-requested-with",
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://3.34.143.41"
-]
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
 
-CORS_ALLOW_ALL_ORIGINS: False 
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
@@ -140,14 +143,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
 ASGI_APPLICATION = 'SceneTrip.asgi.application'
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379), ('3.34.143.41', 6379)],
-#         },
-#     },
-# }
 
 CHANNEL_LAYERS = {
     'default': {
@@ -159,9 +154,9 @@ CHANNEL_LAYERS = {
 }
 
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -174,6 +169,9 @@ DATABASES = {
     # }
 }
 
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -185,6 +183,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
+
 
 # DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
 
@@ -207,6 +206,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/api/accounts/login/'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -223,8 +224,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / "static"
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -46,7 +47,7 @@ class PermissionAPIView(APIView):
 class SignupAPIView(APIView):
     
     def get(self, request):
-        return render(request, 'accounts/signup.html')
+        return render(request, 'accounts/signup.html')  # 회원가입 HTML 렌더링
     
     def post(self, request):
         try:
@@ -80,18 +81,21 @@ class SignupAPIView(APIView):
 
             else:
                 user = serializer.save()
+
                 user.set_password(request.data.get('password'))
                 user.verification_token = str(uuid.uuid4())
                 user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
                 user.is_active = False
                 user.save()
                 send_verification_email(user)
-                return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
-        
+                messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
                 
-            
-        except Exception as e:
-            return Response({"error": "오류가 발생했습니다.", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
+            return Response(
+                {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(
+                {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 이메일 인증 메일이 날아올 경우
@@ -106,9 +110,14 @@ class VerifyEmailAPIView(APIView):
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class LoginView(APIView):
+    def get(self, request):
+        return render(request, 'accounts/login.html')  # login.html 템플릿 렌더링
 
 # 회원가입시 grade가 journal, 관리자가 해당 link를 누른경우
-class VerifyjJurnalEmailAPIView(APIView):
+class VerifyjJournalEmailAPIView(APIView):
     def get(self, request, token):
         try:
             user = get_object_or_404(User, author_verification_token=token)
@@ -119,7 +128,83 @@ class VerifyjJurnalEmailAPIView(APIView):
             return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+class DeleteAPIView(APIView):  # 회원탈퇴
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, nickname):
+        user = request.user
+        deleted_user = get_object_or_404(User, nickname=nickname)
+
+        if user != deleted_user:
+            return Response({"error": "본인계정만 탈퇴하실수 있습니다"}, status=400)  # 본인이 아닐 경우
+
+        serializer = PasswordCheckSerializer(data=request.data)
+        if serializer.is_valid():
+            password = serializer.validated_data['password']  # 수정된 부분
+
+            # 비밀번호 확인
+            if user.check_password(password):
+                user.is_active = False  
+                user.save()
+                return Response({"message": "탈퇴 완료하였습니다"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 유효성 검사를 통과하지 못한 경우
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 마이페이지
+class Mypage(ListAPIView):  # 마이 페이지
+    serializer_class = MyPageSerializer
+
+    def get(self, request, nickname):
+        try:
+            # my_page 변수를 먼저 선언
+            my_page = get_object_or_404(User, nickname=nickname)
+            print(request.user)  # 현재 로그인한 사용자 출력
+            print(my_page.id)    # my_page의 ID 출력
+        except:
+            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+
+        # 요청한 사용자가 본인인지 확인
+        if my_page.id == request.user.id:
+            serializer = MyPageSerializer(my_page)
+            return render(request, 'accounts/mypage.html', {'user': serializer.data})
+        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
+
+    def put(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)
+        if user != request.user:
+            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        if 'profile_image' in request.FILES:
+            profile_image = request.FILES['profile_image']
+            user.profile_image = profile_image
+        elif 'profile_image' in request.data and not request.data['profile_image']:
+            user.profile_image = None
+
+        user.save()  # 변경 사항 저장
+        return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
+    
+
+def mypage(request, nickname):
+    # 닉네임을 기준으로 해당 사용자를 가져옵니다.
+    user = get_object_or_404(User, nickname=nickname)
+    serializer = MyPageSerializer(user)
+    print(request.user)
+    print(request.headers)
+    
+    # 사용자 정보와 관련된 데이터를 렌더링합니다.
+    context = {
+        'user': serializer.data,
+    }
+    
+    return render(request, 'accounts/mypage.html', context)
+
+
 # 비밀번호 리셋 로직
 class PasswordResetRequestView(PermissionAPIView):
     def post(self, request):
@@ -287,23 +372,28 @@ class Mypage(ListAPIView): # 마이 페이지
 
 # 구독 기능
 class SubscribeView(PermissionAPIView):
+
     def post(self, request, nickname):
-        # 구독 대상 사용자 조회
-        try:
-            user = get_object_or_404(User, nickname=nickname)
-            me = request.user
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+        user = get_object_or_404(User, nickname=nickname)
+        me = request.user
         
-        if me in user.subscribes.all(): # 내가 대상 사용자를 이미 구독하고 있는지 확인
+        if me in user.subscribes.all():  # 이미 구독한 경우
             user.subscribes.remove(me)
-            return Response("구독취소를 했습니다.", status=status.HTTP_200_OK)
-        else:
+            return Response({"message": "구독 취소했습니다."}, status=status.HTTP_200_OK)
+        else:  # 구독하지 않은 경우
             if nickname != me.nickname:
                 user.subscribes.add(me)
-                return Response("구독했습니다.", status=status.HTTP_200_OK)
+                return Response({"message": "구독했습니다."}, status=status.HTTP_200_OK)
             else:
-                return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
+                return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_200_OK)
+            
+
+# 커스텀 페이지네이션
+class CustomPagination(PageNumberPagination):
+        page_size = 5
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+        
 
 # 내가 쓴 글
 class MyJournalsListAPIView(BaseListAPIView):
@@ -424,3 +514,17 @@ class LikeJournalsListAPIView(BaseListAPIView):
             serializer = JournalLikeSerializer(like_journal, many=True)
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우   
+
+
+class UserInfoView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'username' : user.username,
+            'user_id' : user.user_id,
+            'nickname': user.nickname,
+            'email': user.email,
+            'grade': user.grade  # grade 필드를 추가
+        })

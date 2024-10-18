@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+Scene Trip
+{% endblock %}
+
+{% block content %}
+{% comment %} <div class="container-fluid mt-5">
+  <!-- 소개 섹션 -->
+  <div class="jumbotron text-center">
+    <h1>Scene Trip</h1>
+    <p>작품 속 그 공간을 당신의 눈 앞에</p>
+  </div> {% endcomment %}
+
+<!-- 인기 촬영지 섹션 (카드 형식) -->
+<div class="container">
+  <div class="row justify-content-center mt-4"> <!-- 여기서 mt-5를 추가하여 간격 조정 -->
+    <h2 class="text-center mb-4">인기 촬영지</h2>
+    {% for location in popular_locations %}
+    <div class="col-md-3 mb-4 d-flex justify-content-center">
+      <a href="/api/locations/{{ location.id }}" class="text-decoration-none">
+        <div class="card" style="min-width: 250px; max-width: 300px; height: 130px; cursor: pointer;">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center">
+            <h5 class="card-title text-center" style="font-size: 16px; font-weight: bold;">{{ location.place_name }}</h5>
+            <p class="card-text text-center" style="font-size: 12px;">{{ location.title }}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="container-fluid mt-5">
+  <div class="row">
+    <!-- 왼쪽: 최신 저널 섹션 -->
+    <div class="col-md-6">
+      <h2 class="text-center">최신 저널</h2>
+      <div class="text-end">
+        <!-- 저널 글 작성 버튼 -->
+        <div id="journal-write-btn"></div>
+      </div>
+
+      <div class="row mt-3">
+        {% for journal in latest_journals %}
+        <div class="col-md-4 mb-4"> <!-- col-md-4로 한 줄에 3개씩 배치 -->
+          <!-- 이미지 및 타이틀 간결하게 표시 -->
+          <a href="{% url 'journals:journal_detail' journal.id %}"> <!-- 이미지를 클릭하면 상세 페이지로 이동 -->
+            {% if journal.journal_images.all %}
+            <img src="{{ journal.journal_images.first.journal_image.url }}" alt="{{ journal.title }}" style="width: 100%; height: 150px; object-fit: cover;"> <!-- 이미지 크기 조정 -->
+            {% else %}
+            <img src="{% static 'images/default_image.png' %}" alt="기본 이미지" style="width: 100%; height: 150px; object-fit: cover;">
+            {% endif %}
+          </a>
+          <h5 class="text-center mt-2" style="font-size: 1rem;">{{ journal.title }}</h5>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 오른쪽: 인기 커뮤니티 글 섹션 -->
+    <div class="col-md-6">
+      <h2 class="text-center">인기 커뮤니티 글</h2>
+      <div class="text-end">
+        <!-- 커뮤니티 글 작성 버튼 -->
+        <div id="community-write-btn"></div>
+      </div>
+
+      <table class="table table-striped table-hover mt-3" style="font-size: 0.9rem;"> <!-- 글씨 크기 약간 줄임 -->
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>글쓴이</th>
+            <th>등록일</th>
+            {% comment %} <th>조회수</th> {% endcomment %}
+            <th>추천수</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in popular_community_posts %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+              <a href="/api/communities/{{ post.id }}">
+                {{ post.title }}
+                {% if post.comment_set.count > 0 %}
+                  [{{ post.comment_set.count }}] <!-- 댓글 수 표시 -->
+                {% endif %}
+              </a>
+            </td>
+            <td>{{ post.author.nickname }}</td>
+            <td>{{ post.created_at|date:"m-d H:i" }}</td>
+            {% comment %} <td>{{ post.views }}</td> {% endcomment %}
+            <td>{{ post.likes_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+  
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+    const journalWriteBtn = document.getElementById('journal-write-btn');
+
+    if (accessToken) {
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,  // 변수로 가져온 토큰 사용
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 401) {  // 토큰 만료에 따른 리프레시
+            return fetch("/api/accounts/token/refresh/", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+            })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('토큰 갱신 실패');
+              }
+              return res.json();
+            })
+            .then(data => {
+              // 새로 발급된 액세스 토큰 저장
+              localStorage.setItem('access_token', data.access);
+              return fetch("/api/accounts/user-info/", {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                  'Content-Type': 'application/json'
+                }
+              });
+            });
+          } else {
+            throw new Error('인증 실패');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 새 요청의 응답 데이터를 처리
+        if (data.grade === 'author') {
+          journalWriteBtn.innerHTML = `
+            <div class="text-end mt-4">
+              <a href="api/journals/write/" class="btn btn-success">저널 글 작성</a>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+  });
+
+  // 커뮤니티 글 작성 버튼 설정
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+    const communityWriteBtn = document.getElementById('community-write-btn');
+  
+    if (accessToken) {
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,  // JWT 토큰 사용
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 401) {  // 토큰 만료 처리
+            return fetch("/api/accounts/token/refresh/", {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+            })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('토큰 갱신 실패');
+              }
+              return res.json();
+            })
+            .then(data => {
+              localStorage.setItem('access_token', data.access);  // 새로 발급된 액세스 토큰 저장
+              return fetch("/api/accounts/user-info/", {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                  'Content-Type': 'application/json'
+                }
+              });
+            });
+          } else {
+            throw new Error('인증 실패');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 모든 회원에게 커뮤니티 글 작성 버튼을 표시
+        communityWriteBtn.innerHTML = `
+          <div class="text-end mt-4">
+            <a href="{% url 'communities:community_write' %}" class="btn btn-success">커뮤니티 글 작성</a>
+          </div>
+        `;
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+  });
+</script>
+
+
+{% endblock %}

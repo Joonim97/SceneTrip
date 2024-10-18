@@ -12,6 +12,7 @@ class CommentSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     replies = RecursiveSerializer(many=True, read_only=True)
+    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
 
     class Meta:
         model = Comment
@@ -25,6 +26,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "like_count",
             "dislike_count",
             "replies",
+            'user_nickname',
         ]
         read_only_fields = [
             "journal",
@@ -64,7 +66,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class JournalImageSerializer(serializers.ModelSerializer):  # 저널이미지 시리얼라이저
     class Meta:
         model = JournalImage
-        fields = ["id", "journal_image"]  # 이미지 필드만 포함
+        fields = ["journal_image"]  # 이미지 필드만 포함
 
 
 class JournalLikeSerializer(serializers.ModelSerializer):  # 저널좋아요시리얼라이저
