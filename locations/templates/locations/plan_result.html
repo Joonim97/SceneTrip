@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}
+여행 플래닝 서비스
+{% endblock %}
+
+{% block content %}
+
+<head>
+    <title>여행 계획 결과</title>
+    <script>
+        let fetchCount = 0;
+
+        let previousData = '';
+
+        function fetchTravelPlan() {
+            fetch('/api/locations/plans/result/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.travel_plan !== previousData) {
+                        previousData = data.travel_plan;
+                        document.getElementById('travel_plan').innerText = data.travel_plan;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching travel plan:', error);
+                    // 오류 발생 시 사용자에게 알림 등 추가적인 처리
+                });
+        }
+
+        setInterval(fetchTravelPlan, 5000);
+
+        if (ata.travel_plan === previousData){
+            let ment = "여행플래닝이 완료되었습니다. 각 장소는 여건에 따라 현재 이용 불가 할 수 있으니 \n사전에 반드시 알아보고 가시길 바랍니다."
+        }
+        else {
+            let ment = "플랜 생성중입니다. 잠시만 기다려주세요."
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        
+        <h4>{{ ment }}</h4>
+        <hr>
+        <br>
+        <h3>Loading...</h3>
+        {% if travel_plan %}
+            <h3>여행 플랜</h3>
+            <p>{{ previousData|linebreaks }}</p>
+        {% else %}
+            <p>여행 플랜이 없습니다.</p>
+        {% endif %}
+        <br>
+        <a href="{% url 'locations:trip-planning' %}" class="btn btn-primary">다시 계획 세우기</a>
+    </div>
+</body>
+
+
+{% endblock %}
