@@ -32,33 +32,33 @@
     <span>좋아요 수: {{ community.community_likes.count }} | 싫어요 수: {{ community.community_dislikes.count }}</span>
   </div>
 
-  <!-- 댓글 섹션 -->
   <div class="mt-5">
     <h5>댓글</h5>
     <div id="comments-section">
-      {% for comment in community.community_comments.all %}
+      {% for comment in community.comments %}
       <div class="comment mb-4">
         <strong>{{ comment.user.nickname }}</strong> - {{ comment.created_at }}
         <p>{{ comment.content }}</p>
-        <button class="btn btn-sm btn-outline-success">좋아요</button>
-        <button class="btn btn-sm btn-outline-danger">싫어요</button>
+        <!-- 댓글 좋아요/싫어요 버튼 -->
+        <button class="btn btn-sm btn-outline-success like-comment-btn" data-comment-id="{{ comment.id }}">👍<span>{{ comment.like_count }}</span></button>
+        
+        <button class="btn btn-sm btn-outline-danger dislike-comment-btn" data-comment-id="{{ comment.id }}">👎<span>{{ comment.dislike_count }}</span></button>
+        
       </div>
       {% endfor %}
     </div>
+  
+    <!-- 댓글 작성 폼 -->
+    <div class="mt-4">
+      <h5>댓글 작성</h5>
+      <form id="comment-form" method="POST">
+        <div class="form-group">
+          <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
+      </form>
+    </div>
   </div>
-
-  <!-- 댓글 작성 폼 -->
-  <div class="mt-4">
-    <h5>댓글 작성</h5>
-    <form id="comment-form" method="POST">
-      {% csrf_token %}
-      <div class="form-group">
-        <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
-    </form>
-  </div>
-</div>
 
 <script>
   // 좋아요 버튼 동작
@@ -73,14 +73,65 @@
     alert("싫어요 클릭됨");
   });
 
-  // 댓글 작성 폼 제출 시
+  // 댓글 작성 처리
   document.getElementById('comment-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const commentContent = document.getElementById('comment-content').value;
-    if (commentContent) {
-      // 댓글 작성 처리 로직 추가
-      alert("댓글이 작성되었습니다.");
-    }
+    const communityId = "{{ community.id }}";
+    const accessToken = localStorage.getItem('access_token');
+    
+    fetch(`/api/communities/${communityId}/comments/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content: commentContent })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('댓글이 작성되었습니다.');
+      location.reload(); // 댓글 작성 후 페이지 새로고침
+    })
+    .catch(error => {
+      console.error('댓글 작성 중 에러 발생:', error);
+      alert('댓글 작성에 실패했습니다.');
+    });
+  });
+
+  // 댓글 좋아요/싫어요 버튼 처리
+  document.querySelectorAll('.like-comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      fetch(`/api/communities/comments/${commentId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('좋아요 처리 완료');
+        location.reload(); // 좋아요 처리 후 새로고침
+      });
+    });
+  });
+
+  document.querySelectorAll('.dislike-comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      fetch(`/api/communities/comments/${commentId}/dislike/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('싫어요 처리 완료');
+        location.reload(); // 싫어요 처리 후 새로고침
+      });
+    });
   });
 </script>
 

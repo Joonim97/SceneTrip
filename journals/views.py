@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -11,6 +12,7 @@ from rest_framework.views import View, APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from .forms import JournalForm
@@ -80,42 +82,32 @@ class JournalListView(ListView):
     model = Journal
     template_name = 'journals/journal_list.html'  # 사용할 템플릿
     context_object_name = 'journals'  # 템플릿에서 사용할 변수명
-    paginate_by = 6  # 한 페이지에 표시할 저널 수
+    paginate_by = 12  # 한 페이지에 표시할 저널 수
 
     def get_queryset(self):
         return Journal.objects.all().order_by('-created_at')  # 최신 순으로 정렬
 
 
-class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
-    
-    permission_classes = [IsAuthenticated]
+class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
     
     def get_object(self, pk):
         return get_object_or_404(Journal, pk=pk)
-    
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [AllowAny()]
-        return [IsAuthenticated()]
 
     def get(self, request, pk):
         journal = self.get_object(pk)
         journal.hit()  # 조회수 증가
-        
-        journal1 = self.get_object(pk=33)
 
         # 로그인한 경우에만 좋아요 여부 확인
-        if request.user.is_authenticated:
-            is_liked = journal.journal_likes.filter(user=request.user).exists()
-        else:
-            is_liked = False  # 비로그인 상태에서는 기본적으로 False
+        is_liked = request.user.is_authenticated and journal.journal_likes.filter(user=request.user).exists()
 
+        # 시리얼라이저를 이용하여 저널 데이터를 반환
         serializer = JournalDetailSerializer(journal)
         context = {
             'journal': serializer.data,
             'is_liked': is_liked,  # 좋아요 상태 추가
         }
-
+        print(context)
+        
         return render(request, 'journals/journal_detail.html', context)
 
     def put(self, request, pk):  # 저널 수정
@@ -305,10 +297,34 @@ class JournalWriteView(APIView):
             
 
 class JournalLikeStatusAPIView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         journal = get_object_or_404(Journal, pk=pk)
         # 사용자가 이 저널을 좋아요 했는지 여부 확인
         is_liked = journal.journal_likes.filter(user=request.user).exists()
         return Response({'is_liked': is_liked}, status=status.HTTP_200_OK)
+    
+    
+class JournalEditView(APIView):
+
+    def get(self, request, pk):
+        journal = get_object_or_404(Journal, pk=pk)
+
+        context = {
+            'journal': journal,
+            'is_edit': True  # 수정 상태 표시를 위한 변수
+        }
+        return render(request, 'journals/journal_write.html', context)
+
+    def put(self, request, pk):
+        journal = get_object_or_404(Journal, pk=pk)
+        print(request.user)
+
+        if journal.author != request.user:
+            return Response({"detail": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = JournalSerializer(journal, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

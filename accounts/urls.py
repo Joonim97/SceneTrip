@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, PasswordResetRequestView,
                     PasswordResetConfirmView, EmailResetRequestView, LoginView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
-                    LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, UserInfoView)
+                    LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, UserInfoView, mypage)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
@@ -20,7 +20,7 @@ urlpatterns = [
     path('emailchange/verify/<str:token>/', EamilResetConfirmView.as_view(), name='emailverifyemail'), # 이메일변경 이메일 인증
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
-    path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
+    # path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path('<str:nickname>/mypage/journallike/', LikeJournalsListAPIView.as_view(), name='journal_like'), # 내가 좋아요한 저널 글 목록
     path('<str:nickname>/mypage/myjournals/', MyJournalsListAPIView.as_view(), name='my_journals'), # 내가 쓴 글 전체보기
     path('<str:nickname>/mypage/savedlocations/', SavedLocationsListAPIView.as_view(), name='saved_locations'), # 저장한 촬영지 전체보기
@@ -30,4 +30,5 @@ urlpatterns = [
     path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete'),
     
     path('user-info/', UserInfoView.as_view(), name='user_info'),  # 사용자 정보 API
+    path("<str:nickname>/mypage/", mypage, name='my_page')
 ]

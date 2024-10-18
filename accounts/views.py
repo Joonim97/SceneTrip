@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -128,35 +129,52 @@ class DeleteAPIView(APIView):  # 회원탈퇴
 
 
 # 마이페이지
-class Mypage(ListAPIView): # 마이 페이지
-    permission_classes = [IsAuthenticated]
+class Mypage(ListAPIView):  # 마이 페이지
     serializer_class = MyPageSerializer
-    
+
     def get(self, request, nickname):
-            print(request.user)
-            try:
-                my_page = get_object_or_404(User, nickname=nickname)
-            except:
-                return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-            
-            if my_page.id == request.user.id:
-                serializer = MyPageSerializer(my_page)
-                return render(request, 'accounts/mypage.html', {'user': serializer.data})
-            return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
-    
+        try:
+            # my_page 변수를 먼저 선언
+            my_page = get_object_or_404(User, nickname=nickname)
+            print(request.user)  # 현재 로그인한 사용자 출력
+            print(my_page.id)    # my_page의 ID 출력
+        except:
+            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+
+        # 요청한 사용자가 본인인지 확인
+        if my_page.id == request.user.id:
+            serializer = MyPageSerializer(my_page)
+            return render(request, 'accounts/mypage.html', {'user': serializer.data})
+        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
+
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
         if user != request.user:
             return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         if 'profile_image' in request.FILES:
             profile_image = request.FILES['profile_image']
-            user.profile_image = profile_image 
+            user.profile_image = profile_image
         elif 'profile_image' in request.data and not request.data['profile_image']:
             user.profile_image = None
 
         user.save()  # 변경 사항 저장
         return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
+    
+
+def mypage(request, nickname):
+    # 닉네임을 기준으로 해당 사용자를 가져옵니다.
+    user = get_object_or_404(User, nickname=nickname)
+    serializer = MyPageSerializer(user)
+    print(request.user)
+    print(request.headers)
+    
+    # 사용자 정보와 관련된 데이터를 렌더링합니다.
+    context = {
+        'user': serializer.data,
+    }
+    
+    return render(request, 'accounts/mypage.html', context)
 
 
 # 비밀번호 리셋 로직
@@ -257,23 +275,20 @@ class EamilResetConfirmView(APIView):
 
 class SubscribeView(APIView):  # 구독 기능
     permission_classes = [IsAuthenticated]
+    
     def post(self, request, nickname):
-        # 구독 대상 사용자 조회
-        try:
-            user = get_object_or_404(User, nickname=nickname)
-            me = request.user
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+        user = get_object_or_404(User, nickname=nickname)
+        me = request.user
         
-        if me in user.subscribes.all(): # 내가 대상 사용자를 이미 구독하고 있는지 확인
+        if me in user.subscribes.all():  # 이미 구독한 경우
             user.subscribes.remove(me)
-            return Response("구독취소를 했습니다.", status=status.HTTP_200_OK)
-        else:
+            return Response({"message": "구독 취소했습니다."}, status=status.HTTP_200_OK)
+        else:  # 구독하지 않은 경우
             if nickname != me.nickname:
                 user.subscribes.add(me)
-                return Response("구독했습니다.", status=status.HTTP_200_OK)
+                return Response({"message": "구독했습니다."}, status=status.HTTP_200_OK)
             else:
-                return Response("자신의 계정은 구독할 수 없습니다.", status=status.HTTP_200_OK)
+                return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
             
 
 # 커스텀 페이지네이션
@@ -430,11 +445,13 @@ class LikeJournalsListAPIView(generics.ListAPIView):
 
 
 class UserInfoView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         return Response({
+            'username' : user.username,
+            'user_id' : user.user_id,
             'nickname': user.nickname,
             'email': user.email,
             'grade': user.grade  # grade 필드를 추가

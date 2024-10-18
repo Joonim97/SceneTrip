@@ -166,7 +166,7 @@ class LocationSaveView(APIView):
         
 def index(request):
     latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
-    popular_locations = Location.objects.order_by('-save_count')[:3]  # 인기 촬영지 3개 가져오기
+    popular_locations = Location.objects.order_by('-save_count')[:4]  # 인기 촬영지 3개 가져오기
     popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
 
     context = {

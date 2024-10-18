@@ -118,7 +118,7 @@ class CommunityListView(ListView):
     model = Community
     template_name = 'communities/community_list.html'  # 사용할 템플릿
     context_object_name = 'communities'  # 템플릿에서 사용할 변수명
-    paginate_by = 6  # 페이지당 표시할 글 수
+    paginate_by = 10  # 페이지당 표시할 글 수
 
     def get_queryset(self):
         return Community.objects.all().order_by('-created_at')  # 최신 글 순으로 정렬
@@ -137,7 +137,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
 
                 serializer = CommunityDetailSerializer(community)
                 context = {
-                'community': community
+                'community': serializer.data,
                 }
             
             # 템플릿을 렌더링하여 반환
