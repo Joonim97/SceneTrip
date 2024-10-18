@@ -5,24 +5,26 @@ from locations.serializers import LocationSaveSerializer
 from .models import User
 import re
 
-
+# 회원가입
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'nickname','email', 'user_id', 'birth_date', 'gender', 'grade']
+        fields = ['username', 'password', 'nickname','email', 'user_id', 'gender', 'grade']
 
-        
     def validate(self, data):
-        if User.objects.filter(email=data['email']).exists():
+        # 이메일 중복 체크
+        if User.objects.filter(email=data['email'], is_active=True).exists():
             raise serializers.ValidationError("사용 중인 이메일입니다.")
+
+        # username 중복 체크
         if User.objects.filter(username=data['username']).exists():
             raise serializers.ValidationError("사용 중인 username입니다.")
         
-        # 닉네임 유효성 검사
-        if len(data['nickname']) > 20 and len(data['nickname']) >= 3:
+        # 닉네임 유효성 검사 (3자 이상 20자 이하)
+        if not (3 <= len(data['nickname']) <= 20):
             raise serializers.ValidationError("닉네임은 3자 이상 20자 이하여야 합니다.")
-        if User.objects.filter(username=data['nickname']).exists():
-            raise serializers.ValidationError("사용 중인 닉네임 입니다.")
+        if User.objects.filter(nickname=data['nickname']).exists():
+            raise serializers.ValidationError("사용 중인 닉네임입니다.")
         
         # 비밀번호 유효성 검사
         if not re.search(r"[a-zA-Z]", data['password']):
@@ -31,21 +33,21 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
         if not re.search(r"[!@#$%^&*()]", data['password']):
             raise serializers.ValidationError("비밀번호는 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다.")
-        if len(data['password']) < 10 or len(data['password']) > 20:
+        if not (10 <= len(data['password']) <= 20):
             raise serializers.ValidationError("비밀번호는 10글자 이상 20글자 이하여야 합니다.")
-        if len(data['password']) == 0:
-            raise serializers.ValidationError("비밀번호를 입력해주십시오.")
         
         # 아이디 유효성 검사
+        if User.objects.filter(user_id=data['user_id'], is_active=True).exists():
+            raise serializers.ValidationError("사용 중인 이메일입니다.")
         if not re.search(r"[a-zA-Z]", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 영문이 포함되어야 합니다.")
         if not re.search(r"\d", data['user_id']):
             raise serializers.ValidationError("아이디는 하나 이상의 숫자가 포함되어야 합니다.")
-        if len(data['password']) < 4 or len(data['password']) > 20:
-            raise serializers.ValidationError("아이디는 4글자 이상 20글자 이하여야 합니다.")
         if len(data['user_id']) == 0:
             raise serializers.ValidationError("아이디를 입력해주십시오.")
-
+        if not (4 <= len(data['user_id']) <= 20):
+            raise serializers.ValidationError("아이디는 4글자 이상 20글자 이하여야 합니다.")
+        
         return data
 
 
@@ -67,18 +69,15 @@ class PasswordCheckSerializer(serializers.Serializer):
         
         return value
 
-
 # 이메일 재설정
 class EmailCheckSerializer(serializers.Serializer):
     new_email = serializers.EmailField(write_only=True)
-
 
 # 구독자 이름만 보이게 만듬
 class SubUsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname']
-
 
 # 마이페이지 
 class MyPageSerializer(serializers.ModelSerializer):
@@ -91,7 +90,8 @@ class MyPageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings', 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
+        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings',
+                'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
 
     def get_subscribings(self, obj):
         # 구독 중인 사용자 중 최대 5명 반환

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 방 선택</title>
+</head>
+<body>
+    <h1>채팅 방 선택</h1>
+    <input type="text" id="room-input" placeholder="방 이름 입력">
+    <button id="join-button">방 들어가기</button>
+
+    <script>
+        document.getElementById('join-button').onclick = function() {
+            const roomName = document.getElementById('room-input').value;
+            if (roomName) {
+                // 방 이름에 따른 방으로 이동
+                window.location.href = `room.html?room=${encodeURIComponent(roomName)}`;  // 방으로 이동
+            }
+        };
+    </script>
+</body>
+</html>

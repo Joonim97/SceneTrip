@@ -1,7 +1,7 @@
 from rest_framework import generics
 from .models import Questions, Comments
 from .serializers import QuestionSerializer, QuestionDetailSerializer, CommentSerializer
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,6 +9,39 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 import uuid
 from django.core.exceptions import ValidationError
+
+# 큐엔에이 페이지
+
+from django.shortcuts import render, redirect
+from .models import Questions
+
+def qna(request):
+    # 모든 질문을 최신순으로 가져옴
+    qna = Questions.objects.order_by('-created_at')
+    context = {
+        'qna': qna
+    }
+    return render(request, 'questions/qna.html', context)
+
+def qnawrite(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('detail')  # 'detail'은 'content'로 변경됨
+        author = request.user  # 현재 로그인한 사용자
+
+        # 새 질문 객체 생성
+        new_question = Questions(title=title, content=content, author=author)
+        new_question.save()  # 데이터베이스에 저장
+
+        return redirect('http://127.0.0.1:8000/api/questions/qna/page/')  # 작성 후 리다이렉트
+
+    # GET 요청 시 질문 목록을 불러옴
+    qna = Questions.objects.order_by('-created_at')
+    context = {
+        'qna': qna
+    }
+    return render(request, 'questions/qna_write.html', context)
+
 
 # 큐앤에이 전체 목록 조회 & 작성
 class QuestionListView(APIView):

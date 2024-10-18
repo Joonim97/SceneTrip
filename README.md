@@ -24,11 +24,12 @@
 [Team Notion](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
 
 | - |주성현|강다영|김경민|조민희|
-|:---:|:---:|:---:|:---:|:---:|
-| <b>역할</b> |팀장|부팀장|서기|조원|
+|:---:|:---:|:---:|:---:|:---:| - |
+| <b>역할</b> |Team Leader|Deputy Team Leader|Clerk|Member|
 | <b>Backend</b> |Journals/Comment <br>Communities/Comment | Locations <br>Interlocking an API(한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br>Communities/Article |
-| <b>Frontend</b> | 전체 | - | - | - |
-| <b>배포</b> | - | - | 전체 | - |
+| <b>Frontend</b> | All | - | - | - |
+| <b>배포</b> | - | - | All | - |
+
 
 <br>
 

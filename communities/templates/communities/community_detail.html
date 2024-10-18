@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}
+커뮤니티 글 상세
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ community.title }}</h2>
+  <p>작성자: {{ community.author.nickname }} | 작성일: {{ community.created_at }}</p>
+  
+  <div class="mt-4">
+    <p>{{ community.content }}</p>
+  </div>
+  
+  <!-- 이미지 목록 -->
+  <div class="mt-4">
+    <h5>첨부 이미지</h5>
+    <div class="row">
+      {% for image in community.community_images.all %}
+      <div class="col-md-4 mb-3">
+        <img src="{{ image.community_image.url }}" class="img-fluid" alt="community image">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 좋아요 / 싫어요 버튼 -->
+  <div class="mt-4">
+    <button id="like-btn" class="btn btn-outline-success">좋아요</button>
+    <button id="dislike-btn" class="btn btn-outline-danger">싫어요</button>
+    <span>좋아요 수: {{ community.community_likes.count }} | 싫어요 수: {{ community.community_dislikes.count }}</span>
+  </div>
+
+<script>
+  // 좋아요 버튼 동작
+  document.getElementById('like-btn').addEventListener('click', function() {
+    // 좋아요 처리 로직 추가
+    alert("좋아요 클릭됨");
+  });
+
+  // 싫어요 버튼 동작
+  document.getElementById('dislike-btn').addEventListener('click', function() {
+    // 싫어요 처리 로직 추가
+    alert("싫어요 클릭됨");
+  });
+
+  // 댓글 작성 처리
+  document.getElementById('comment-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const commentContent = document.getElementById('comment-content').value;
+    const communityId = "{{ community.id }}";
+    const accessToken = localStorage.getItem('access_token');
+    
+    fetch(`/api/communities/${communityId}/comments/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content: commentContent })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('댓글이 작성되었습니다.');
+      location.reload(); // 댓글 작성 후 페이지 새로고침
+    })
+    .catch(error => {
+      console.error('댓글 작성 중 에러 발생:', error);
+      alert('댓글 작성에 실패했습니다.');
+    });
+  });
+
+  // 댓글 좋아요/싫어요 버튼 처리
+  document.querySelectorAll('.like-comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      fetch(`/api/communities/comments/${commentId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('좋아요 처리 완료');
+        location.reload(); // 좋아요 처리 후 새로고침
+      });
+    });
+  });
+
+  document.querySelectorAll('.dislike-comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const commentId = button.getAttribute('data-comment-id');
+      fetch(`/api/communities/comments/${commentId}/dislike/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('싫어요 처리 완료');
+        location.reload(); // 싫어요 처리 후 새로고침
+      });
+    });
+  });
+</script>
+
+{% endblock %}
