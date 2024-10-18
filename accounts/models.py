@@ -11,7 +11,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=150, blank=True, null=True)
     user_id = models.CharField(max_length=150, unique=True) # 아이디
     email = models.EmailField(unique=True, blank=False) # 이메일
-    birth_date = models.DateField() # 생년월일
+    # birth_date = models.DateField(null=True, blank=True, default=None)
     gender = models.CharField(max_length=10, null=True, blank=True) # 성별
     author_verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
     verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
@@ -33,4 +33,4 @@ class User(AbstractUser):
 
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드
-    REQUIRED_FIELDS = ['email', 'username', 'birth_date']  # 필수로 입력해야 할 필드
+    REQUIRED_FIELDS = ['email', 'username']  # 필수로 입력해야 할 필드
