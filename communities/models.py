@@ -8,14 +8,14 @@ User = get_user_model()
 
 class Community(models.Model): # 커뮤니티
     categories = [
-        ( 'A', '정보' ), # 카테고리 선택
-        ( 'B', '잡담' ),
-        ( 'C', '홍보' )
+        ( '정보', '정보' ), # 카테고리 선택
+        ( '잡담', '잡담' ),
+        ( '잡담', '홍보' )
     ]
     
     # id=models.IntegerField(primary_key=True)
     communityKey = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID 통한 고유번호필드
-    category = models.CharField(max_length=1, choices=categories, default='A')  # 카테고리 필드 추가
+    category = models.CharField(max_length=2, choices=categories, default='정보')  # 카테고리 필드 추가
     title = models.CharField(max_length=40)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_author',null=True)
     content = models.TextField()
