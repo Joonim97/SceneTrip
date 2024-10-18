@@ -22,8 +22,8 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <!-- 좌측 상단 브랜드 로고 -->
-      <a class="navbar-brand" href="{% url 'index' %}">
-        <img src="/static/brand_logo.png" alt="Brand Logo" height="40">
+      <a href="{% url 'index' %}" class="navbar-brand" >
+        <img src="{% static 'SceneTrip.jpg' %}" alt="Brand Logo" height="60">
       </a>
 
       <!-- 검색 바를 중앙에 배치 -->
@@ -48,11 +48,38 @@
     </div>
   </nav>
 
+  <head>
+  <title>Button Placement</title>
+    <style>
+      #container a {
+        position: absolute;
+        top: 120px; 
+        right: 30px; 
+        display: flex;
+        gap: 10px; 
+        color: black;
+        background-color: #F2F0EB;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+
+      #container a:hover {
+        background-color: #AAFA82;
+        cursor: pointer;
+      }
+
+    </style>
+</head>
+      <div id="container">
+        <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
+      </div>
+  
   <!-- 페이지별 본문 콘텐츠 -->
   <div class="container mt-5">
     {% block content %} {% endblock %}
   </div>
-  
+
   <script>
 // 로그인 요청 예시
 function login() {
