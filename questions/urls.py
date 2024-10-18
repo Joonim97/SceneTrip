@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import QuestionListView, QuestionDetailAPIView, CommentCreateView, CommentUpdateView,CommentDeleteView
+from questions import views
 
 app_name = "questions"
 
@@ -13,5 +14,6 @@ urlpatterns =  [
     path('<str:key>/comments/', CommentCreateView.as_view(), name='question-comment'),
     # 댓글 수정, 삭제
     path('comments/<str:key>/', CommentUpdateView.as_view(), name='questions-comment-detatil'),
-    
+    path('qna/page/', views.qna, name='qnq-page'), # Q&A 전체페이지
+    path('qna/page/writing/', views.qnawrite, name='qnqwrite-page') # Q&A 글 작성 페이지
     ]   
