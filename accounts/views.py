@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -11,15 +10,18 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import ListAPIView
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
+from SceneTrip import settings
 from communities.serializers import CommunitySerializer
 from journals.serializers import JournalSerializer, JournalLikeSerializer
 from locations.serializers import LocationSaveSerializer
 from .serializers import PasswordCheckSerializer, SubUsernameSerializer, UserSerializer, MyPageSerializer
 from .emails import send_verification_email, send_verification_email_reset, send_verification_password_reset
+import requests
 import uuid
-
-
 User = get_user_model() # 필수 지우면 안됨
+
+#################################################################################################################
+#################################################################################################################
 
 # Parents Class 모음
 # 커스텀 페이지네이션 // 마이페이지에 들어가는 내용들 페이지네이션
@@ -40,8 +42,8 @@ class BaseListAPIView(generics.ListAPIView):
 class PermissionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-#########################################################
-
+#################################################################################################################
+#################################################################################################################
 
 # 회원가입
 class SignupAPIView(APIView):
@@ -56,16 +58,13 @@ class SignupAPIView(APIView):
                 email = serializer.validated_data['email']
             else:
                 email = request.data.get('email')
-            
             existing_user = User.objects.filter(email=email).first()
+            # 유저가 있지만 is_active = False
             if existing_user:
                 if not existing_user.is_active:
-                    # 비활성화된 사용자라면 기존 사용자 삭제
                     existing_user.delete()
                     serializer = UserSerializer(data=request.data)
-
                     if serializer.is_valid():
-                        # email = serializer.validated_data['email']
                         user = serializer.save()
                         user.set_password(request.data.get('password'))
                         user.verification_token = str(uuid.uuid4())
@@ -76,10 +75,8 @@ class SignupAPIView(APIView):
                         return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
                 else:
                     return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
-
             else:
                 user = serializer.save()
-
                 user.set_password(request.data.get('password'))
                 user.verification_token = str(uuid.uuid4())
                 user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
@@ -95,20 +92,29 @@ class SignupAPIView(APIView):
                 {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 이메일 인증 메일이 날아올 경우
+
+# 이메일 인증 
 class VerifyEmailAPIView(APIView):
     def get(self, request, token):
         try:
+            # 토큰으로 사용자를 조회
             user = get_object_or_404(User, verification_token=token)
-            user.verification_token = ''
-            user.grade = User.NORMAL
-            user.is_active = True
-            user.save()
-            return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
-        except:
-            return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            # 이메일 인증 후 상태 업데이트
+            if not user.is_active:  # 만약 사용자 비활성화 상태라면
+                user.verification_token = ''  # 토큰 초기화
+                user.is_active = True  # 사용자 활성화
+                
+                # 유저 등급 업데이트
+                if user.grade == 'author':
+                    user.grade = 'no_author'  # 이메일 인증 후 NORMAL로 설정
+                user.save()  # 변경 사항 저장
+                return Response('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
+            else:
+                return Response('이메일이 이미 인증되었습니다.', status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': '정상적으로 처리되지 않으셨습니다.', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)    
+        
 
-          
 class LoginView(APIView):
     def get(self, request):
         return render(request, 'accounts/login.html')  # login.html 템플릿 렌더링
@@ -132,7 +138,6 @@ class VerifyjJournalEmailAPIView(APIView):
             return Response({"error":"로그인을 해주시길 바랍니다"}, status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response({'error':'오류가 발생하였습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class DeleteAPIView(APIView):  # 회원탈퇴
     permission_classes = [IsAuthenticated]
@@ -159,37 +164,35 @@ class DeleteAPIView(APIView):  # 회원탈퇴
         # 유효성 검사를 통과하지 못한 경우
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# 마이페이지
-class Mypage(ListAPIView): # 마이 페이지
-    permission_classes = [IsAuthenticated]
-    serializer_class = MyPageSerializer
+# # 마이페이지
+# class Mypage(ListAPIView): # 마이 페이지
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = MyPageSerializer
     
-    def get(self, request, nickname):
-            print(request.user)
-            try:
-                my_page = get_object_or_404(User, nickname=nickname)
-            except:
-                return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+#     def get(self, request, nickname):
+#             print(request.user)
+#             try:
+#                 my_page = get_object_or_404(User, nickname=nickname)
+#             except:
+#                 return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
             
-            if my_page.id == request.user.id:
-                serializer = MyPageSerializer(my_page)
-                return render(request, 'accounts/mypage.html', {'user': serializer.data})
-            return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
+#             if my_page.id == request.user.id:
+#                 serializer = MyPageSerializer(my_page)
+#                 return render(request, 'accounts/mypage.html', {'user': serializer.data})
+#             return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
     
-    def put(self, request, nickname):
-        user = get_object_or_404(User, nickname=nickname)
-        if user != request.user:
-            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+#     def put(self, request, nickname):
+#         user = get_object_or_404(User, nickname=nickname)
+#         if user != request.user:
+#             return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
 
-          user = get_object_or_404(User, author_verification_token=token)
-            user.author_verification_token = ''
-            if user.grade == User.NORMAL:  
-                user.grade = User.AUTHOR
-            user.save()
-            return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
-        except:
-            return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#         user.author_verification_token = ''
+#         if user.grade == User.NORMAL:  
+#             user.grade = User.AUTHOR
+#             user.save()
+#             return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
+#         else:
+#             return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteAPIView(APIView):  # 회원탈퇴
@@ -265,6 +268,24 @@ def mypage(request, nickname):
     }
     
     return render(request, 'accounts/mypage.html', context)
+
+
+# 회원가입 시 grade가 journal, 관리자가 해당 link를 누른 경우
+class VerifyjJurnalEmailAPIView(APIView):
+    def get(self, request, token):
+        try:
+            user = get_object_or_404(User, author_verification_token=token)
+            if user.grade == 'no_author':
+                user.grade = 'author' # 등급을 AUTHOR로 변경
+                user.is_active = True  # 사용자 활성화
+                user.author_verification_token = ''  # 인증 토큰 초기화
+                user.save()
+                return Response(f'{user.username}님이 관리자에 의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
+            else:
+                return Response({'error': '이메일 인증이 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': '정상적으로 처리되지 않으셨습니다.', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 비밀번호 리셋 로직
@@ -450,12 +471,6 @@ class SubscribeView(PermissionAPIView):
                 return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_200_OK)
             
 
-# 커스텀 페이지네이션
-class CustomPagination(PageNumberPagination):
-        page_size = 5
-        page_size_query_param = 'page_size'
-        max_page_size = 100
-        
 
 # 내가 쓴 글
 class MyJournalsListAPIView(BaseListAPIView):
@@ -577,7 +592,6 @@ class LikeJournalsListAPIView(BaseListAPIView):
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우   
 
-
 class UserInfoView(APIView):
     def get(self, request):
         user = request.user
@@ -588,3 +602,130 @@ class UserInfoView(APIView):
             'email': user.email,
             'grade': user.grade  # grade 필드를 추가
         })
+
+#################################################################################################################
+#################################################################################################################
+
+# 카카오 로그인 페이지를 렌더링하는 뷰
+def kakaologinpage(request):
+    context = {
+        'KAKAO_JAVA_SCRIPTS_API_KEY': settings.KAKAO_JAVA_SCRIPTS_API_KEY,  # settings.py에 정의된 설정 값
+    }
+    return render(request, 'accounts/kakao_login.html', context)  # HTML 파일 경로를 적절하게 수정
+
+# 카카오 로그인 완료 창(실패창은 안나옴)
+def index(request):
+    return render(request, 'accounts/index.html')
+
+# 소셜로그인(카카오,) 추가가능
+class SocialLoginView(APIView):
+    def get(self, request, provider):
+        if provider == "kakao":
+            client_id = settings.KAKAO_REST_API_KEY
+            redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+            scope = "account_email, gender, birthday, birthyear" # 선택 제공 동의를 요청
+            auth_url = (
+                f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}"
+                f"&redirect_uri={redirect_uri}&response_type=code"
+                f"&scope={scope}"
+            )
+        else:
+            return Response(
+                {"error": "지원되지 않는 소셜 로그인 제공자입니다."}, status=400
+            )
+        return redirect(auth_url)
+
+# 소셜로그인 callback(카카오,) 추가가능
+class SocialCallbackView(APIView):
+    def get(self, request, provider):
+        code = request.GET.get("code")
+
+        access_token = self.get_token(provider, code)
+        user_info = self.get_user_info(provider, access_token)
+
+        # 제공받는 데이터들
+        if provider == "kakao":
+            username = user_info['kakao_account'].get('name')
+            email = user_info['kakao_account'].get('email')
+            gender = user_info['kakao_account'].get('gender')
+            nickname = user_info["properties"].get("nickname")
+            birthday = user_info['kakao_account'].get('birthday')
+            birthyear = user_info['kakao_account'].get('birthyear')
+
+        # model 에서 birth_date 양식 통일 (0000-00-00)
+        if birthyear and birthday:
+            birth_date = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
+        else:
+            birth_date = None
+
+        user_data = self.get_or_create_user(provider, email, nickname, username, gender, birth_date)
+        tokens = self.create_jwt_token(user_data)
+
+        redirect_url = (
+            f"{settings.BASE_URL}/api/accounts/index/"
+            f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
+            f"&nickname={nickname}&email={email}&email={gender}&email={username}&email={birth_date}"
+        )
+        return redirect(redirect_url)
+    
+    # 토큰
+    def get_token(self, provider, code):
+        if provider == "kakao":
+            token_url = "https://kauth.kakao.com/oauth/token"
+            client_id = settings.KAKAO_REST_API_KEY
+        else:
+            raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
+        
+        redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+        data = {
+            "grant_type": "authorization_code",
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "code": code,
+        }
+        response = requests.post(token_url, data=data)
+        return response.json().get("access_token")
+    
+    def get_user_info(self, provider, access_token):
+        if provider == "kakao":
+            user_info_url = "https://kapi.kakao.com/v2/user/me"
+        else:
+            raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
+
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get(user_info_url, headers=headers)
+        return response.json()
+
+    def get_or_create_user(self, provider, email, nickname, username, gender, birth_date):
+        user, created = User.objects.get_or_create(
+            email=email,
+            gender=gender,
+            birth_date=birth_date,
+            defaults={
+                "nickname": nickname,
+                "username": username,
+            },
+        )
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        return user
+
+    # 토큰에 담을 내용
+    def create_jwt_token(self, user_data):
+        if isinstance(user_data, dict):
+            email = user_data.get("email")
+            nickname = user_data.get("nickname")
+            username = user_data.get("username")
+            gender = user_data.get("gender")
+            birth_date = user_data.get("birth_date")
+            user = User.objects.get(email=email, nickname=nickname, username=username, gender=gender, birth_date=birth_date)
+        else:
+            user = user_data
+
+        refresh = RefreshToken.for_user(user)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }

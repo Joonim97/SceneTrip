@@ -133,6 +133,7 @@ class JournalDetailSerializer(JournalSerializer):  # 저널디테일
             "comments_count",
             "comments",
             "journal_likes",
+            "hit_count"
         )
 
     def get_comments_count(self, journal_id):

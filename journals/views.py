@@ -1,7 +1,5 @@
-from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+from django.shortcuts import render, get_object_or_404
 from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
@@ -18,6 +16,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .forms import JournalForm
 from .models import Comment, CommentLike, Journal, JournalImage, JournalLike
 from .serializers import CommentSerializer, JournalSerializer,JournalDetailSerializer
+import datetime
 
 
 
@@ -76,7 +75,41 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
+
+# class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
+#         def get_object(self, pk):
+#                 return get_object_or_404(Journal, pk=pk)
+
+#         def get(self, request, pk):  # 저널 상세조회
+#             journal = self.get_object(pk)
             
+#             # 쿠키 만료 시간: 자정으로 설정
+#             tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+#             expires = tomorrow.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+
+#             # 조회수 업데이트: 쿠키에 hit 값이 없는 경우
+#             if request.COOKIES.get('hit_count') is not None:
+#                 cookies = request.COOKIES.get('hit_count')
+#                 cookies_list = cookies.split('|')  # '|' 대신 다른 구분자도 사용 가능
+#                 if str(pk) not in cookies_list:
+#                     journal.hit()  # 조회수 증가
+#                     response = Response(JournalDetailSerializer(journal).data)
+#                     response.set_cookie('hit_count', cookies + f'|{pk}', expires=expires)
+#                     return response
+#             else:
+#                 journal.hit()  # 조회수 증가
+#                 response = Response(JournalDetailSerializer(journal).data)
+#                 response.set_cookie('hit_count', pk, expires=expires)
+#                 return response
+
+#             # hit 쿠키가 이미 있는 경우 조회수는 증가하지 않음
+#             serializer = JournalDetailSerializer(journal)
+#             return Response(serializer.data)
+
+#         def put(self, request, pk):  # 저널 수정
+#             journal = self.get_object(pk)
+#             journal_images = request.FILES.getlist('images')
+#             serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
             
 class JournalListView(ListView):
     model = Journal

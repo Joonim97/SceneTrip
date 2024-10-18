@@ -2,20 +2,20 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
-# 커스텀 유저 
 class User(AbstractUser):
-    # 성, 이름은 username 으로 대체
-    # first_name = models.CharField(max_length=150, blank=False) # 성
-    # last_name = models.CharField(max_length=150, blank=False) # 이름
     username = models.CharField(max_length=150, blank=True, null=True)
     user_id = models.CharField(max_length=150, unique=True) # 아이디
     email = models.EmailField(unique=True, blank=False) # 이메일
-    birth_date = models.DateField(blank=False) # 생년월일
+    birth_date = models.DateField(null=True, blank=True, default=None)
     gender = models.CharField(max_length=10, null=True, blank=True) # 성별
+    author_verification_token = models.CharField(max_length=255, blank=True, null=True) # grade = author 일때 인증토큰
     verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
+<<<<<<< HEAD
     author_verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
     nickname = models.CharField(max_length=20, unique=True)
+=======
+    nickname = models.CharField(max_length=20) # 닉네임, sosial login 시 이름이 여기로도 같이 들어옴
+>>>>>>> feat/frontaccount
     subscribings = models.ManyToManyField('self', symmetrical=False, related_name='subscribes') # 구독
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # UUID 필드, 고유번호 필드 추가
@@ -33,4 +33,4 @@ class User(AbstractUser):
 
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드
-    REQUIRED_FIELDS = ['email', 'username', 'birth_date']  # 필수로 입력해야 할 필드
+    REQUIRED_FIELDS = ['email', 'username']  # 필수로 입력해야 할 필드
