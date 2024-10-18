@@ -17,8 +17,7 @@
   </p>
   <p>작성일: {{ journal.created_at }}</p>
 
-  
-  <div class="mb-3">
+    <div class="mb-3">
     <h5>내용</h5>
     <p>{{ journal.content }}</p>
   </div>
@@ -30,8 +29,6 @@
       </div>
     {% endfor %}
   </div>
-
-
 
   <!-- 좋아요 및 댓글 수 -->
   <div class="mb-3">
@@ -105,7 +102,6 @@
     </form>
   </div>
 </div>
-
 <script>
   function toggleSubscribe(authorNickname) {
     const accessToken = localStorage.getItem('access_token');
@@ -259,7 +255,6 @@
         method: "POST",
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-
         },
         body: JSON.stringify({
           content: replyContent
@@ -369,7 +364,6 @@
     });
   });
   
-  
-</script>
+  </script>
 
 {% endblock %}

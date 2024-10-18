@@ -67,9 +67,9 @@ INSTALLED_APPS = [
 
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
-    
-    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
 
+    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
+  
     'accounts',
     'journals',
     'communities',
@@ -94,6 +94,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_METHODS = [  # 허용할 옵션
     "DELETE",
     "GET",
@@ -223,6 +224,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+
 
 
 

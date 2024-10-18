@@ -71,8 +71,6 @@ class SignupAPIView(APIView):
                         user.verification_token = str(uuid.uuid4())
                         user.is_active = False
                         user.save()
-
-                        print(request.data)
                         
                         send_verification_email(user)  # 이메일 전송
                         return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
@@ -89,7 +87,6 @@ class SignupAPIView(APIView):
                 user.save()
                 send_verification_email(user)
                 messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
-                
                 return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
             return Response(
                 {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -110,8 +107,8 @@ class VerifyEmailAPIView(APIView):
             return HttpResponse('회원가입이 완료되었습니다.', status=status.HTTP_200_OK)
         except:
             return HttpResponse({'error':'회원가입이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
+          
 class LoginView(APIView):
     def get(self, request):
         return render(request, 'accounts/login.html')  # login.html 템플릿 렌더링
@@ -120,7 +117,72 @@ class LoginView(APIView):
 class VerifyjJournalEmailAPIView(APIView):
     def get(self, request, token):
         try:
-            user = get_object_or_404(User, author_verification_token=token)
+            if request.user: # 사용자가 맞으면
+                refresh_token = request.data.get("refresh") 
+                if not refresh_token: # refresh token 이 없을경우
+                    return Response({"error": "리프레시 토큰이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+                try:
+                    refresh_token = RefreshToken(refresh_token)
+                    refresh_token.blacklist()
+                    return Response({"로그아웃 완료되었습니다"}, status=status.HTTP_200_OK)
+                except:
+                    return Response({"error":"로그아웃을 실패하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({"error":"로그인을 해주시길 바랍니다"}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error':'오류가 발생하였습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteAPIView(APIView):  # 회원탈퇴
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, nickname):
+        user = request.user
+        deleted_user = get_object_or_404(User, nickname=nickname)
+
+        if user != deleted_user:
+            return Response({"error": "본인계정만 탈퇴하실수 있습니다"}, status=400)  # 본인이 아닐 경우
+
+        serializer = PasswordCheckSerializer(data=request.data)
+        if serializer.is_valid():
+            password = serializer.validated_data['password']  # 수정된 부분
+
+            # 비밀번호 확인
+            if user.check_password(password):
+                user.is_active = False  
+                user.save()
+                return Response({"message": "탈퇴 완료하였습니다"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 유효성 검사를 통과하지 못한 경우
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 마이페이지
+class Mypage(ListAPIView): # 마이 페이지
+    permission_classes = [IsAuthenticated]
+    serializer_class = MyPageSerializer
+    
+    def get(self, request, nickname):
+            print(request.user)
+            try:
+                my_page = get_object_or_404(User, nickname=nickname)
+            except:
+                return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
+            
+            if my_page.id == request.user.id:
+                serializer = MyPageSerializer(my_page)
+                return render(request, 'accounts/mypage.html', {'user': serializer.data})
+            return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
+    
+    def put(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)
+        if user != request.user:
+            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+
+          user = get_object_or_404(User, author_verification_token=token)
             user.author_verification_token = ''
             if user.grade == User.NORMAL:  
                 user.grade = User.AUTHOR
@@ -517,8 +579,6 @@ class LikeJournalsListAPIView(BaseListAPIView):
 
 
 class UserInfoView(APIView):
-    # permission_classes = [IsAuthenticated]
-
     def get(self, request):
         user = request.user
         return Response({

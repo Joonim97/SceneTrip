@@ -32,34 +32,6 @@
     <span>좋아요 수: {{ community.community_likes.count }} | 싫어요 수: {{ community.community_dislikes.count }}</span>
   </div>
 
-  <div class="mt-5">
-    <h5>댓글</h5>
-    <div id="comments-section">
-      {% for comment in community.comments %}
-      <div class="comment mb-4">
-        <strong>{{ comment.user.nickname }}</strong> - {{ comment.created_at }}
-        <p>{{ comment.content }}</p>
-        <!-- 댓글 좋아요/싫어요 버튼 -->
-        <button class="btn btn-sm btn-outline-success like-comment-btn" data-comment-id="{{ comment.id }}">👍<span>{{ comment.like_count }}</span></button>
-        
-        <button class="btn btn-sm btn-outline-danger dislike-comment-btn" data-comment-id="{{ comment.id }}">👎<span>{{ comment.dislike_count }}</span></button>
-        
-      </div>
-      {% endfor %}
-    </div>
-  
-    <!-- 댓글 작성 폼 -->
-    <div class="mt-4">
-      <h5>댓글 작성</h5>
-      <form id="comment-form" method="POST">
-        <div class="form-group">
-          <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
-      </form>
-    </div>
-  </div>
-
 <script>
   // 좋아요 버튼 동작
   document.getElementById('like-btn').addEventListener('click', function() {

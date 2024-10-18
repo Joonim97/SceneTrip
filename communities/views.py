@@ -136,6 +136,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
 
                 serializer = CommunityDetailSerializer(community)
                 context = {
+
                 'community': serializer.data,
                 }
             

@@ -30,8 +30,6 @@
       // 디버깅을 위해 입력값 콘솔에 출력
       console.log("User ID:", userId, "Password:", password);
 
-      // CSRF 토큰 가져오기
-
       // POST 요청을 보냄
       fetch("{% url 'accounts:token_obtain_pair' %}", {
         method: "POST",

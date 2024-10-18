@@ -1,13 +1,10 @@
-from . import views
 from django.urls import path
-
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from . import views
 from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, PasswordResetRequestView,
                     PasswordResetConfirmView, EmailResetRequestView, LoginView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, VerifyjJournalEmailAPIView,
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, UserInfoView, mypage)
-
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
 

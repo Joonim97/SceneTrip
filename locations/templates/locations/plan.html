@@ -5,62 +5,239 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h1>여행 플래닝 서비스</h1>
+
+<head>
+  {% comment %} <meta charset="UTF-8"> {% endcomment %}
+  {% comment %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endcomment %}
+  <title>Checkbox with Checkmark</title>
+  <style>
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      vertical-align: bottom;
+    }
+  </style>
+
+  <title>Search Box</title>
+  <style>
+    .card-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .card-list li {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      padding: 15px;
+    }
+    
+    .card-list li .card-title {
+      font-weight: bold;
+    }
+    
+    .card-list li .card-place_name {
+      color: #888;
+    }
+    .card-list li .card-description {
+      color: #888;
+    }
+    .card-list li .card-address {
+      color: #888;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <h1>AI 여행 플래닝 서비스</h1><br><br>
+  <div class="container mt-5">
+    <div class="row">
+      <!-- 여행 플래닝 서비스 폼 -->
+      <div class="col-md-6">
+        <h4>서비스 이용하기</h4>
+        <br>
+        <form id="planning-form">
+          <div class="form-group">
+            <label for="place_name"><strong>방문하고자 하는 촬영지</strong></label><br><br>
+            <input type="text" class="form-control" id="place_name" placeholder="촬영지명을 정확히 입력해주세요" name="place_name" required>
+          </div>
+          <div class="form-group">
+            <br><br><br>
+            <label><strong>얼마동안 여행을 다녀오실 건가요?</strong></label><br><br>
+            <input type="checkbox" id="day-checkbox" name="triptype" value="day">
+            <label for="day-checkbox">당일치기로 다녀올래요! </label> 
+            <br><br>
+            <input type="checkbox" id="days-checkbox" name="triptype" value="days">
+            <label for="days-checkbox">하루는 너무 짧아요! </label> 
+          </div>
+          <br>
+          <div id="extra-info" style="display: none;">
+            <label for="n">여행 기간 (박)</label>
+            <input type="number" class="form-control" id="n" name="n" min="0" placeholder="숫자만 입력해주세요">
+            <label for="m">여행 기간 (일)</label>
+            <input type="number" class="form-control" id="m" name="m" min="1" placeholder="숫자만 입력해주세요">
+          </div>
+          <div class="form-group">
+            <br><br>
+            <label for="preference"><strong>선호하는 여행 스타일을 입력해주세요.</strong> (선택사항)</label>
+            <br><br>
+            <input type="text" class="form-control" id="preference" name="preference" maxlength="50" placeholder="50자 이내로 입력">
+          </div>
+          <br>
+          <button type="submit" class="btn btn-primary">계획 세우기</button>
+        </form>
+      </div>
   
-  <!-- 여행지 선택 섹션 -->
-  <div class="mb-4">
-    <h3>여행지 선택</h3>
-    <form id="destination-form" method="POST">
-      <div class="form-group">
-        <label for="destination">여행지</label>
-        <input type="text" class="form-control" id="destination" name="destination" placeholder="여행지를 입력하세요">
+      <!-- 촬영지 검색하기 -->
+      <div class="col-md-4">
+        <div class="container" style="border: 10px solid #FBF9E3; background-color: #FBF9E3; padding: 40px; border-radius: 25px;">
+          <h4>촬영지 검색하기</h4>
+          <br>
+          <!-- 검색 바 추가 -->
+          <form method="get" action="" class="mb-4">
+            <div class="input-group">
+              <input type="text" class="form-control" name="keyword" placeholder="촬영지 검색" value="{{ request.GET.keyword }}">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">검색</button>
+              </div>
+            </div>
+          </form>
+          <br><br>
+          <ul class="search-results"></ul>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="start-date">출발일</label>
-        <input type="date" class="form-control" id="start-date" name="start_date">
-      </div>
-      <div class="form-group">
-        <label for="end-date">도착일</label>
-        <input type="date" class="form-control" id="end-date" name="end_date">
-      </div>
-      <button type="submit" class="btn btn-primary">플랜 생성</button>
-    </form>
+    </div>
   </div>
+</body>
 
-  <!-- 일정 추가 섹션 -->
-  <div class="mb-4">
-    <h3>일정 추가</h3>
-    <form id="schedule-form" method="POST">
-      <div class="form-group">
-        <label for="plan-date">날짜</label>
-        <input type="date" class="form-control" id="plan-date" name="plan_date">
-      </div>
-      <div class="form-group">
-        <label for="plan-activity">활동 내용</label>
-        <input type="text" class="form-control" id="plan-activity" name="plan_activity" placeholder="활동 내용을 입력하세요">
-      </div>
-      <button type="submit" class="btn btn-success">일정 추가</button>
-    </form>
-  </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchResultsContainer = document.querySelector('.search-results');
+      const searchForm = document.querySelector('form');
+      
+      searchForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const keyword = document.querySelector('input[name="keyword"]').value;
+          fetch(`/api/locations/search?keyword=${keyword}`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              searchResultsContainer.innerHTML = ''; // 기존 결과 삭제
+              if (data.locations && data.locations.length > 0) {
+                  data.locations.forEach(location => {
+                      const li = document.createElement('li');
+                      li.classList.add('location-item');
+                      li.dataset.id = location.id;
+                      li.innerHTML = `
+                          <h5 class="card-title">${location.title}</h5>
+                          <h5 class="card-place_name">${location.place_name}</h5>
+                          <p class="card-description">${location.description}</p>
+                          <p class="card-address">${location.address}</p>
+                      `;
+                      searchResultsContainer.appendChild(li);
+                  });
+              } else {
+                  searchResultsContainer.innerHTML = '<p>검색 결과가 없습니다.</p>';
+              }
+          })
+          .catch(error => {
+              console.error('검색 중 오류 발생:', error);
+              searchResultsContainer.innerHTML = '<p>검색 중 오류가 발생했습니다. 다시 시도해주세요.</p>';
+          });
+      });
 
-  <!-- 플랜 요약 섹션 -->
-  <div class="mb-4">
-    <h3>내 여행 플랜</h3>
-    <ul class="list-group" id="plan-summary">
-      <!-- 여행 계획 목록이 여기에 표시됩니다. -->
-      <li class="list-group-item">여행지: 서울</li>
-      <li class="list-group-item">출발일: 2024-11-01</li>
-      <li class="list-group-item">도착일: 2024-11-05</li>
-      <li class="list-group-item">일정: 2024-11-02 - N서울타워 방문</li>
-    </ul>
-  </div>
+      // 검색 결과 항목 클릭 시 상세 정보 표시
+      searchResultsContainer.addEventListener('click', (event) => {
+          if (event.target.closest('.location-item')) {
+              const locationId = event.target.closest('.location-item').dataset.id;
+              // 상세 정보 가져와서 모달 창에 표시하거나 새로운 페이지로 이동
+              console.log('Location ID:', locationId);
+          }
+      });
+    });
 
-  <!-- 여행 플랜 저장 및 불러오기 섹션 -->
-  <div class="mb-4">
-    <button class="btn btn-primary">여행 플랜 저장</button>
-    <button class="btn btn-secondary">저장된 플랜 불러오기</button>
-  </div>
-</div>
+      document.getElementById('days-checkbox').addEventListener('change', function() {
+          const extraInfoDiv = document.getElementById('extra-info');
+          if (this.checked) {
+              extraInfoDiv.style.display = 'block'; // days에 체크됐을 때, input field 보여주기
+          } else {
+              extraInfoDiv.style.display = 'none';  // input field 가리기
+          }
+      });
+
+      document.getElementById('day-checkbox').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('days-checkbox').checked = false; // 다른 체크박스 선택 취소
+            document.getElementById('extra-info').style.display = 'none'; // 당일치기 여행 선택 시 여행기간 입력창 가리기
+        }
+    });
+
+      document.getElementById('days-checkbox').addEventListener('change', function() {
+          if (this.checked) {
+              document.getElementById('day-checkbox').checked = false; // 다른 체크박스 선택 취소
+              document.getElementById('extra-info').style.display = 'block'; // 여행기간 입력창 보이기
+          } else {
+              document.getElementById('extra-info').style.display = 'none';
+          }
+        });
+      
+      document.getElementById('planning-form').addEventListener('submit', async function(e) {
+          e.preventDefault();            
+          window.location.href = `/api/locations/plans/result`;
+
+          const accessToken = localStorage.getItem('access_token');
+          
+          const place_name = document.getElementById('place_name').value;
+          const n = document.getElementById('n').value || null;  // 기본값 설정
+          const m = document.getElementById('m').value || 1;  // 기본값 설정
+          const preference = document.getElementById('preference').value || null;  // 기본값 설정
+          const responseContainer = document.getElementById('response-container');
+          
+          const url = new URL("/api/locations/plans/", window.location.origin);
+          
+          if (!accessToken) {
+            alert("로그인 후 이용해주세요.");
+            window.location.href = "{% url 'accounts:login_page' %}";
+            return;
+          }
+          
+          url.searchParams.append("place_name", place_name);
+          url.searchParams.append("n", n);
+          url.searchParams.append("m", m);
+          url.searchParams.append("preference", preference);
+
+          try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`, 
+                },
+                body: JSON.stringify({ place_name, n, m, preference })
+            })
+
+
+            .then(response => {response.json();})
+            .then(data => {if (travel_plan) {
+                responseContainer.innerHTML = `<h3>여행 계획</h3><p>${data.travel_plan}</p>`;
+            } else if (response.status === 401) {
+              responseContainer.innerHTML = '<h3>다시 로그인해주세요</h3>'
+            } else {
+                responseContainer.innerHTML = `<h3>오류 발생</h3><p>${data.message}</p>`;
+            } 
+          });        
+          } catch (error) {
+            responseContainer.innerHTML = '<h3>오류 발생</h3><p>서버와의 통신 중 오류가 발생했습니다.</p>'
+          }
+      });
+  </script>
 
 {% endblock %}

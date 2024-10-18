@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}
 {% if is_edit %}저널 수정{% else %}저널 작성{% endif %}
 {% endblock %}
@@ -20,11 +19,11 @@
       <label for="images" class="form-label">이미지 업로드</label>
       <input type="file" class="form-control" id="images" name="images" multiple>
     </div>
+
     <button type="submit" class="btn btn-primary">{% if is_edit %}수정 완료{% else %}글 작성{% endif %}</button>
   </form>
 
   <script>
-
     function submitJournal() {
       const accessToken = localStorage.getItem('access_token');
       
@@ -96,11 +95,11 @@
       })
       .then(res => res.json())
       .then(data => {
+
         localStorage.setItem('access_token', data.access);
         return data.access;
       });
     }
-
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('journal-write-form').onsubmit = function(event) {
         event.preventDefault();
@@ -109,4 +108,5 @@
     });
   </script>
 </div>
+
 {% endblock %}
