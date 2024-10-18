@@ -9,7 +9,7 @@ import re
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'nickname','email', 'user_id', 'birth_date', 'gender', 'grade']
+        fields = ['username', 'password', 'nickname','email', 'user_id', 'gender', 'grade']
 
     def validate(self, data):
         # 이메일 중복 체크
