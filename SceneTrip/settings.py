@@ -22,6 +22,7 @@ def get_secret(setting, secrets=secrets): #예외 처리를 통해 오류 발생
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
     
+
 SECRET_KEY = get_secret("SECRET_KEY")
 API_KEY = get_secret("API_KEY")  # OpenAI
 NAVER_CLIENT_ID = get_secret("NAVER_CLIENT_ID") # Naver search Client Id
@@ -37,48 +38,55 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
-    'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
-    'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
-}
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne', # asgi
-    'channels', # 채널
-    'corsheaders',
+    # 기본 Django 앱들
+    'daphne',  # asgi
+    'channels',  # 채널
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # 반드시 포함해야 함
 
+    # 외부 앱들
+    'corsheaders',
     'rest_framework',  # Django REST framework
+    'rest_framework.authtoken',  # authtoken 추가
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
-    
-    # app
-    'chats',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',  # Kakao 제공자
+
+    # 자체 앱들
     'accounts',
+    'chats',
     'journals',
     'communities',
     'locations',
     'questions',
-    # 조회수
-    'hitcount',
+    'hitcount',  # 조회수
 ]
+KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY")
+BASE_URL = 'http://127.0.0.1:8000'
+
+SITE_ID = 1
 
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     # 'corsheaders.middleware.CorsMiddleware', 
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,66 +96,28 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOW_METHODS = [  # 허용할 옵션
-#     "DELETE",
-#     "GET",
-#     "OPTIONS",
-#     "PATCH",
-#     "POST",
-#     "PUT",
-# ]
-
-# CORS_ALLOW_HEADERS = [ # 허용할 헤더
-#     "accept",
-#     "accept-encoding",
-#     "authorization",
-#     "content-type",
-#     "dnt",
-#     "origin",
-#     "user-agent",
-#     "x-csrftoken",
-#     "x-requested-with",
-# ]
-# CORS_ALLOW_CREDENTIALS = True
-
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:8080",
-#     "http://3.34.143.41"
-# ]
-
-# CORS_ALLOWED_ORIGIN_REGEXES = []
-
-# CORS_ALLOW_ALL_ORIGINS: False 
-
 ROOT_URLCONF = 'SceneTrip.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
 ]
 
+
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
 ASGI_APPLICATION = 'SceneTrip.asgi.application'
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379), ('3.34.143.41', 6379)],
-#         },
-#     },
-# }
 
 CHANNEL_LAYERS = {
     'default': {
@@ -179,16 +149,40 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+    'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
 }
 
+REST_AUTH_REGISTER_SERIALIZERS = {
+    "REGISTER_SERIALIZER": "accounts.serializers.CustomUserRegisterSerializer"
+}  # 유저 회원가입
+
+REST_AUTH = {
+    'USE_JWT' : True,
+    'JWT_AUTH_COOKIE' : 'access',
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'JWT_AUTH_COOKIE_USE_CSRF' : False,
+    'SESSION_LOGIN' : False
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
+    'ROTATE_REFRESH_TOKENS': False,                   # 리프레시 토큰을 회전시키는지 여부
+    'BLACKLIST_AFTER_ROTATION': False,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
+}
+
 # DATABASE_ROUTERS = ['locations.dbrouter.MultiDBRouter']
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -223,8 +217,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = '/static/'
+# 추가적으로 필요한 경우 정적 파일 경로 설정
+STATICFILES_DIRS = [
+    BASE_DIR / "accounts/static",
+]
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
