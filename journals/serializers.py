@@ -66,7 +66,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class JournalImageSerializer(serializers.ModelSerializer):  # 저널이미지 시리얼라이저
     class Meta:
         model = JournalImage
-        fields = ["id", "journal_image"]  # 이미지 필드만 포함
+        fields = ["journal_image"]  # 이미지 필드만 포함
 
 
 class JournalLikeSerializer(serializers.ModelSerializer):  # 저널좋아요시리얼라이저

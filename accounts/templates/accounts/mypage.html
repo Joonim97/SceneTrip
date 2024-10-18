@@ -7,6 +7,8 @@
 {% block content %}
 <div class="container mt-5">
   <h2>{{ user.nickname }}님의 마이페이지</h2>
+
+  <p>로그인한 사용자 닉네임: {{ logged_in_user.nickname }}</p>
   <p>이메일: {{ user.email }}</p>
   <p>성별: {{ user.gender }}</p>
   <p>생일: {{ user.birth_date }}</p>
@@ -20,8 +22,8 @@
 
   <h3>저장한 촬영지</h3>
   <ul>
-    {% for location in user.location_save %}
-      <li>{{ location.title }}</li>
+    {% for save in user.location_save %}
+      <li>{{ save.location.title }} : {{ save.location.place_name }}</li>
     {% endfor %}
   </ul>
 
@@ -32,4 +34,18 @@
     {% endfor %}
   </ul>
 </div>
+
+{% comment %} <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loggedInNickname = "{{ request.user.nickname }}";  // 로그인한 유저의 닉네임
+    const pageOwnerNickname = "{{ user.nickname }}";  // 마이페이지 유저의 닉네임
+
+    // 로그인한 유저와 마이페이지 주인이 다를 경우
+    if (loggedInNickname !== pageOwnerNickname) {
+      alert("다른 유저의 페이지는 볼 수 없습니다.");
+      window.location.href = "{% url 'index' %}";  // 인덱스 페이지로 리다이렉트
+    }
+  });
+</script> {% endcomment %}
+
 {% endblock %}

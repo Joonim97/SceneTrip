@@ -8,7 +8,6 @@
 <div class="container mt-5">
   <h2>로그인</h2>
   <form id="login-form" method="POST">
-    {% csrf_token %}
     <div class="mb-3">
       <label for="user_id" class="form-label">아이디</label>
       <input type="text" class="form-control" id="user_id" name="user_id" required>
@@ -31,15 +30,11 @@
       // 디버깅을 위해 입력값 콘솔에 출력
       console.log("User ID:", userId, "Password:", password);
 
-      // CSRF 토큰 가져오기
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
       // POST 요청을 보냄
       fetch("{% url 'accounts:token_obtain_pair' %}", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken  // CSRF 토큰을 헤더에 포함
         },
         body: JSON.stringify({
           user_id: userId,

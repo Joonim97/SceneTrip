@@ -13,4 +13,8 @@ urlpatterns = [
     path('<int:pk>/', location_detail, name='location_detail'),
     path("plans/", AiPlanningAPIView.as_view(), name="trip-planning"), # AI 여행 플래닝 서비스 입력 페이지
     path("plans/result/", PlanResultView.as_view(), name="plan-response"), # AI 여행 플래닝 서비스 응답 페이지
+
+    # path("lists/plans/"),
+    path('list/', LocationListView.as_view(), name='location_list'),
+    path('<int:pk>/', location_detail, name='location_detail'),
 ]

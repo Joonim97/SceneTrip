@@ -67,16 +67,15 @@ INSTALLED_APPS = [
 
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
-    
-    'corsheaders',
+
+    # 'rest_framework','api','django_filters', # searchfilter 넣으면서 같이 추가한 줄
   
-    # app
-    'chats',
     'accounts',
     'journals',
     'communities',
     'locations',
     'questions',
+    'chats',
     # 조회수
     'hitcount',
 ]
@@ -113,19 +112,16 @@ CORS_ALLOW_HEADERS = [ # 허용할 헤더
     "dnt",
     "origin",
     "user-agent",
-    "x-csrftoken",
     "x-requested-with",
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://3.34.143.41"
-]
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
 
-CORS_ALLOW_ALL_ORIGINS: False 
 
 ROOT_URLCONF = 'SceneTrip.urls'
 
@@ -148,14 +144,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'SceneTrip.wsgi.application'
 ASGI_APPLICATION = 'SceneTrip.asgi.application'
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379), ('3.34.143.41', 6379)],
-#         },
-#     },
-# }
 
 CHANNEL_LAYERS = {
     'default': {
@@ -167,9 +155,9 @@ CHANNEL_LAYERS = {
 }
 
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -181,6 +169,9 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'locationdata.sqlite3',
     # }
 }
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -234,8 +225,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / "static"
+
+
 
 
 # Default primary key field type

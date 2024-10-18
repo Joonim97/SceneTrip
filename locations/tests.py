@@ -9,7 +9,6 @@ from .views import get_nearby_place
 import json
 import urllib
 
-
 class LocationSaveModelTest(TestCase):
 
     def setUp(self):

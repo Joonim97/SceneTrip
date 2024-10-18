@@ -1,23 +1,21 @@
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Value
+from django.conf import settings
+from django.db.models.functions import Replace
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models.functions import Replace
-from django.conf import settings
-from .models import Location, LocationSave
-from journals.models import Journal
-from communities.models import Community
-from .serializers import LocationSerializer
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from django.db.models import Value
+from journals.models import Journal
+from communities.models import Community
+from .models import Location, LocationSave
+from .serializers import LocationSerializer
 import re
-import requests
 import urllib
 import json
 import redis
@@ -328,7 +326,7 @@ class AiPlanningAPIView(APIView):
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+              
 class PlanResultView(APIView):
     
     def get(self, request):
@@ -339,3 +337,24 @@ class PlanResultView(APIView):
             return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
         else:
             return Response({"error": "No travel plan found"}, status=404)
+
+
+def location_detail(request, pk):
+    # 촬영지 상세 정보를 가져와 템플릿에 렌더링
+    location = get_object_or_404(Location, pk=pk)
+    return render(request, 'locations/location_detail.html', {'location': location})
+  
+        
+def index(request):
+    latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
+    popular_locations = Location.objects.order_by('-save_count')[:4]  # 인기 촬영지 3개 가져오기
+    popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
+
+    context = {
+        'popular_locations': popular_locations,
+        'latest_journals': latest_journals,
+        'popular_community_posts': popular_community_posts,  # 인기 커뮤니티 글 추가
+    }
+    
+    return render(request, 'journals/index.html', context)
+

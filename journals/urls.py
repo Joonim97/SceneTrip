@@ -1,5 +1,8 @@
 from django.urls import path, include
-from .views import CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView, JournalWriteView, JournalListView, JournalLikeStatusAPIView
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import (CommentView, CommentLikeView, DislikedCommentsView, JournalListAPIView, JournalDetailAPIView, JournalLikeAPIView, 
+                    JournalWriteView, JournalListView, JournalLikeStatusAPIView, JournalEditView)
 from . import views
 
 app_name = "journals"
@@ -27,5 +30,9 @@ urlpatterns = [
     path('write/', JournalWriteView.as_view(), name='journal-write'),
     path('list/', JournalListView.as_view(), name='journal_list'),
     path('<int:pk>/like-status/', JournalLikeStatusAPIView.as_view(), name='journal_like_status'),  # 좋아요 상태 확인 API 경로
+
+    path('<int:pk>/edit/', JournalEditView.as_view(), name='journal_edit'),  # 추가된 수정 페이지 경로
 ] 
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
