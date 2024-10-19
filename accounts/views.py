@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import ListAPIView
 from rest_framework import generics, status
@@ -47,7 +47,8 @@ class PermissionAPIView(APIView):
 
 # 회원가입
 class SignupAPIView(APIView):
-    
+    permission_classes = [AllowAny]
+
     def get(self, request):
         return render(request, 'accounts/signup.html')  # 회원가입 HTML 렌더링
     
@@ -68,6 +69,7 @@ class SignupAPIView(APIView):
                         user = serializer.save()
                         user.set_password(request.data.get('password'))
                         user.verification_token = str(uuid.uuid4())
+                        user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
                         user.is_active = False
                         user.save()
                         
@@ -76,18 +78,21 @@ class SignupAPIView(APIView):
                 else:
                     return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                user = serializer.save()
-                user.set_password(request.data.get('password'))
-                user.verification_token = str(uuid.uuid4())
-                user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
-                user.is_active = False
-                user.save()
-                send_verification_email(user)
-                messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
-                return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
-            return Response(
-                {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except:
+                if serializer.is_valid():
+                    user = serializer.save()
+                    user.set_password(request.data.get('password')) 
+                    user.verification_token = str(uuid.uuid4())
+                    user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
+                    user.is_active = False
+                    user.save()
+                    send_verification_email(user)
+                    messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
+                    return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
+                else:
+                    return Response(
+                        {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
             return Response(
                 {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -623,7 +628,7 @@ class SocialLoginView(APIView):
         if provider == "kakao":
             client_id = settings.KAKAO_REST_API_KEY
             redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-            scope = "account_email, gender, birthday, birthyear" # 선택 제공 동의를 요청
+            scope = "gender, birthday, birthyear" # 선택 제공 동의를 요청
             auth_url = (
                 f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}"
                 f"&redirect_uri={redirect_uri}&response_type=code"
@@ -651,6 +656,7 @@ class SocialCallbackView(APIView):
             nickname = user_info["properties"].get("nickname")
             birthday = user_info['kakao_account'].get('birthday')
             birthyear = user_info['kakao_account'].get('birthyear')
+            user_id = email
 
         # model 에서 birth_date 양식 통일 (0000-00-00)
         if birthyear and birthday:
@@ -658,13 +664,13 @@ class SocialCallbackView(APIView):
         else:
             birth_date = None
 
-        user_data = self.get_or_create_user(provider, email, nickname, username, gender, birth_date)
+        user_data = self.get_or_create_user(provider, email, nickname, username, gender, birth_date, user_id)
         tokens = self.create_jwt_token(user_data)
 
         redirect_url = (
             f"{settings.BASE_URL}/api/accounts/index/"
             f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
-            f"&nickname={nickname}&email={email}&email={gender}&email={username}&email={birth_date}"
+            f"&nickname={nickname}&email={email}&gender={gender}&username={username}&birth_date={birth_date}&user_id={user_id}"
         )
         return redirect(redirect_url)
     
@@ -696,7 +702,7 @@ class SocialCallbackView(APIView):
         response = requests.get(user_info_url, headers=headers)
         return response.json()
 
-    def get_or_create_user(self, provider, email, nickname, username, gender, birth_date):
+    def get_or_create_user(self, provider, email, nickname, username, gender, birth_date, user_id):
         user, created = User.objects.get_or_create(
             email=email,
             gender=gender,
@@ -704,6 +710,7 @@ class SocialCallbackView(APIView):
             defaults={
                 "nickname": nickname,
                 "username": username,
+                "user_id": user_id
             },
         )
         if created:
@@ -720,7 +727,8 @@ class SocialCallbackView(APIView):
             username = user_data.get("username")
             gender = user_data.get("gender")
             birth_date = user_data.get("birth_date")
-            user = User.objects.get(email=email, nickname=nickname, username=username, gender=gender, birth_date=birth_date)
+            user_id = email
+            user = User.objects.get(email=email, nickname=nickname, username=username, gender=gender, birth_date=birth_date, user_id = user_id)
         else:
             user = user_data
 

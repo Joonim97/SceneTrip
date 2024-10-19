@@ -197,9 +197,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-    'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    # 'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
@@ -220,7 +220,7 @@ REST_AUTH = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': False,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': False,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부

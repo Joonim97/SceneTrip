@@ -171,26 +171,6 @@ class LocationSaveView(APIView):
             location.save()
             location_save.delete()
             return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
-        
-        
-def index(request):
-    latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
-    popular_locations = Location.objects.order_by('-save_count')[:3]  # 인기 촬영지 3개 가져오기
-    popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
-
-    context = {
-        'popular_locations': popular_locations,
-        'latest_journals': latest_journals,
-        'popular_community_posts': popular_community_posts,  # 인기 커뮤니티 글 추가
-    }
-    
-    return render(request, 'journals/index.html', context)
-
-
-def location_detail(request, pk):
-    # 촬영지 상세 정보를 가져와 템플릿에 렌더링
-    location = get_object_or_404(Location, pk=pk)
-    return render(request, 'locations/location_detail.html', {'location': location})
 
 
 def get_nearby_place(place_name):
@@ -326,9 +306,8 @@ class AiPlanningAPIView(APIView):
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-              
+
 class PlanResultView(APIView):
-    
     def get(self, request):
         cache_key = f"user:{request.user.id}:travel_plan"
         cached_plan = redis_client.get(cache_view=True)
@@ -337,14 +316,14 @@ class PlanResultView(APIView):
             return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
         else:
             return Response({"error": "No travel plan found"}, status=404)
-
+        
 
 def location_detail(request, pk):
     # 촬영지 상세 정보를 가져와 템플릿에 렌더링
     location = get_object_or_404(Location, pk=pk)
     return render(request, 'locations/location_detail.html', {'location': location})
-  
-        
+
+
 def index(request):
     latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
     popular_locations = Location.objects.order_by('-save_count')[:4]  # 인기 촬영지 3개 가져오기
@@ -357,4 +336,3 @@ def index(request):
     }
     
     return render(request, 'journals/index.html', context)
-

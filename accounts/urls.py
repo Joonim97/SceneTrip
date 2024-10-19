@@ -5,7 +5,7 @@ from .views import (SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAP
                     PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, 
-                    MyCommunityListAPIView, DeleteAPIView, VerifyjJurnalEmailAPIView, SocialCallbackView, LoginView,
+                    MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, SocialCallbackView, LoginView,
                     VerifyjJournalEmailAPIView,UserInfoView, mypage)
 
 app_name = 'accounts'
