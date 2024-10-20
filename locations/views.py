@@ -256,7 +256,7 @@ class AiPlanningAPIView(APIView):
                 return nearby_places 
 
             nearby_places_formatted = [
-            f"Title: {place['title']}, Category: {place['category']}, Link: {place['link']}, Road Address: {place['roadaddress']}, Address: {place['address']}"
+            f"제목: {place['title']}, 카테고리: {place['category']}, Link: {place['link']}, 도로명 주소: {place['roadaddress']}, 지번 주소: {place['address']}"
             for place in nearby_places
             ]
             nearby_places_str = "\n".join(nearby_places_formatted)
@@ -264,7 +264,7 @@ class AiPlanningAPIView(APIView):
             template = f"""{place_name}에 방문하는 일정을 포함한 여행 계획을 세워줘. 나는 한국에 살고있어. 
                     반드시 {nearby_places_str} 중에서 장소를 추천해줘. 다음의 내용을 담아 계획을 세워줘.
                     매일의 일정: 오전, 오후, 저녁별로 어떤 활동을 할 지. 날짜 예시는 들지 않아도 돼.
-                    단, 매일 식사는 아침, 점심, 저녁을 먹을거고 메뉴가 중복되지 않도록 해줘.
+                    매일 식사는 아침, 점심, 저녁을 먹을거야.
                     반드시 특정 식당, 장소명을 포함한 답변을 줘. 같은 장소를 두번 방문하지 않도록 해. 그리고 링크가 있다면 포함시켜줘."""
             
             if preference and len(preference)<=50:
@@ -310,7 +310,7 @@ class AiPlanningAPIView(APIView):
 class PlanResultView(APIView):
     def get(self, request):
         cache_key = f"user:{request.user.id}:travel_plan"
-        cached_plan = redis_client.get(cache_view=True)
+        cached_plan = redis_client.get(cache_key)
         if cached_plan:
             travel_plan = json.loads(cached_plan)
             return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
