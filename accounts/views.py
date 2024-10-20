@@ -653,7 +653,7 @@ class SocialCallbackView(APIView):
             username = user_info['kakao_account'].get('name')
             email = user_info['kakao_account'].get('email')
             gender = user_info['kakao_account'].get('gender')
-            nickname = user_info["properties"].get("nickname")
+            # nickname = user_info["properties"].get("nickname")  ---> nickname은 제공받지 않도록 수정
             birthday = user_info['kakao_account'].get('birthday')
             birthyear = user_info['kakao_account'].get('birthyear')
             user_id = email
@@ -664,13 +664,17 @@ class SocialCallbackView(APIView):
         else:
             birth_date = None
 
-        user_data = self.get_or_create_user(provider, email, nickname, username, gender, birth_date, user_id)
+        user_data, created = self.get_or_create_user(provider, email, username, gender, birth_date, user_id)
+
+        if created:
+            return redirect('set_nickname')
+    
         tokens = self.create_jwt_token(user_data)
 
         redirect_url = (
             f"{settings.BASE_URL}/api/accounts/index/"
             f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
-            f"&nickname={nickname}&email={email}&gender={gender}&username={username}&birth_date={birth_date}&user_id={user_id}"
+            f"&email={email}&gender={gender}&username={username}&birth_date={birth_date}&user_id={user_id}&is_new_user={'true' if created else 'false'}"
         )
         return redirect(redirect_url)
     
@@ -702,13 +706,13 @@ class SocialCallbackView(APIView):
         response = requests.get(user_info_url, headers=headers)
         return response.json()
 
-    def get_or_create_user(self, provider, email, nickname, username, gender, birth_date, user_id):
+    def get_or_create_user(self, provider, email, username, gender, birth_date, user_id):
         user, created = User.objects.get_or_create(
             email=email,
             gender=gender,
             birth_date=birth_date,
             defaults={
-                "nickname": nickname,
+                # "nickname": nickname,
                 "username": username,
                 "user_id": user_id
             },
@@ -717,18 +721,18 @@ class SocialCallbackView(APIView):
             user.set_unusable_password()
             user.save()
 
-        return user
+        return user, created
 
     # 토큰에 담을 내용
     def create_jwt_token(self, user_data):
         if isinstance(user_data, dict):
             email = user_data.get("email")
-            nickname = user_data.get("nickname")
+            # nickname = user_data.get("nickname")
             username = user_data.get("username")
             gender = user_data.get("gender")
             birth_date = user_data.get("birth_date")
             user_id = email
-            user = User.objects.get(email=email, nickname=nickname, username=username, gender=gender, birth_date=birth_date, user_id = user_id)
+            user = User.objects.get(email=email, username=username, gender=gender, birth_date=birth_date, user_id = user_id)
         else:
             user = user_data
 
@@ -737,3 +741,14 @@ class SocialCallbackView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+
+def set_nickname(request):
+    if request.method == 'POST':
+        nickname = request.POST.get('nickname')
+        if nickname:
+            # Fetch the current logged-in user
+            user = request.user
+            user.nickname = nickname
+            user.save()
+            return redirect('some_view')  # Redirect to some view after successful nickname update
+    return render(request, 'accounts/set_nickname.html')
