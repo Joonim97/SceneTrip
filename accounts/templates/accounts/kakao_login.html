@@ -18,15 +18,16 @@
         // 아래는 데모를 위한 UI 코드입니다.
         displayToken()
         function displayToken() {
-            var token = getCookie('authorize-access-token');
+            var access_token = getCookie('authorize-access-token');
 
-            if(token) {
-                Kakao.Auth.setAccessToken(token);
+            if(access_token) {
+                Kakao.Auth.setAccessToken(access_token);
                 Kakao.Auth.getStatusInfo()
                     .then(function(res) {
                         if (res.status === 'connected') {
                             document.getElementById('token-result').innerText
                                 = 'login success, token: ' + Kakao.Auth.getAccessToken();
+                                window.location.href = "/"
                         }
                     })
                     .catch(function(err) {
@@ -36,8 +37,36 @@
         }
 
         function getCookie(name) {
-            var parts = document.cookie.split(name + '=');
-            if (parts.length === 2) { return parts[1].split(';')[0]; }
+            let cookieArr = document.cookie.split(";");
+            for (let i = 0; i < cookieArr.length; i++) {
+                let cookiePair = cookieArr[i].split("=");
+                if (name == cookiePair[0].trim()) {
+                    return decodeURIComponent(cookiePair[1]);
+                }
+            }
+            const accessToken = getCookie('access_token');
+            if (accessToken) {
+                localStorage.setItem('access_token', accessToken);
+            }
+            return null;
+
+            async function fetchProtectedResource() {
+                const response = await fetch('/api/protected/resource/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}` // 쿠키의 액세스 토큰 사용
+                    }
+                });
+            
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    console.error('Failed to fetch protected resource', response.statusText);
+                }
+}
+        //    var parts = document.cookie.split(name + '=');
+        //    if (parts.length === 2) { return parts[1].split(';')[0]; }
         }
     </script>
 </head>
