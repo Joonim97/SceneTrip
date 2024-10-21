@@ -6,7 +6,7 @@ from .views import (SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAP
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, 
                     MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, SocialCallbackView, LoginView,
-                    VerifyjJournalEmailAPIView,UserInfoView, mypage)
+                    VerifyjJournalEmailAPIView,UserInfoView, mypage, SetNicknameView)
 
 app_name = 'accounts'
 
@@ -41,8 +41,10 @@ urlpatterns = [
     path("<str:nickname>/mypage/", mypage, name='my_page'),
 
     # 소셜 로그인
+    # path('index/', views.index, name='index'),
     path('kakaologinpage/', views.kakaologinpage, name='kakaologinpage'),
-    path('index/', views.index, name='index'),
     path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao_login'),  # 카카오 로그인 URL
     path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao_callback'),  # 카카오 콜백 URL
+    # path('set_nickname/<str:refresh>/<str:access>/', views.set_nickname, name='set-nickname'),
+    path('set_nickname/', SetNicknameView.as_view(), name='set-nickname'),
 ]
