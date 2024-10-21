@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import ListAPIView
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
@@ -18,6 +19,7 @@ from .serializers import PasswordCheckSerializer, SubUsernameSerializer, UserSer
 from .emails import send_verification_email, send_verification_email_reset, send_verification_password_reset
 import requests
 import uuid
+
 User = get_user_model() # 필수 지우면 안됨
 
 #################################################################################################################
@@ -92,7 +94,6 @@ class SignupAPIView(APIView):
                     return Response(
                         {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
             return Response(
                 {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -619,8 +620,8 @@ def kakaologinpage(request):
     return render(request, 'accounts/kakao_login.html', context)  # HTML 파일 경로를 적절하게 수정
 
 # 카카오 로그인 완료 창(실패창은 안나옴)
-def index(request):
-    return render(request, 'accounts/index.html')
+# def index(request):
+#     return render(request, 'accounts/index.html')
 
 # 소셜로그인(카카오,) 추가가능
 class SocialLoginView(APIView):
@@ -643,40 +644,67 @@ class SocialLoginView(APIView):
 # 소셜로그인 callback(카카오,) 추가가능
 class SocialCallbackView(APIView):
     def get(self, request, provider):
-        code = request.GET.get("code")
+        try:
+            code = request.GET.get("code")
+            access_token = self.get_token(provider, code)
 
-        access_token = self.get_token(provider, code)
-        user_info = self.get_user_info(provider, access_token)
+            if access_token:
+                user_info = self.get_user_info(provider, access_token)
 
-        # 제공받는 데이터들
-        if provider == "kakao":
-            username = user_info['kakao_account'].get('name')
-            email = user_info['kakao_account'].get('email')
-            gender = user_info['kakao_account'].get('gender')
-            # nickname = user_info["properties"].get("nickname")  ---> nickname은 제공받지 않도록 수정
-            birthday = user_info['kakao_account'].get('birthday')
-            birthyear = user_info['kakao_account'].get('birthyear')
-            user_id = email
+                # 제공받는 데이터들
+                if provider == "kakao":
+                    username = user_info['kakao_account'].get('name')
+                    email = user_info['kakao_account'].get('email')
+                    gender = user_info['kakao_account'].get('gender')
+                    birthday = user_info['kakao_account'].get('birthday')
+                    birthyear = user_info['kakao_account'].get('birthyear')
+                    user_id = email
 
-        # model 에서 birth_date 양식 통일 (0000-00-00)
-        if birthyear and birthday:
-            birth_date = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
-        else:
-            birth_date = None
+                # model 에서 birth_date 양식 통일 (0000-00-00)
+                if birthyear and birthday:
+                    birth_date = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
+                else:
+                    birth_date = None
 
-        user_data, created = self.get_or_create_user(provider, email, username, gender, birth_date, user_id)
+                user_data, created = self.get_or_create_user(provider, email, username, gender, birth_date, user_id)
 
-        if created:
-            return redirect('set_nickname')
-    
-        tokens = self.create_jwt_token(user_data)
-
-        redirect_url = (
-            f"{settings.BASE_URL}/api/accounts/index/"
-            f"?access_token={tokens['access']}&refresh_token={tokens['refresh']}"
-            f"&email={email}&gender={gender}&username={username}&birth_date={birth_date}&user_id={user_id}&is_new_user={'true' if created else 'false'}"
-        )
-        return redirect(redirect_url)
+                if created:
+                    refresh = RefreshToken.for_user(user_data)
+                    access = str(refresh.access_token)
+                    response = redirect(f'/api/accounts/set_nickname/')
+                    response.set_cookie('access_token', access)
+                    response.set_cookie('refresh_token', str(refresh))
+                    return response
+                #     tokens = {
+                #         "access": str(refresh.access_token),
+                #         "refresh": str(refresh)
+                #     }
+                #     # return redirect(f'/api/accounts/set_nickname/?refresh={tokens["refresh"]}&access={tokens["access"]}')
+                # else:
+                #     tokens = self.create_jwt_token(user_data)
+                
+                # response_data = {
+                #     "access_token": tokens["access"],
+                #     "refresh_token": tokens["refresh"],
+                #     "email": email,
+                #     "gender": gender,
+                #     "username": username,
+                #     "birth_date": birth_date,
+                #     "user_id": user_id,
+                #     "is_new_user": created
+                # }
+                refresh = RefreshToken.for_user(user_data)
+                access = str(refresh.access_token)
+                response = redirect('/')
+                response.set_cookie('access_token', access)
+                response.set_cookie('refresh_token', str(refresh))
+                return response
+            
+                # return Response(response_data,  status=status.HTTP_200_OK)
+            else:
+                return Response("Error retrieving access token", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # 토큰
     def get_token(self, provider, code):
@@ -699,12 +727,15 @@ class SocialCallbackView(APIView):
     def get_user_info(self, provider, access_token):
         if provider == "kakao":
             user_info_url = "https://kapi.kakao.com/v2/user/me"
+            headers = {"Authorization": f"Bearer {access_token}"}
+            response = requests.get(user_info_url, headers=headers)
+            return response.json()
         else:
             raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
 
-        headers = {"Authorization": f"Bearer {access_token}"}
-        response = requests.get(user_info_url, headers=headers)
-        return response.json()
+        # headers = {"Authorization": f"Bearer {access_token}"}
+        # response = requests.get(user_info_url, headers=headers)
+        # return response.json()
 
     def get_or_create_user(self, provider, email, username, gender, birth_date, user_id):
         user, created = User.objects.get_or_create(
@@ -741,14 +772,60 @@ class SocialCallbackView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+    
+    def create_jwt_token(self, user_data):
+        if isinstance(user_data, dict):
+            email = user_data.get("email")
+            username = user_data.get("username")
+            gender = user_data.get("gender")
+            birth_date = user_data.get("birth_date")
+            user_id = email
+            user = User.objects.get(email=email, username=username, gender=gender, birth_date=birth_date, user_id=user_id)
+        else:
+            user = user_data
 
-def set_nickname(request):
-    if request.method == 'POST':
-        nickname = request.POST.get('nickname')
+        refresh = RefreshToken.for_user(user)
+        
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get('access_token')
+
+        if access_token is None:
+            return None
+        
+        validated_token = self.get_validated_token(access_token)
+
+        return self.get_user(validated_token), validated_token
+
+class SetNicknameView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        nickname = request.data.get('nickname')
         if nickname:
-            # Fetch the current logged-in user
             user = request.user
             user.nickname = nickname
             user.save()
-            return redirect('some_view')  # Redirect to some view after successful nickname update
-    return render(request, 'accounts/set_nickname.html')
+            return Response({'message': 'Nickname set successfully.'})
+        return Response({'error': 'Nickname is required.'}, status=400)
+
+    def get(self, request):
+        # Get tokens from cookies instead of query parameters
+        refresh = request.COOKIES.get('refresh_token')
+        access = request.COOKIES.get('access_token')
+
+        # return Response({
+        #     'refresh': refresh,
+        #     'access': access
+        # })
+        return render(request, 'accounts/set_nickname.html', {
+            'refresh_token': refresh,
+            'access_token': access
+        })
+    
