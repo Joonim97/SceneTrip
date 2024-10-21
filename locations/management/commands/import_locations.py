@@ -8,7 +8,8 @@ class Command(BaseCommand):
     help = 'Import data from CSV file'
 
     def handle(self, *args, **kwargs):
-        with open(r"C:\Users\주성현\Desktop\내일배움캠프\주차 별\최종 프로젝트\SceneTrip\한국문화정보원_미디어콘텐츠 영상 촬영지 데이터_20221125.csv", newline="", encoding="cp949") as csvfile:
+
+        with open(r"C:\SceneTrip\한국문화정보원_미디어콘텐츠 영상 촬영지 데이터_20221125.csv", newline="", encoding="cp949") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 location, created = Location.objects.update_or_create(

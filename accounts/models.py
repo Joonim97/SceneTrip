@@ -14,6 +14,7 @@ class User(AbstractUser):
     birth_date = models.DateField(blank=False) # 생년월일
     gender = models.CharField(max_length=10, null=True, blank=True) # 성별
     verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
+    author_verification_token = models.CharField(max_length=255, blank=True, null=True) # 인증토큰
     nickname = models.CharField(max_length=20, unique=True)
     subscribings = models.ManyToManyField('self', symmetrical=False, related_name='subscribes') # 구독
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
@@ -28,8 +29,7 @@ class User(AbstractUser):
         (AUTHOR, 'author'),
         (NORMAL, 'normal'),
     ]
-    grade = models.CharField(max_length=6, choices=GRADE, default=0)
-    
+    grade = models.CharField(max_length=6, choices=GRADE, default=NORMAL)
 
 
     USERNAME_FIELD = 'user_id'  # 사용자 이름으로 사용할 필드

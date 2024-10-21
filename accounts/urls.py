@@ -1,9 +1,9 @@
-from . import views
 from django.urls import path
 from .views import (SignupAPIView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, PasswordResetRequestView,
                     PasswordResetConfirmView, EmailResetRequestView, LoginView,
-                    EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
+                    EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, VerifyjJournalEmailAPIView,
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, UserInfoView, mypage)
+from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'accounts'
@@ -13,7 +13,10 @@ urlpatterns = [
     path("login-page/", LoginView.as_view(), name="login_page"),  # 로그인 페이지를 위한 경로
     path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("<str:nickname>/subscribes/", SubscribeView.as_view(), name="subscribes"), # 구독
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
+    ######## email send 관련 url
     path('verify/<str:token>/', VerifyEmailAPIView.as_view(), name='verify_email'), # 회원가입 이메일 인증, 이 path 없으면 이메일 인증시 Not Found 에러 발생
+    path('journalists/verify/<str:token>', VerifyjJournalEmailAPIView.as_view(), name='verify_journalemail'), # 회원가입 grade가 저널일 경우
     path('passwordreset/', PasswordResetRequestView.as_view(), name='password_reset'), # 비밀번호 초기화
     path('passwordchange/verify/<str:token>/', PasswordResetConfirmView.as_view(), name='passwordverifyemail'), # 비밀번호 변경 이메일 인증
     path('emailreset/', EmailResetRequestView.as_view(), name='email_reset'), # 이메일 초기화
@@ -28,7 +31,6 @@ urlpatterns = [
     path('<str:nickname>/mypage/communitiesauthor/', MyCommunityListAPIView.as_view(), name='my_communities'), # 내가 쓴 커뮤니티 글 전체보기
     path('<str:nickname>/mypage/<str:sub_nickname>/', SubsribingsjournalAPI.as_view(), name='subscribings_journal'), # 내가 구독한 인원 글 보기
     path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete'),
-    
     path('user-info/', UserInfoView.as_view(), name='user_info'),  # 사용자 정보 API
     path("<str:nickname>/mypage/", mypage, name='my_page')
 ]

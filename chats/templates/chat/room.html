@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 방</title>
+</head>
+<body>
+    <h1>채팅 방</h1>
+    <div id="chat-log"></div>
+    <input id="chat-message-input" type="text" size="100" placeholder="메시지 입력">
+    <input id="chat-message-submit" type="button" value="전송">
+    
+    <script>
+        // URL 쿼리에서 방 이름을 가져오는 함수
+        function getRoomNameFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('room'); // 'room' 쿼리 매개변수의 값을 가져옴
+        }
+
+        const roomName = getRoomNameFromURL(); // 방 이름을 가져옴
+
+        // WebSocket 연결 설정
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/api/chats/' + roomName + '/'
+        );
+
+        // WebSocket 연결 성공 시
+        chatSocket.onopen = function(e) {
+            console.log('WebSocket 연결 성공:', e);
+        };
+
+        // 메시지 수신 처리
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            document.querySelector('#chat-log').innerHTML += (message + '<br>');
+        };
+
+        // 메시지 전송 처리
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = ''; // 입력란 초기화
+        };
+    </script>
+</body>
+</html>
