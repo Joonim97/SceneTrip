@@ -125,54 +125,55 @@ class CommunityListView(ListView):
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         
-        def get_object(self, pk):
-                return get_object_or_404(Community, pk=pk)
+    def get_object(self, pk):
+            return get_object_or_404(Community, pk=pk)
 
-        def get(self, request, pk): # 커뮤니티 상세조회
-                community = get_object_or_404(Community, pk=pk)
+    def get(self, request, pk): # 커뮤니티 상세조회
+        community = get_object_or_404(Community, pk=pk)
 
-                if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
-                    return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
+        if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
+            return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
 
-                serializer = CommunityDetailSerializer(community)
-                context = {
-                'community': serializer.data,
-                }
+        serializer = CommunityDetailSerializer(community)
+        context = {
+        'community': serializer.data,
+        }
+        print(context)
+        
+        # 템플릿을 렌더링하여 반환
+        return render(request, 'communities/community_detail.html', context)
+
+    def put(self, request, pk): # 커뮤니티 수정
+            permission_classes = [IsAuthenticated] # 로그인권한
+            community = self.get_object(pk)
+            community_images = request.FILES.getlist('images')
+            serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
             
-            # 템플릿을 렌더링하여 반환
-                return render(request, 'communities/community_detail.html', context)
+            if community.author != request.user :
+                return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+            
+            if serializer.is_valid(raise_exception=True):
+                    serializer.save()
 
-        def put(self, request, pk): # 커뮤니티 수정
-                permission_classes = [IsAuthenticated] # 로그인권한
-                community = self.get_object(pk)
-                community_images = request.FILES.getlist('images')
-                serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
-                
-                if community.author != request.user :
-                    return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
-                
-                if serializer.is_valid(raise_exception=True):
-                        serializer.save()
+                    if 'images' in request.FILES or not community_images:
+                    # 기존 이미지 삭제
+                        community.community_images.all().delete()
+                        # 새로운 이미지 저장
+                        for community_image in community_images:
+                            CommunityImage.objects.create(community=community, community_image=community_image)
+                            return Response(serializer.data)
+                    return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+    def delete(self, request, pk): # 커뮤니티 삭제
+            permission_classes = [IsAuthenticated] # 로그인권한
+            community = self.get_object(pk)
+            
+            if community.author != request.user :
+                return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
 
-                        if 'images' in request.FILES or not community_images:
-                        # 기존 이미지 삭제
-                            community.community_images.all().delete()
-                            # 새로운 이미지 저장
-                            for community_image in community_images:
-                                CommunityImage.objects.create(community=community, community_image=community_image)
-                                return Response(serializer.data)
-                        return Response(serializer.data)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
-        def delete(self, request, pk): # 커뮤니티 삭제
-                permission_classes = [IsAuthenticated] # 로그인권한
-                community = self.get_object(pk)
-                
-                if community.author != request.user :
-                    return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
-
-                community.delete()
-                return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
+            community.delete()
+            return Response({'삭제되었습니다'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class CommunityLikeAPIView(APIView): # 커뮤 좋아요

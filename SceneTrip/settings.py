@@ -67,8 +67,6 @@ INSTALLED_APPS = [
 
     'rest_framework',  # Django REST framework
     'rest_framework_simplejwt.token_blacklist',  # JWT 블랙리스트 관리
-    
-    'corsheaders',
   
     # app
     'chats',

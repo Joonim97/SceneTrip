@@ -340,11 +340,18 @@ class DeleteAPIView(PermissionAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+            
 
-# 마이페이지
-class Mypage(ListAPIView): # 마이 페이지
-    permission_classes = [IsAuthenticated]
-    
+# 커스텀 페이지네이션
+class CustomPagination(PageNumberPagination):
+        page_size = 5
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+        
+        
+# 구독 기능
+class SubscribeView(PermissionAPIView):
+
     def post(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
         me = request.user
@@ -357,14 +364,7 @@ class Mypage(ListAPIView): # 마이 페이지
                 user.subscribes.add(me)
                 return Response({"message": "구독했습니다."}, status=status.HTTP_200_OK)
             else:
-                return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-            
-
-# 커스텀 페이지네이션
-class CustomPagination(PageNumberPagination):
-        page_size = 5
-        page_size_query_param = 'page_size'
-        max_page_size = 100
+                return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_200_OK)
 
 
 # 내가 쓴 글

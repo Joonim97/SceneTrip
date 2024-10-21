@@ -17,9 +17,9 @@
   <div class="mt-4">
     <h5>첨부 이미지</h5>
     <div class="row">
-      {% for image in community.community_images.all %}
+      {% for image in community.community_images %}
       <div class="col-md-4 mb-3">
-        <img src="{{ image.community_image.url }}" class="img-fluid" alt="community image">
+        <img src="{{ image.community_image }}" class="img-fluid" alt="community image">
       </div>
       {% endfor %}
     </div>
