@@ -26,6 +26,7 @@ urlpatterns = [
     path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
+    # path('accounts/<str:nickname>/<uuid:uuid>/', mypage, name='html-mypage'),
 
     # 마이페이지에서 보이는 기능
     path('<str:nickname>/mypage/journallike/', LikeJournalsListAPIView.as_view(), name='journal_like'), # 내가 좋아요한 저널 글 목록

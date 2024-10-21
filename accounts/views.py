@@ -232,6 +232,7 @@ class DeleteAPIView(APIView):  # 회원탈퇴
 # ListAPIView
 class Mypage(APIView):  
     permission_classes = [IsAuthenticated]
+    serializer_class = MyPageSerializer
     
     def get(self, request, nickname, uuid):
         try:
@@ -244,7 +245,7 @@ class Mypage(APIView):
 
         # 요청한 사용자가 본인인지 확인
         if my_page.id == request.user.id:
-            serializer = MyPageSerializer(my_page)
+            serializer = self.get_serializer(my_page)
             return render(request, 'accounts/mypage.html', {'user': serializer.data})
         return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
 
@@ -263,9 +264,9 @@ class Mypage(APIView):
         return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
     
 
-def mypage(request, nickname):
+def mypage(request, nickname, uuid):
     # 닉네임을 기준으로 해당 사용자를 가져옵니다.
-    user = get_object_or_404(User, nickname=nickname)
+    user = get_object_or_404(User, nickname=nickname, uuid=uuid)
     serializer = MyPageSerializer(user)
     print(request.user)
     print(request.headers)

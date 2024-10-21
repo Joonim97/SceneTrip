@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ question.title }} - 상세 페이지
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2>{{ question.title }}</h2>
+    <p>
+      작성자: {{ question.author_nickname }}
+      <!-- 수정 및 삭제 버튼 -->
+      <button id="edit-btn" class="btn btn-warning">수정</button>
+      <button id="delete-btn" class="btn btn-danger">삭제</button>
+    </p>
+    <p>작성일: {{ question.created_at }}</p>
+
+    <div class="mb-3">
+      <h5>내용</h5>
+      <p>{{ question.content }}</p>
+    </div>
+
+    <div class="row">
+      {% for image in question.question_images %}
+        <div class="col-md-4">
+          <img src="{{ image.question_images }}" class="img-fluid" />
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- 댓글 목록 -->
+    <div class="mb-3">
+      <h5>댓글</h5>
+      {% if question.comments %}
+        {% for comment in question.comments %}
+          {% if not comment.parent %}
+            <!-- 부모 댓글이 없는 댓글만 출력 (원댓글) -->
+            <div class="comment mb-3">
+              <p>
+                <strong>{{ comment.user_nickname }}:</strong> {{ comment.content }}
+              </p>
+              <p>
+                <small>{{ comment.created_at }}</small>
+              </p>
+
+              <!-- 대댓글 작성 버튼 -->
+              <button class="btn btn-link reply-btn" data-comment-id="{{ comment.id }}">대댓글 작성</button>
+
+              <!-- 대댓글 작성 폼 (처음에는 숨김 상태) -->
+              <form id="reply-form-{{ comment.id }}" class="reply-form" style="display: none;" method="POST">
+                <textarea class="form-control" rows="2" placeholder="대댓글을 입력하세요"></textarea>
+                <button type="submit" class="btn btn-primary mt-2">대댓글 작성</button>
+              </form>
+
+              <!-- 대댓글 출력 -->
+              <div class="replies ml-4">
+                {% for reply in question.comments %}
+                  {% if reply.parent.id == comment.id %}
+                    <!-- parent 필드가 원댓글의 id와 일치하는 경우만 -->
+                    <div class="reply mb-2" style="border-left: 2px solid #ccc; padding-left: 10px;">
+                      <p>
+                        <strong>{{ reply.user_nickname }}:</strong> {{ reply.content }}
+                      </p>
+                      <p>
+                        <small>{{ reply.created_at }}</small>
+                      </p>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <p>댓글이 없습니다.</p>
+      {% endif %}
+    </div>
+
+    <!-- 댓글 작성 -->
+    <div class="mb-3">
+      <h5>댓글 작성</h5>
+      <form id="comment-form" method="POST">
+        <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+        <button type="submit" class="btn btn-primary mt-2">댓글 작성</button>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    // 대댓글 폼 토글
+    document.querySelectorAll('.reply-btn').forEach((button) => {
+      button.addEventListener('click', function () {
+        const commentId = button.getAttribute('data-comment-id')
+        const replyForm = document.getElementById(`reply-form-${commentId}`)
+        replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none'
+      })
+    })
+    
+    // 대댓글 작성 처리
+    document.querySelectorAll('.reply-form').forEach((form) => {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault()
+        const parentCommentId = form.id.split('-')[2]
+        const replyContent = form.querySelector('textarea').value
+        const accessToken = localStorage.getItem('access_token')
+    
+        if (!accessToken) {
+          alert('로그인 후 이용해주세요.')
+          window.location.href = "{% url 'accounts:login_page' %}"
+          return
+        }
+    
+        fetch(`/api/questions/{{ question.id }}/comments/${parentCommentId}/`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            content: replyContent
+          })
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('대댓글 작성 실패')
+            }
+            return response.json()
+          })
+          .then((data) => {
+            alert('대댓글이 성공적으로 작성되었습니다.')
+            location.reload() // 페이지 새로고침
+          })
+          .catch((error) => {
+            console.error('에러 발생:', error)
+            alert('대댓글 작성 중 문제가 발생했습니다.')
+          })
+      })
+    })
+    
+    // 댓글 작성 처리
+    document.getElementById('comment-form').addEventListener('submit', function (event) {
+      event.preventDefault()
+      const commentContent = document.getElementById('comment-content').value
+      const accessToken = localStorage.getItem('access_token')
+    
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.')
+        window.location.href = "{% url 'accounts:login_page' %}"
+        return
+      }
+    
+      fetch(`/api/questions/{{ question.id }}/comments/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: commentContent
+        })
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('댓글 작성 실패')
+          }
+          return response.json()
+        })
+        .then((data) => {
+          alert('댓글이 성공적으로 작성되었습니다.')
+          location.reload() // 페이지 새로고침
+        })
+        .catch((error) => {
+          console.error('에러 발생:', error)
+          alert('댓글 작성 중 문제가 발생했습니다.')
+        })
+    })
+    
+    document.getElementById('delete-btn').addEventListener('click', function () {
+      if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
+        const accessToken = localStorage.getItem('access_token')
+        fetch(`/api/questions/{{ question.id }}/`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }).then((response) => {
+          if (response.ok) {
+            alert('삭제되었습니다.')
+            window.location.href = "{% url 'questions:question_list' %}"
+          } else {
+            alert('삭제 중 문제가 발생했습니다.')
+          }
+        })
+      }
+    })
+    
+    document.getElementById('edit-btn').addEventListener('click', function () {
+      const accessToken = localStorage.getItem('access_token')
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.')
+        window.location.href = "{% url 'accounts:login_page' %}"
+        return
+      }
+    
+      // GET 요청을 보내 수정 페이지로 이동
+      fetch(`/api/questions/`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}` // 토큰 포함
+        }
+      })
+        .then((response) => {
+          if (response.ok) {
+            // 요청이 성공하면 바로 수정 페이지로 이동
+            window.location.href = `/api/questions/{{ question.id }}/edit/`
+          } else {
+            throw new Error('수정 권한이 없습니다.')
+          }
+        })
+        .catch((error) => {
+          console.error('수정 페이지 접근 에러:', error)
+          alert('수정 페이지로 이동할 수 없습니다.')
+        })
+    })
+  </script>
+{% endblock %}
