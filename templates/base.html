@@ -22,7 +22,6 @@
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-
     <div class="container-fluid d-flex justify-content-between">
       <!-- 좌측 상단 브랜드 로고 -->
       <a class="navbar-brand" href="{% url 'index' %}">
@@ -36,6 +35,8 @@
         <a href="{% url 'communities:community_list' %}" class="btn btn-outline-secondary me-2">Community</a>
         <!-- 촬영지 페이지로 이동 -->
         <a href="{% url 'locations:location_list' %}" class="btn btn-outline-secondary me-2">Location</a>
+        <!-- Q&A 페이지로 이동 -->
+        <a href="{% url 'questions:question_list' %}" class="btn btn-outline-secondary me-2">Question</a>
       </div>
   
       <!-- 우측 상단 로그인/회원가입 또는 마이페이지/로그아웃 -->
@@ -50,32 +51,9 @@
     </div>
   </nav>
 
-  <head>
-  <title>Button Placement</title>
-    <style>
-      #container a {
-        position: absolute;
-        top: 120px; 
-        right: 30px; 
-        display: flex;
-        gap: 10px; 
-        color: black;
-        background-color: #F2F0EB;
-        padding: 10px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-      }
-
-      #container a:hover {
-        background-color: #AAFA82;
-        cursor: pointer;
-      }
-
-    </style>
-</head>
-      <div id="container">
-        <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
-      </div>
+  <div id="container">
+    <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
+  </div>
   
   <!-- 페이지별 본문 콘텐츠 -->
   <div class="container mt-5">
@@ -83,141 +61,124 @@
   </div>
 
   <script>
-// 로그인 요청 예시
-function login() {
-  fetch("/api/accounts/login/", {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: "example",  // 사용자 입력 값으로 변경
-      password: "example"   // 사용자 입력 값으로 변경
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.access) {
-      // JWT 토큰을 localStorage에 저장
-      localStorage.setItem('access_token', data.access);
-      localStorage.setItem('refresh_token', data.refresh);
-      console.log("로그인 성공. 토큰 저장 완료.");
+    // URL에서 access_token과 refresh_token을 가져와서 로컬 스토리지에 저장
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessTokenFromUrl = urlParams.get('access_token');
+    const refreshTokenFromUrl = urlParams.get('refresh_token');
 
-      // UI 강제 업데이트 (마이페이지와 로그아웃 링크 표시)
-      fetchUserInfo();
-    } else {
-      console.error("로그인 실패:", data);
+    if (accessTokenFromUrl) {
+        localStorage.setItem('access_token', accessTokenFromUrl);
+        console.log("Access Token 저장됨:", accessTokenFromUrl);
     }
-  })
-  .catch(error => console.error('로그인 요청 에러:', error));
-}
 
-// 사용자 정보를 가져와 마이페이지와 로그아웃 링크를 설정
-function fetchUserInfo() {
-  const accessToken = localStorage.getItem('access_token');
-  const navbarAuthLinks = document.getElementById('navbar-auth-links');
+    if (refreshTokenFromUrl) {
+        localStorage.setItem('refresh_token', refreshTokenFromUrl);
+        console.log("Refresh Token 저장됨:", refreshTokenFromUrl);
+    }
 
-  if (accessToken) {
-    console.log('accessToken found:', accessToken);
+    // 사용자 정보를 가져와 마이페이지와 로그아웃 링크를 설정
+    function fetchUserInfo() {
+      const accessToken = localStorage.getItem('access_token');
+      console.log('Access Token:', accessToken);
+      const navbarAuthLinks = document.getElementById('navbar-auth-links');
 
-    // 1. 먼저 사용자 정보를 가져옴
-    fetch("/api/accounts/user-info/", {
-      method: "GET",
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,  // JWT 액세스 토큰을 포함
-        'Content-Type': 'application/json'
+      if (accessToken) {
+        console.log('accessToken found:', accessToken);
+
+        // 1. 먼저 사용자 정보를 가져옴
+        fetch("/api/accounts/user-info/", {
+          method: "GET",
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,  // JWT 액세스 토큰을 포함
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('사용자 정보를 가져올 수 없습니다.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('유저 정보:', data);
+          // 마이페이지와 로그아웃 링크를 업데이트
+          updateUserLinks(data);
+        })
+        .catch(error => {
+          console.error('에러 발생:', error);
+          navbarAuthLinks.innerHTML = `
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
+            </li>
+          `;
+        });
+      } else {
+        console.log('accessToken 없음');
+        navbarAuthLinks.innerHTML = `
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
+          </li>
+        `;
       }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('사용자 정보를 가져올 수 없습니다.');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('유저 정보:', data);
-      // 마이페이지와 로그아웃 링크를 업데이트
-      updateUserLinks(data);
-    })
-    .catch(error => {
-      console.error('에러 발생:', error);
+    }
+
+    // 마이페이지와 로그아웃 링크를 업데이트하는 함수
+    function updateUserLinks(data) {
+      const navbarAuthLinks = document.getElementById('navbar-auth-links');
+
+      // 유저 닉네임을 반영한 마이페이지 링크 생성
       navbarAuthLinks.innerHTML = `
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+          <a class="nav-link" onclick="mypage()" id="mypage-link" href="#"> ${data.nickname}님 마이페이지</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
+          <a class="nav-link" onclick="logout()" href="#" id="logout">로그아웃</a>
         </li>
       `;
-    });
-  } else {
-    console.log('accessToken 없음');
-    navbarAuthLinks.innerHTML = `
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
-      </li>
-    `;
-  }
-}
+    }
 
-// 마이페이지와 로그아웃 링크를 업데이트하는 함수
-function updateUserLinks(data) {
-  const accessToken = localStorage.getItem('access_token');
-  const navbarAuthLinks = document.getElementById('navbar-auth-links');
+    function mypage() {
+      const accessToken = localStorage.getItem('access_token');  // 저장된 토큰 가져오기
 
-
-  // 유저 닉네임을 반영한 마이페이지 링크 생성
-  navbarAuthLinks.innerHTML = `
-    <li class="nav-item">
-      <a class="nav-link" onclick="mypage()" id="mypage-link" href="#">마이페이지</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" onclick="logout()" href="#" id="logout">로그아웃</a>
-    </li>
-  `;
-}
-
-function mypage(){
-
-  const accessToken = localStorage.getItem('access_token');  // 저장된 토큰 가져오기
-
-  if (accessToken){
-    fetch("/api/accounts/user-info/", {
-        method: "GET",
-        headers: {
+      if (accessToken) {
+        fetch("/api/accounts/user-info/", {
+          method: "GET",
+          headers: {
             'Authorization': `Bearer ${accessToken}`,  // JWT 액세스 토큰 포함
             'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
             throw new Error('사용자 정보를 가져올 수 없습니다.');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // 현재 로그인한 사용자의 마이페이지로 이동
-        window.location.href = `/api/accounts/${data.nickname}/mypage/`;  // 마이페이지로 이동
-    })
-    .catch(error => {
-        console.error('사용자 정보 요청 에러 발생:', error);
-    });
-  } 
-}
+          }
+          return response.json();
+        })
+        .then(data => {
+          // 현재 로그인한 사용자의 마이페이지로 이동
+          window.location.href = `/api/accounts/${data.nickname}/mypage/`;  // 마이페이지로 이동
+        })
+        .catch(error => {
+          console.error('사용자 정보 요청 에러 발생:', error);
+        });
+      } 
+    }
 
-function logout(){
-  // 로그아웃 처리
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    window.location.href = "/";
-}
+    function logout() {
+      // 로그아웃 처리
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      window.location.href = "/";
+    }
 
-// DOM이 로드되면 사용자 정보를 확인하고 링크를 업데이트
-document.addEventListener('DOMContentLoaded', fetchUserInfo);
-
+    // DOM이 로드되면 사용자 정보를 확인하고 링크를 업데이트
+    document.addEventListener('DOMContentLoaded', fetchUserInfo);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
