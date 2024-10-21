@@ -1,11 +1,65 @@
-<!DOCTYPE html><html lang="ko"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>닉네임 설정</title></head><body>
-    <h1>닉네임 설정</h1>
-    <form method="POST">
-        {% csrf_token %}
-        <label for="nickname">닉네임:</label>
-        <input type="text" id="nickname" name="nickname" required>
-        <button type="submit">저장</button>
-    </form></body></html>
+{% extends 'base.html' %}  
+
+{% block title %} 닉네임 설정 {% endblock %}  
+
+{% block content %}     
+    <h1>닉네임 설정</h1>     
+    <form method="POST" action="/api/accounts/set_nickname/" id="nicknameForm">         
+        <label for="nickname">닉네임:</label>         
+        <input type="text" id="nickname" name="nickname" required>         
+        <button type="submit">저장</button>     
+    </form>     
+
+    <script>         
+        const form = document.getElementById('nicknameForm');         
+        form.addEventListener('submit', async function (event) {             
+            event.preventDefault();             
+            const formData = new FormData(form);             
+            const data = { nickname: formData.get('nickname') };              
+
+            // Fetch tokens from cookies             
+            const accessToken = getCookie('access_token');      
+            localStorage.setItem('access_token', accessToken);       
+            const refreshToken = getCookie('refresh_token');              
+
+            if (accessToken) {                 
+                localStorage.setItem('access_token', accessToken);                 
+                localStorage.setItem('refresh_token', refreshToken);             
+            }             
+            return null 
+
+            try {                 
+                const response = await fetch('/api/accounts/set_nickname/', {                     
+                    method: 'POST',                     
+                    headers: {                         
+                        'Content-Type': 'application/json',                         
+                        //'Authorization': `Bearer ${accessToken}`                     
+                    },                     
+                    body: JSON.stringify(data)  
+                    credentials: 'include'               
+                });                  
+
+                const result = await response.json();                 
+                if (response.ok) {                     
+                    alert('닉네임이 성공적으로 설정되었습니다.');                     
+                    window.location.href = "/";                
+                } else {                     
+                    alert(result.error || 'Failed to set nickname.');                 
+                }             
+            } catch (error) {                 
+                alert('An error occurred while setting the nickname.');             
+            }         
+        });          
+
+        function getCookie(name) {             
+            const cookieArr = document.cookie.split(";");             
+            for (let i = 0; i < cookieArr.length; i++) {                 
+                let cookiePair = cookieArr[i].split("=");                 
+                if (name === cookiePair[0].trim()) {                     
+                    return decodeURIComponent(cookiePair[1]);                 
+                }             
+            }             
+            return null;         
+        }     
+    </script> 
+{% endblock %}
