@@ -9,7 +9,7 @@ import re
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'nickname','email', 'user_id', 'gender', 'grade']
+        fields = ['username', 'password', 'nickname','email', 'user_id', 'gender', 'grade', 'birth_date']
 
     def validate(self, data):
         # 이메일 중복 체크
@@ -90,7 +90,7 @@ class MyPageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings',
+        fields = ['uuid','username', 'nickname', 'email', 'birth_date', 'gender', 'subscribings',
                 'my_journals', 'profile_image', 'location_save','communities_author', 'journal_likes']
 
     def get_subscribings(self, obj):
