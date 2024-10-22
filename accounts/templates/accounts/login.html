@@ -5,6 +5,29 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .kakao-login-btn {
+    display: inline-block;
+    background-color: #f9e000; /* Kakao's official yellow */
+    color: black; /* Text color */
+    padding: 15px 30px; /* Padding to make it look like a button */
+    border-radius: 25px; /* Rounded corners */
+    border: 0px solid black; /* Optional: border for emphasis */
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Make the text bold */
+    font-size: 16px; /* Adjust font size */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+  .kakao-login-btn:hover {
+      background-color: #C3E16C; /* Slightly darker yellow on hover */
+      cursor: pointer; /* Hand cursor on hover */
+  }
+</style>
+
 <div class="container mt-5">
   <h2>로그인</h2>
   <form id="login-form" method="POST">
@@ -23,39 +46,14 @@
     <a href="{% url 'accounts:kakaologinpage' %}" class="kakao-login-btn">카카오 계정으로 로그인하기</a>
   </form>
 
-  <style>
-    .kakao-login-btn {
-      display: inline-block;
-      background-color: #f9e000; /* Kakao's official yellow */
-      color: black; /* Text color */
-      padding: 15px 30px; /* Padding to make it look like a button */
-      border-radius: 25px; /* Rounded corners */
-      border: 0px solid black; /* Optional: border for emphasis */
-      text-decoration: none; /* Remove underline */
-      font-weight: bold; /* Make the text bold */
-      font-size: 16px; /* Adjust font size */
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-  }
-  
-    .kakao-login-btn:hover {
-        background-color: #C3E16C; /* Slightly darker yellow on hover */
-        cursor: pointer; /* Hand cursor on hover */
-    }
-  </style>
   <script>
     document.getElementById('login-form').addEventListener('submit', function(event) {
       event.preventDefault();  // 기본 폼 제출 막기
-
       // 사용자 입력 값 가져오기
       const userId = document.getElementById('user_id').value;
       const password = document.getElementById('password').value;
-
       // 디버깅을 위해 입력값 콘솔에 출력
       console.log("User ID:", userId, "Password:", password);
-
       // POST 요청을 보냄
       fetch("{% url 'accounts:token_obtain_pair' %}", {
         method: "POST",
@@ -76,7 +74,6 @@
           // JWT 토큰을 로컬 스토리지에 저장
           localStorage.setItem('access_token', data.access);
           localStorage.setItem('refresh_token', data.refresh);
-
           // 메인 페이지로 리다이렉트
           window.location.href = "{% url 'index' %}";
         } else {

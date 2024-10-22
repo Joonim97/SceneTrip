@@ -8,6 +8,16 @@
   <title>{% block title %}Scene Trip{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    .navbar-nav-center {
+      {% comment %} display: flex; {% endcomment %}
+      position: absolute;
+      left: 50%;
+      justify-content: center;
+      transform: translateX(-50%);
+      z-index: 1;
+      flex-grow: 1;
+    }
+    
     /* 검색바의 placeholder 텍스트 중앙 정렬 */
     input::placeholder {
       text-align: center; /* 수평 중앙 정렬 */
@@ -22,13 +32,13 @@
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid d-flex justify-content-between">
+    <div class="container-fluid">
       <!-- 좌측 상단 브랜드 로고 -->
       <a class="navbar-brand" href="{% url 'index' %}">
         <img src="{% static 'images/Logo_ST.png' %}" alt="Scene Trip Logo" height="40">
       </a>
   
-      <div class="d-flex justify-content-center ms-auto">
+      <div class="navbar-nav navbar-nav-center">
         <!-- 저널 페이지로 이동 -->
         <a href="{% url 'journals:journal_list' %}" class="btn btn-outline-secondary me-2">Journal</a>
         <!-- 커뮤니티 페이지로 이동 -->
@@ -37,6 +47,7 @@
         <a href="{% url 'locations:location_list' %}" class="btn btn-outline-secondary me-2">Location</a>
         <!-- Q&A 페이지로 이동 -->
         <a href="{% url 'questions:qna-list' %}" class="btn btn-outline-secondary me-2">Question</a>
+      </div>
 
       <!-- 우측 상단 로그인/회원가입 또는 마이페이지/로그아웃 -->
       <ul class="navbar-nav ms-auto" id="navbar-auth-links">
@@ -47,12 +58,36 @@
           <a class="nav-link" href="{% url 'accounts:login_page' %}">로그인</a>
         </li>
       </ul>
-    </div>
   </nav>
 
-  <div id="container">
-    <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
-  </div>
+
+  <head>
+    <title>Button Placement</title>
+      <style>
+        #container a {
+          position: absolute;
+          top: 120px; 
+          right: 30px; 
+          display: flex;
+          gap: 10px; 
+          color: black;
+          background-color: #F2F0EB;
+          padding: 10px 20px;
+          border-radius: 5px;
+          text-decoration: none;
+        }
+  
+        #container a:hover {
+          background-color: #AAFA82;
+          cursor: pointer;
+        }
+  
+      </style>
+  </head>
+        <div id="container">
+          <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
+        </div>
+    
   
   <!-- 페이지별 본문 콘텐츠 -->
   <div class="container mt-5">
@@ -60,6 +95,34 @@
   </div>
 
   <script>
+    function login() {
+      fetch("/api/accounts/login/", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: "example",  // 사용자 입력 값으로 변경
+          password: "example"   // 사용자 입력 값으로 변경
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.access) {
+          // JWT 토큰을 localStorage에 저장
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('refresh_token', data.refresh);
+          console.log("로그인 성공. 토큰 저장 완료.");
+    
+          // UI 강제 업데이트 (마이페이지와 로그아웃 링크 표시)
+          fetchUserInfo();
+        } else {
+          console.error("로그인 실패:", data);
+        }
+      })
+      .catch(error => console.error('로그인 요청 에러:', error));
+    }
+
     // URL에서 access_token과 refresh_token을 가져와서 로컬 스토리지에 저장
     const urlParams = new URLSearchParams(window.location.search);
     const accessTokenFromUrl = urlParams.get('access_token');

@@ -15,10 +15,6 @@ class UserSerializer(serializers.ModelSerializer):
         # 이메일 중복 체크
         if User.objects.filter(email=data['email'], is_active=True).exists():
             raise serializers.ValidationError("사용 중인 이메일입니다.")
-
-        # username 중복 체크
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError("사용 중인 username입니다.")
         
         # 닉네임 유효성 검사 (3자 이상 20자 이하)
         if not (3 <= len(data['nickname']) <= 20):
