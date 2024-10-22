@@ -88,9 +88,15 @@ class SignupAPIView(APIView):
                         user.save()
                         
                         send_verification_email(user)  # 이메일 전송
-                        return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
+                        messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
+                        # return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
+                        return redirect('accounts:login_page')  # 메시지를 팝업으로 보여주기 위해 리디렉션
+
                 else:
-                    return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
+                    messages.error(request, "이미 존재하는 사용자입니다.")
+                    # return Response({"error": "회원가입에 실패했습니다. 이미 존재하는 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
+                    return redirect('accounts:signup')  
+
             else:
                 if serializer.is_valid():
                     user = serializer.save()
@@ -99,15 +105,20 @@ class SignupAPIView(APIView):
                     user.author_verification_token = str(uuid.uuid4()) # 토큰 생성
                     user.is_active = False
                     user.save()
+
                     send_verification_email(user)
                     messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
-                    return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
+                    return redirect('accounts:login_page')  # 메시지를 팝업으로 보여주기 위해 리디렉션
                 else:
-                    return Response(
-                        {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                    messages.error(request, "회원가입에 실패했습니다.")
+                    # return Response(
+                    #     {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                    return redirect('accounts:signup')  
         except Exception as e:
-            return Response(
-                {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            messages.error(request, "오류가 발생했습니다.")
+            # return Response(
+            #     {"error": "오류가 발생했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect('accounts:signup')  
 
 
 
