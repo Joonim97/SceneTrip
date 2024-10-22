@@ -195,8 +195,8 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
 class CommunityLikeAPIView(APIView): # 커뮤 좋아요
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        community = get_object_or_404(Community, pk=pk)
+    def post(self, request, communityKey):
+        community = get_object_or_404(Community, communityKey=communityKey)
 
         if CommunityLike.objects.filter(community=community, user=request.user).exists(): # 좋아요 두번 누르면
             CommunityLike.objects.filter(community=community, user=request.user).delete()
@@ -214,8 +214,8 @@ class CommunityLikeAPIView(APIView): # 커뮤 좋아요
 class CommunityDislikeAPIView(APIView): # 커뮤 싫어요
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        community = get_object_or_404(Community, pk=pk)
+    def post(self, request, communityKey):
+        community = get_object_or_404(Community, communityKey=communityKey)
 
         if CommunityDislike.objects.filter(community=community, user=request.user).exists(): # 싫어요 두번 누르면
             CommunityDislike.objects.filter(community=community, user=request.user).delete()
@@ -234,9 +234,9 @@ class CommunityUnusableAPIView(APIView): # 커뮤글 신고
     permission_classes = [IsAuthenticated]
 
 
-    def post(self, request, pk):
+    def post(self, request, communityKey):
         user = request.user
-        community = get_object_or_404(Community, pk=pk)
+        community = get_object_or_404(Community, communityKey=communityKey)
 
         if user not in community.unusables.all():
             community.unusables.add(user) 
@@ -307,3 +307,16 @@ class CommunityEditAPIView(APIView):
                     
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+class CommunityLikeStatusAPIView(APIView):  # 좋아요 상태 확인
+    def get(self, request, communityKey):
+        community = get_object_or_404(Community, communityKey=communityKey)
+        is_liked = community.community_likes.filter(user=request.user).exists()
+        return Response({'is_liked': is_liked}, status=status.HTTP_200_OK)
+
+class CommunityDislikeStatusAPIView(APIView):  # 싫어요 상태 확인
+    def get(self, request, communityKey):
+        community = get_object_or_404(Community, communityKey=communityKey)
+        is_disliked = community.community_dislikes.filter(user=request.user).exists()
+        return Response({'is_disliked': is_disliked}, status=status.HTTP_200_OK)

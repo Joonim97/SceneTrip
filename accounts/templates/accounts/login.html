@@ -66,7 +66,12 @@
         })
       }).then(response => {
         if (!response.ok) {
-          throw new Error('네트워크 응답에 문제가 있습니다.');
+          if (response.status === 401) {
+            // 인증 실패 시 사용자에게 알림 표시
+            alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.');
+          } else {
+            throw new Error('네트워크 응답에 문제가 있습니다.');
+          }
         }
         return response.json();
       }).then(data => {
@@ -76,11 +81,10 @@
           localStorage.setItem('refresh_token', data.refresh);
           // 메인 페이지로 리다이렉트
           window.location.href = "{% url 'index' %}";
-        } else {
-          alert('로그인 실패: ' + (data.detail || '아이디 또는 비밀번호를 확인하세요.'));
         }
       }).catch(error => {
         console.error('로그인 요청 중 에러 발생:', error);
+        alert('로그인 요청 중 문제가 발생했습니다. 다시 시도해주세요.');
       });
     });
   </script>

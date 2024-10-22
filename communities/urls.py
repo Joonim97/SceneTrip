@@ -3,7 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import (
     CommentView, CommentLikeView, CommunityListAPIView, CommunityDetailAPIView,
-    CommunityUnusableAPIView,CommunityLikeAPIView, CommunityDislikeAPIView, CommunityWriteView, CommunityListView, CommunityEditAPIView
+    CommunityUnusableAPIView,CommunityLikeAPIView, CommunityDislikeAPIView, CommunityWriteView, CommunityListView, CommunityEditAPIView,
+    CommunityLikeStatusAPIView, CommunityDislikeStatusAPIView
     )
 
 app_name = "communities"
@@ -31,6 +32,9 @@ urlpatterns = [
     path('write/', CommunityWriteView.as_view(), name='community_write'),
     path('list/', CommunityListView.as_view(), name='community_list'),
     path('<uuid:communityKey>/edit/', CommunityEditAPIView.as_view(), name='community_edit'),
+    
+    path('<uuid:communityKey>/like-status/', CommunityLikeStatusAPIView.as_view(), name='community_like_status'),
+    path('<uuid:communityKey>/dislike-status/', CommunityDislikeStatusAPIView.as_view(), name='community_dislike_status'),
 ]   
 
 if settings.DEBUG:
