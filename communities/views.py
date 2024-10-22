@@ -16,8 +16,8 @@ from django.utils.decorators import method_decorator
 from .forms import CommunityForm  # 커뮤니티 글 작성 폼
 
 class CommentView(APIView): # 커뮤 댓글
-    def get(self, request, community_id):
-        comments = Comment.objects.filter(community_id=community_id)
+    def get(self, request, communityKey):
+        comments = Comment.objects.filter(community_id=communityKey)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
@@ -26,10 +26,10 @@ class CommentView(APIView): # 커뮤 댓글
             return [AllowAny()]
         return [IsAuthenticated()]
     
-    def post(self, request, community_id, parent_id=None):
+    def post(self, request, communityKey, parent_id=None):
         data = request.data.copy()
-        community = get_object_or_404(Community, id=community_id)
-        data['community'] = community_id
+        community = get_object_or_404(Community, communityKey=communityKey)
+        data['community'] = communityKey
         
         if parent_id:
             parent_comment = get_object_or_404(Comment, id=parent_id)
@@ -141,11 +141,11 @@ class CommunityListView(ListView):
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         
-    def get_object(self, pk):
-            return get_object_or_404(Community, pk=pk)
+    def get_object(self, communityKey):
+            return get_object_or_404(Community, communityKey=communityKey)
 
-    def get(self, request, pk): # 커뮤니티 상세조회
-        community = get_object_or_404(Community, pk=pk)
+    def get(self, request, communityKey): # 커뮤니티 상세조회
+        community = self.get_object(communityKey)
 
         if community.unusables.count() >= 30 : # 3회 이상 신고된 글 접근 불가
             return Response({ "detail": "신고가 누적된 글은 볼 수 없습니다." }, status=status.HTTP_404_NOT_FOUND )
@@ -263,10 +263,10 @@ class CommunityWriteView(APIView):
             # 이미지 파일 처리
             for image in request.FILES.getlist('community_images'):
                 CommunityImage.objects.create(community=community, community_image=image)
-            print(community.id)
+            print(community.communityKey)
 
             # 성공적으로 작성한 경우 JSON 응답 반환
-            return JsonResponse({'message': 'Community post created successfully', 'id': community.id}, status=201)
+            return JsonResponse({'message': 'Community post created successfully', 'communityKey': community.communityKey}, status=201)
 
         else:
             # 유효성 검사 실패 시 JSON 응답 반환

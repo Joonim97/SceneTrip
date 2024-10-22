@@ -64,7 +64,7 @@
       let method = "POST";
 
       {% if community %}
-        url = `/api/communities/{{ community.id }}/edit/`;
+        url = `/api/communities/{{ community.communityKey }}/edit/`;
         method = "PUT";
       {% endif %}
     
@@ -83,7 +83,7 @@
       })
       .then(data => {
         alert('커뮤니티 글이 성공적으로 처리되었습니다.');
-        window.location.href = `/api/communities/${data.id}/`;
+        window.location.href = `/api/communities/${data.communityKey}/`;
       })
       .catch(error => {
         console.error('에러 발생:', error);

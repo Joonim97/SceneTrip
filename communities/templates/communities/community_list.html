@@ -67,7 +67,7 @@
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>
-          <a href="{% url 'communities:community-detail' post.id %}">
+          <a href="{% url 'communities:community-detail' post.communityKey %}">
             {{ post.title }}
             {% if post.comment_set.count > 0 %}
               [{{ post.comment_set.count }}] <!-- 댓글 수 표시 -->

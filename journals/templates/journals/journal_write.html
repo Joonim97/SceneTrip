@@ -46,7 +46,7 @@
       let method = "POST";  // 기본 메서드는 POST로 설정
     
       {% if is_edit %}
-      apiUrl = `/api/journals/{{ journal.id }}/edit/`;  // 수정일 경우 URL 변경
+      apiUrl = `/api/journals/{{ journal.journalKey }}/edit/`;  // 수정일 경우 URL 변경
       method = "PUT";  // 수정일 경우 PUT 메서드로 설정
       {% endif %}
     
@@ -77,7 +77,7 @@
       })
       .then(data => {
         alert('저널이 성공적으로 {% if is_edit %}수정{% else %}작성{% endif %}되었습니다.');
-        window.location.href = `/api/journals/${data.id}/`;
+        window.location.href = `/api/journals/${data.journalKey}/`;
       })
       .catch(error => {
         console.error('에러 발생:', error);

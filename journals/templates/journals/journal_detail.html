@@ -179,7 +179,7 @@
       return;  // 토큰이 없으면 좋아요 상태를 확인하지 않음
     }
 
-    fetch(`/api/journals/{{ journal.id }}/like-status/`, {
+    fetch(`/api/journals/{{ journal.journalKey }}/like-status/`, {
       method: "GET",
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -211,7 +211,7 @@
       return;
     }
 
-    fetch(`/api/journals/{{ journal.id }}/like/`, {
+    fetch(`/api/journals/{{ journal.journalKey }}/like/`, {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -247,7 +247,7 @@
       return;
     }
 
-    fetch(`/api/journals/{{ journal.id }}/comments/`, {
+    fetch(`/api/journals/{{ journal.journalKey }}/comments/`, {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -276,7 +276,7 @@
   document.getElementById('delete-btn').addEventListener('click', function() {
     if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
       const accessToken = localStorage.getItem('access_token');
-      fetch(`/api/journals/{{ journal.id }}/`, {
+      fetch(`/api/journals/{{ journal.journalKey }}/`, {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -311,7 +311,7 @@
     .then(response => {
       if (response.ok) {
         // 요청이 성공하면 바로 수정 페이지로 이동 (fetch 사용 안함)
-        window.location.href = `/api/journals/{{ journal.id }}/edit/`;
+        window.location.href = `/api/journals/{{ journal.journalKey }}/edit/`;
       } else {
         throw new Error('수정 권한이 없습니다.');
       }

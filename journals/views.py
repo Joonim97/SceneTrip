@@ -70,23 +70,9 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
             for journal_image in journal_images:
                 JournalImage.objects.create(journal=journal, journal_image=journal_image)
 
-
-<<<<<<< HEAD
-                return Response(serializer.data, status=201)
-            else:
-                return Response(serializer.errors, status=400)
-
-# class JournalDetailAPIView(APIView): # 저널 상세조회,수정,삭제
-#         def get_object(self, pk):
-#                 return get_object_or_404(Journal, pk=pk)
-
-#         def get(self, request, pk):  # 저널 상세조회
-#             journal = self.get_object(pk)
-=======
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)
->>>>>>> feat/front
             
 #             # 쿠키 만료 시간: 자정으로 설정
 #             tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
@@ -156,11 +142,12 @@ class JournalListView(ListView):
 
 class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
     
-    def get_object(self, pk):
-        return get_object_or_404(Journal, pk=pk)
-
-    def get(self, request, pk):
-        journal = self.get_object(pk)
+    def get_object(self, journalKey):
+        # journalKey로 저널을 찾음
+        return get_object_or_404(Journal, journalKey=journalKey)
+    
+    def get(self, request, journalKey):
+        journal = self.get_object(journalKey)
         journal.hit()  # 조회수 증가
 
         # 로그인한 경우에만 좋아요 여부 확인
@@ -175,8 +162,6 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
         print(context)
         
         return render(request, 'journals/journal_detail.html', context)
-<<<<<<< HEAD
-=======
       
         # # 내가 입력한 images에서 이미지가 있거나 없을때
         # if 'images' in request.FILES or not journal_images:
@@ -186,7 +171,6 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
         #     for journal_image in journal_images:
         #         JournalImage.objects.create(journal=journal, journal_image=journal_image)
 
->>>>>>> feat/front
 
     def put(self, request, pk):  # 저널 수정
         journal = self.get_object(pk)
@@ -225,8 +209,8 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
 class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소 
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        journal = get_object_or_404(Journal, pk=pk)
+    def post(self, request, journalKey):
+        journal = get_object_or_404(Journal, pk=journalKey)
         journal_like, created = JournalLike.objects.get_or_create(journal=journal, user=request.user)
 
         if not created:  # 이미 좋아요를 눌렀다면 좋아요 취소
@@ -239,8 +223,8 @@ class JournalLikeAPIView(APIView): # 저널 좋아요/좋아요취소
     
 
 class CommentView(APIView): # 저널 댓글
-    def get(self, request, journal_id):
-        comments = Comment.objects.filter(journal_id=journal_id)
+    def get(self, request, journalKey):
+        comments = Comment.objects.filter(journal_id=journalKey)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
     
@@ -249,10 +233,10 @@ class CommentView(APIView): # 저널 댓글
             return [AllowAny()]
         return [IsAuthenticated()]
     
-    def post(self, request, journal_id, parent_id=None):
+    def post(self, request, journalKey, parent_id=None):
         data = request.data.copy()
-        journal = get_object_or_404(Journal, id=journal_id)
-        data['journal'] = journal_id
+        journal = get_object_or_404(Journal, journalKey=journalKey)
+        data['journal'] = journalKey
         
         if parent_id:
             parent_comment = get_object_or_404(Comment, id=parent_id)
@@ -368,7 +352,7 @@ class JournalWriteView(APIView):
                     JournalImage.objects.create(journal=journal, journal_image=image)
 
                 # 성공적으로 작성한 경우 JSON 응답 반환
-                return JsonResponse({'message': 'Journal created successfully', 'id': journal.id}, status=201)
+                return JsonResponse({'message': 'Journal created successfully', 'journalKey': journal.journalKey}, status=201)
             else:
                 # 유효성 검사 실패 시 JSON 응답 반환
                 return JsonResponse({'errors': form.errors}, status=400)
@@ -376,8 +360,8 @@ class JournalWriteView(APIView):
 
 class JournalLikeStatusAPIView(APIView):
 
-    def get(self, request, pk):
-        journal = get_object_or_404(Journal, pk=pk)
+    def get(self, request, journalKey):
+        journal = get_object_or_404(Journal, pk=journalKey)
         # 사용자가 이 저널을 좋아요 했는지 여부 확인
         is_liked = journal.journal_likes.filter(user=request.user).exists()
         return Response({'is_liked': is_liked}, status=status.HTTP_200_OK)

@@ -87,7 +87,6 @@ class JournalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Journal
         fields = [
-            "id",
             "journalKey",
             "title",
             "journal_images",
@@ -99,7 +98,7 @@ class JournalSerializer(serializers.ModelSerializer):
             "journal_likes",
         ]
         read_only_fields = [
-            "id",
+            "journalKey",
             "author_nickname",
             "created_at",
             "updated_at",
@@ -124,7 +123,7 @@ class JournalDetailSerializer(JournalSerializer):  # 저널디테일
             "comments",
         ]
         read_only_fields = (
-            "id",
+            "journalKey",
             "author",
             "created_at",
             "updated_at",

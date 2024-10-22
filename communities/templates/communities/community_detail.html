@@ -107,10 +107,10 @@
   document.getElementById('comment-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const commentContent = document.getElementById('comment-content').value;
-    const communityId = "{{ community.id }}";
+    const communityKey = "{{ community.communityKey }}";
     const accessToken = localStorage.getItem('access_token');
     
-    fetch(`/api/communities/${communityId}/comments/`, {
+    fetch(`/api/communities/${communityKey}/comments/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -167,7 +167,7 @@
   document.getElementById('delete-btn').addEventListener('click', function() {
     if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
         const accessToken = localStorage.getItem('access_token');
-        fetch(`/api/communities/{{ community.id }}/`, {
+        fetch(`/api/communities/{{ community.communityKey }}/`, {
             method: "DELETE",
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -193,7 +193,7 @@ document.getElementById('edit-btn').addEventListener('click', function() {
     }
 
     // Redirect to edit page
-    window.location.href = `/api/communities/{{ community.id }}/edit/`;
+    window.location.href = `/api/communities/{{ community.communityKey }}/edit/`;
 });
 
   // 댓글의 created_at을 처리하는 함수

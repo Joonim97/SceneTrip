@@ -55,7 +55,7 @@ class CommunityDislikeSerializer(serializers.ModelSerializer):
 class CommunityImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityImage
-        fields = ['id', 'community_image']  # 이미지 필드만 포함
+        fields = ['community_image']  # 이미지 필드만 포함
 
 class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
     unusables_count= serializers.SerializerMethodField() # 신고수 카운트
@@ -70,21 +70,21 @@ class CommunitySerializer(serializers.ModelSerializer) : # 커뮤니티
 
     class Meta :
         model=Community
-        fields=[ 'id','communityKey','category','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
-        read_only_fields = ('id','author','created_at','updated_at',
+        fields=['communityKey','category','title','content','community_images','author','created_at', 'comments_count','unusables_count' ,'likes_count','dislikes_count','likes','dislikes']
+        read_only_fields = ('communityKey','author','created_at','updated_at',
                             'unusables_count','comments_count','likes_count','dislikes_count','likes','dislikes')
 
-    def get_unusables_count(self, community_id) : # 신고수
-        return community_id.unusables.count()
+    def get_unusables_count(self, communityKey) : # 신고수
+        return communityKey.unusables.count()
     
-    def get_comments_count(self, community_id): # 댓글수
-        return community_id.community_comments.count()
+    def get_comments_count(self, communityKey): # 댓글수
+        return communityKey.community_comments.count()
     
-    def get_likes_count(self, community_id): # 좋아요수
-        return community_id.community_likes.count()
+    def get_likes_count(self, communityKey): # 좋아요수
+        return communityKey.community_likes.count()
     
-    def get_dislikes_count(self, community_id): # 싫어요수
-        return community_id.community_dislikes.count()
+    def get_dislikes_count(self, communityKey): # 싫어요수
+        return communityKey.community_dislikes.count()
 
 
 class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
@@ -96,8 +96,8 @@ class CommunityDetailSerializer(CommunitySerializer): #커뮤니티 디테일
 
         fields= CommunitySerializer.Meta.fields + ['comments_count','comments' ]
 
-        read_only_fields = ('id','author','created_at','updated_at',
+        read_only_fields = ('communityKey','author','created_at','updated_at',
                             'unusables','unusables_count','comments_count','comments','likes_count','dislikes_count','likes','dislikes')
   
-    def get_comments_count(self, community_id): # 댓글수
-        return community_id.community_comments.count()
+    def get_comments_count(self, communityKey): # 댓글수
+        return communityKey.community_comments.count()
