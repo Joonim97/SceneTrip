@@ -37,50 +37,44 @@
   </div>
 
 
-  
-
-  <!-- 페이지네이션 -->
-  <nav aria-label="Page navigation">
+  <!-- 페이지네이션 --><nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1" aria-label="처음">
+        <a class="page-link" href="?page=1{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="처음">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="이전">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="이전">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
       {% endif %}
-
+      
       <!-- 페이지 범위 출력 -->
       {% for num in page_range %}
-        {% if page_obj.number == num %}
-        <li class="page-item active">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% else %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% endif %}
+      {% if page_obj.number == num %}
+      <li class="page-item active">
+        <a class="page-link" href="?page={{ num }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
+      </li>
+      {% else %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ num }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
+      </li>
+      {% endif %}
       {% endfor %}
-
+      
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="다음">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="다음">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
+        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="마지막">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>
       {% endif %}
-    </ul>
-  </nav>
-</div>
-{% endblock %}
+    </ul></nav>
