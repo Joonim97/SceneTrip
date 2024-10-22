@@ -6,33 +6,33 @@ Q&A 게시판
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Q&A 게시판</h2>
+  <h2>Q&A 게시판</h2>
 
-    <!-- 게시글 목록 테이블 -->
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th scope="col">번호</th>
-                <th scope="col">제목</th>
-                <th scope="col">작성자</th>
-                <th scope="col">작성일</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for question in questions %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ question.title }}</a></td>
-                <td>{{ question.author.username }}</td>
-                <td>{{ question.created_at|date:"Y-m-d H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">게시글이 없습니다.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <!-- 게시글 목록 테이블 -->
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">번호</th>
+        <th scope="col">제목</th>
+        <th scope="col">작성자</th>
+        <th scope="col">작성일</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for question in questions %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td><a href="{% url 'questions:question-detail' question.questionKey %}" class="question-detail-link">{{ question.title }}</a></td>
+        <td>{{ question.author.nickname }}</td>
+        <td>{{ question.created_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">게시글이 없습니다.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
   <!-- 페이지네이션 -->
   <nav aria-label="Page navigation">
@@ -49,18 +49,18 @@ Q&A 게시판
         </a>
       </li>
       {% endif %}
-      
+
       <!-- 페이지 번호 출력 -->
       {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-        <li class="page-item active">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% else %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% endif %}
+      {% if page_obj.number == num %}
+      <li class="page-item active">
+        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+      </li>
+      {% else %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+      </li>
+      {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
@@ -78,8 +78,9 @@ Q&A 게시판
     </ul>
   </nav>
 </div>
-<div class="text-end mb-3">
-    <a href="{% url 'questions:qna_write' %}" class="btn btn-primary">글 작성</a>
-</div>
 
+<!-- 글 작성 버튼 -->
+<div class="text-end mb-3">
+  <a href="{% url 'questions:qna_write' %}" class="btn btn-primary">글 작성</a>
+</div>
 {% endblock %}
