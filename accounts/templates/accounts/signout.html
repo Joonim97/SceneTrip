@@ -118,6 +118,8 @@
     .then(data => {
       if (data.message) {
         // 탈퇴 성공 메시지
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         alert(data.message);
         window.location.href = '/';  // 탈퇴 후 메인 페이지로 리다이렉트
       } else if (data.error) {
