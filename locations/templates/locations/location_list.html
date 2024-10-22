@@ -5,23 +5,41 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .filter-select {
+    max-width: 100px; /* 드롭다운 크기 조정 */
+  }
+  
+  .search-input {
+    margin-right: 10px; /* 검색창과 버튼 사이 여백 추가 */
+    flex-grow: 1; /* 검색창이 더 넓어지도록 설정 */
+  }
+  
+  .search-btn {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+</style>
 <div class="container mt-5">
   <h1>촬영지 목록</h1>
-  <br><br>
-  <!-- 검색 폼: 분류 선택 추가 -->
-  <form method="get" action="{% url 'locations:location_list' %}" class="mb-4">
-    <div class="input-group">
-      <select name="filter" class="form-select">
+
+  <br>
+  
+  <form method="GET" action="{% url 'locations:location_list' %}" class="mb-4">
+    <div class="input-group mb-3">
+      <select name="filter" class="form-select form-select-sm filter-select">
         <option value="title" {% if request.GET.filter == 'title' %}selected{% endif %}>작품별</option>
         <option value="address" {% if request.GET.filter == 'address' %}selected{% endif %}>주소별</option>
       </select>
-      <input type="text" class="form-control" name="keyword" placeholder="검색어 입력..." value="{{ request.GET.keyword }}">
+      <input type="text" name="keyword" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.keyword }}">
       <div class="input-group-append">
-        <button class="btn btn-primary" type="submit">검색</button>
+        <button type="submit" class="btn btn-primary search-btn">검색</button>
       </div>
     </div>
   </form>
-  <br><br>
+
+  <br>
+
   <div class="row">
     {% for location in page_obj %}
     <div class="col-md-4 mb-4">
@@ -39,6 +57,8 @@
     </div>
     {% endfor %}
   </div>
+
+  <br>
 
   <!-- 페이지네이션 -->
   <nav aria-label="Page navigation">
