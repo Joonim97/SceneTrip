@@ -101,7 +101,7 @@ class SignupAPIView(APIView):
                     user.save()
                     send_verification_email(user)
                     messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
-                    return redirect('accounts:signup')  # 메시지를 팝업으로 보여주기 위해 리디렉션
+                    return redirect('accounts:login_page')  # 메시지를 팝업으로 보여주기 위해 리디렉션
                 else:
                     return Response(
                         {"error": "회원가입에 실패했습니다.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
