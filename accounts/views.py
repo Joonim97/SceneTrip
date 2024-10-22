@@ -18,6 +18,7 @@ from .serializers import PasswordCheckSerializer, SubUsernameSerializer, UserSer
 from .emails import send_verification_email, send_verification_email_reset, send_verification_password_reset
 import requests
 import uuid
+from rest_framework_simplejwt.authentication import JWTAuthentication
 User = get_user_model() # 필수 지우면 안됨
 
 #################################################################################################################
@@ -729,3 +730,32 @@ class SocialCallbackView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get('access_token')
+
+        if access_token is None:
+            return None
+        
+        validated_token = self.get_validated_token(access_token)
+
+        return self.get_user(validated_token), validated_token
+
+class SetNicknameView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        print("Received POST request to set nickname")
+        nickname = request.data.get('nickname')
+        print(f"Nickname received: {nickname}")
+        if nickname:
+            user = request.user
+            user.nickname = nickname
+            user.save()
+            print("Nickname saved successfully")
+            print(f"Current user: {request.user}")
+            return Response({'message': 'Nickname set successfully.'})
+        return Response({'error': 'Nickname is required.'}, status=400)
