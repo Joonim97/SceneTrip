@@ -47,7 +47,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1']
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
@@ -104,15 +104,22 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # CORS 미들웨어 추가
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'accounts.middleware.ContentTypeOptionsMiddleware', 
 ]
 
+SESSION_COOKIE_SECURE = False 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
 ### CORS
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_METHODS = [  # 허용할 옵션
     "DELETE",
@@ -197,13 +204,14 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-    'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    # 'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination', # 페이지네이션
     'PAGE_SIZE' : 10,  # 👈 1페이지당 보여줄 갯수
@@ -220,7 +228,7 @@ REST_AUTH = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': False,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': False,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부

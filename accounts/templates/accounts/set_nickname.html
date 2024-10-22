@@ -1,0 +1,82 @@
+{% extends 'base.html' %}  
+
+{% block title %} 닉네임 설정 {% endblock %}  
+
+{% block content %}     
+    <h1>닉네임 설정</h1>     
+    <form method="POST" action="/api/accounts/set_nickname/" id="nicknameForm">         
+        <label for="nickname">닉네임:</label>         
+        <input type="text" id="nickname" name="nickname" required>         
+        <button type="submit">저장</button>     
+    </form>     
+
+    <script>         
+        const form = document.getElementById('nicknameForm');
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+        
+            const formData = new FormData(form);
+            const data = { nickname: formData.get('nickname') };
+        
+            // Fetch tokens from cookies
+            const accessToken = getCookie('access_token');
+            const refreshToken = getCookie('refresh_token');
+        
+            if (accessToken) {
+                localStorage.setItem('access_token', accessToken);
+                localStorage.setItem('refresh_token', refreshToken);
+            }
+        
+            try {
+                const response = await fetch('/api/accounts/set_nickname/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}` // Authorization 헤더 추가
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'include' // 쿠키와 같은 인증 정보 포함
+                });
+        
+                if (!response.ok) {
+                    throw new Error(`닉네임 설정에 실패하였습니다.: ${response.status}`);
+                }
+        
+                const result = await response.json();
+        
+                if (result.available) {
+                    alert('닉네임 설정이 성공적으로 처리되었습니다.');
+                    window.location.href = '/'; // 메인 페이지로 리디렉션
+                } else {
+                    alert('이미 존재하는 닉네임입니다.');
+                }
+            } catch (error) {
+                console.error('에러 발생:', error);
+                alert(`닉네임 설정 중 문제가 발생했습니다: ${error.message}`);
+            }
+        });
+{% comment %} 
+            const result = await response.json();                 
+            if (result.available===True) {                     
+                alert('닉네임이 성공적으로 설정되었습니다.');                     
+                window.location.href = "/";                
+            } else {                     
+                alert('닉네임 설정에 실패하였습니다.');                 
+                window.location.href = "api/accounts/set_nickname/";                
+            }             
+            } catch (error) {                 
+                alert('An error occurred while setting the nickname.');             
+        });           {% endcomment %}
+
+        function getCookie(name) {             
+            const cookieArr = document.cookie.split(";");             
+            for (let i = 0; i < cookieArr.length; i++) {                 
+                let cookiePair = cookieArr[i].split("=");                 
+                if (name === cookiePair[0].trim()) {                     
+                    return decodeURIComponent(cookiePair[1]);                 
+                }             
+            }             
+            return null;         
+        }     
+    </script> 
+{% endblock %}
