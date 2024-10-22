@@ -33,11 +33,11 @@
     {% endfor %}
   </ul>
 
-  <!-- 회원정보수정 버튼 추가 -->
+  {% comment %} <!-- 회원정보수정 버튼 추가 -->
   <div class="mt-4">
     <a href="{% url 'accounts:edit_profile' user.nickname %}" class="btn btn-primary">회원정보수정</a>
   </div>  
-</div>
+</div> {% endcomment %}
 {% endblock %}
 
 {% comment %} <script>

@@ -30,21 +30,17 @@
     {% endfor %}
   </div>
 
-  <!-- 좋아요 및 댓글 수 -->
-  <div class="mb-3">
-    <span>좋아요 수: {{ journal.likes_count }}</span>
-    <span>댓글 수: {{ journal.comments_count }}</span>
-  </div>
 
   <div class="mt-4">
     <!-- 좋아요 버튼 -->
-    <button id="like-btn" class="btn">
+    <button id="like-btn" class="btn btn-outline-success">
       🤍 <!-- 기본 상태는 빈 하트 -->
     </button>
+    <span>좋아요 수: {{ journal.likes_count }} | 댓글 수: {{ journal.comments_count }}</span>
   </div>
 
   <!-- 댓글 목록 -->
-  <div class="mb-3">
+  <div class="mt-5">
     <h5>댓글</h5>
     {% if journal.comments %}
       {% for comment in journal.comments %}
@@ -55,10 +51,10 @@
           <!-- 댓글 좋아요/싫어요 버튼 및 카운트 -->
           <div class="d-flex align-items-center">
             <button class="btn btn-sm btn-outline-success like-btn" data-comment-id="{{ comment.id }}" data-like-type="like">
-              👍 (<span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>)
+              👍 <span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>
             </button>
             <button class="btn btn-sm btn-outline-danger dislike-btn" data-comment-id="{{ comment.id }}" data-like-type="dislike">
-              👎 (<span id="dislike-count-{{ comment.id }}">{{ comment.dislike_count }}</span>)
+              👎 <span id="dislike-count-{{ comment.id }}">{{ comment.dislike_count }}</span>
             </button>
           </div>
         </div>

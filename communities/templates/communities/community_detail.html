@@ -27,11 +27,13 @@
     </div>
   </div>
 
+  <br><br>
+  
   <!-- 좋아요 / 싫어요 버튼 -->
   <div class="mt-4">
     <button id="like-btn" class="btn btn-outline-success">좋아요</button>
     <button id="dislike-btn" class="btn btn-outline-danger">싫어요</button>
-    <span>좋아요 수: {{ community.community_likes.count }} | 싫어요 수: {{ community.community_dislikes.count }}</span>
+    <span>좋아요 수: {{ community.likes_count }} | 싫어요 수: {{ community.dislikes_count }}</span>
   </div>
 
   <div class="mt-5">
@@ -91,7 +93,7 @@
     }
 });
 
-  // 좋아요 버튼 동작
+  {% comment %} // 좋아요 버튼 동작
   document.getElementById('like-btn').addEventListener('click', function() {
     // 좋아요 처리 로직 추가
     alert("좋아요 클릭됨");
@@ -101,7 +103,116 @@
   document.getElementById('dislike-btn').addEventListener('click', function() {
     // 싫어요 처리 로직 추가
     alert("싫어요 클릭됨");
-  });
+  }); {% endcomment %}
+
+    // 좋아요 상태 확인 함수
+    function checkLikeDislikeStatus() {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        return;  // 토큰이 없으면 좋아요/싫어요 상태를 확인하지 않음
+      }
+  
+      // 좋아요 상태 확인
+      fetch(`/api/communities/{{ community.communityKey }}/like-status/`, {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.is_liked) {
+          document.getElementById('like-btn').innerHTML = '❤️';  // 꽉 찬 하트로 변경
+        } else {
+          document.getElementById('like-btn').innerHTML = '🤍';  // 빈 하트로 변경
+        }
+      })
+      .catch(error => {
+        console.error('좋아요 상태 확인 실패:', error);
+      });
+  
+      // 싫어요 상태 확인
+      fetch(`/api/communities/{{ community.communityKey }}/dislike-status/`, {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.is_disliked) {
+          document.getElementById('dislike-btn').innerHTML = '💔';  // 꽉 찬 싫어요 아이콘
+        } else {
+          document.getElementById('dislike-btn').innerHTML = '🤍';  // 빈 싫어요 아이콘
+        }
+      })
+      .catch(error => {
+        console.error('싫어요 상태 확인 실패:', error);
+      });
+    }
+  
+    // 페이지 로드 시 좋아요/싫어요 상태 확인
+    document.addEventListener('DOMContentLoaded', checkLikeDislikeStatus);
+  
+    // 좋아요 버튼 클릭 시 처리
+    document.getElementById('like-btn').addEventListener('click', function() {
+      const accessToken = localStorage.getItem('access_token');
+  
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.');
+        window.location.href = "{% url 'accounts:login_page' %}";
+        return;
+      }
+  
+      fetch(`/api/communities/{{ community.communityKey }}/like/`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.is_liked) {
+          document.getElementById('like-btn').innerHTML = '❤️';  // 꽉 찬 하트로 변경
+        } else {
+          document.getElementById('like-btn').innerHTML = '🤍';  // 빈 하트로 변경
+        }
+        location.reload();  // 페이지 새로고침
+      })
+      .catch(error => {
+        console.error('좋아요 처리 중 에러:', error);
+      });
+    });
+  
+    // 싫어요 버튼 클릭 시 처리
+    document.getElementById('dislike-btn').addEventListener('click', function() {
+      const accessToken = localStorage.getItem('access_token');
+  
+      if (!accessToken) {
+        alert('로그인 후 이용해주세요.');
+        window.location.href = "{% url 'accounts:login_page' %}";
+        return;
+      }
+  
+      fetch(`/api/communities/{{ community.communityKey }}/dislike/`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.is_disliked) {
+          document.getElementById('dislike-btn').innerHTML = '💔';  // 꽉 찬 싫어요 아이콘
+        } else {
+          document.getElementById('dislike-btn').innerHTML = '🤍';  // 빈 싫어요 아이콘
+        }
+        location.reload();  // 페이지 새로고침
+      })
+      .catch(error => {
+        console.error('싫어요 처리 중 에러:', error);
+      });
+    });
 
   // 댓글 작성 처리
   document.getElementById('comment-form').addEventListener('submit', function(event) {

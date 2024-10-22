@@ -172,8 +172,8 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
         #         JournalImage.objects.create(journal=journal, journal_image=journal_image)
 
 
-    def put(self, request, pk):  # 저널 수정
-        journal = self.get_object(pk)
+    def put(self, request, journalKey):  # 저널 수정
+        journal = self.get_object(journalKey)
         journal_images = request.FILES.getlist('images')
         serializer = JournalDetailSerializer(journal, data=request.data, partial=True)
         
@@ -195,9 +195,9 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             
-    def delete(self, request, pk): # 저널 삭제
+    def delete(self, request, journalKey): # 저널 삭제
         permission_classes = [IsAuthenticated] # 로그인권한
-        journal = self.get_object(pk)
+        journal = self.get_object(journalKey)
         
         if journal.author != request.user :
             return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
@@ -361,7 +361,7 @@ class JournalWriteView(APIView):
 class JournalLikeStatusAPIView(APIView):
 
     def get(self, request, journalKey):
-        journal = get_object_or_404(Journal, pk=journalKey)
+        journal = get_object_or_404(Journal, journalKey=journalKey)
         # 사용자가 이 저널을 좋아요 했는지 여부 확인
         is_liked = journal.journal_likes.filter(user=request.user).exists()
         return Response({'is_liked': is_liked}, status=status.HTTP_200_OK)
@@ -369,8 +369,8 @@ class JournalLikeStatusAPIView(APIView):
     
 class JournalEditView(APIView):
 
-    def get(self, request, pk):
-        journal = get_object_or_404(Journal, pk=pk)
+    def get(self, request, journalKey):
+        journal = get_object_or_404(Journal, journalKey=journalKey)
 
         context = {
             'journal': journal,
@@ -378,8 +378,8 @@ class JournalEditView(APIView):
         }
         return render(request, 'journals/journal_write.html', context)
 
-    def put(self, request, pk):
-        journal = get_object_or_404(Journal, pk=pk)
+    def put(self, request, journalKey):
+        journal = get_object_or_404(Journal, journalKey=journalKey)
 
         if journal.author != request.user:
             return Response({"detail": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
