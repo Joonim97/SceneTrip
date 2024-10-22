@@ -3,7 +3,7 @@ from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import (
-    SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, 
+    SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAPIView, SubscribeView,  
     PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView, EamilResetConfirmView, 
     MyJournalsListAPIView, SavedLocationsListAPIView, LikeJournalsListAPIView, SubscribingsListAPIView, 
     SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, 
@@ -26,7 +26,6 @@ urlpatterns = [
 
 
     ######## 마이페이지 관련된 url
-    # path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
 
@@ -50,7 +49,5 @@ urlpatterns = [
     path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao-login'),  # 카카오 로그인 URL
     path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao-callback'),  # 카카오 콜백 URL
     path('set_nickname/', SetNicknameView.as_view(), name='set-nickname'),
-
-    
     path('<str:nickname>/edit/', EditProfileView.as_view(), name='edit_profile'), #회원정보 수정
 ]

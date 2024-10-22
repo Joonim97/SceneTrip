@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +12,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from SceneTrip import settings
+from accounts.forms import CheckPasswordForm
 from communities.serializers import CommunitySerializer
 from journals.serializers import JournalSerializer, JournalLikeSerializer
 from locations.serializers import LocationSaveSerializer
@@ -175,29 +176,32 @@ class DeleteAPIView(APIView):  # 회원탈퇴
         user = request.user
         deleted_user = get_object_or_404(User, nickname=nickname)
 
+        # 본인만 탈퇴할 수 있도록 제한
         if user != deleted_user:
-            return Response({"error": "본인계정만 탈퇴하실수 있습니다"}, status=400)  # 본인이 아닐 경우
-
-        serializer = PasswordCheckSerializer(data=request.data)
-        if serializer.is_valid():
-            password = serializer.validated_data['password']  # 수정된 부분
-
-            # 비밀번호 확인
-            if user.check_password(password):
-                user.is_active = False  
-                user.save()
-                return Response({"message": "탈퇴 완료하였습니다"}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 유효성 검사를 통과하지 못한 경우
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "본인 계정만 탈퇴하실 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 비밀번호 확인 폼 사용
+        password_form = CheckPasswordForm(user, request.data)
+        
+        if password_form.is_valid():
+            # 비밀번호가 올바른 경우 사용자 삭제
+            deleted_user.delete()
+            logout(request)  # 로그아웃 처리
+            
+            # 메시지 전달 후 리다이렉트
+            messages.success(request, "회원탈퇴가 완료되었습니다.")
+            return Response({"message": "회원탈퇴가 완료되었습니다."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "비밀번호가 올바르지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteAPIView(APIView):  # 회원탈퇴
-    permission_classes = [IsAuthenticated]
+    def get(self, request, nickname):
+        # 탈퇴 확인 페이지를 렌더링하거나 리다이렉트
+        return Response({"message": "회원탈퇴를 확인하세요."}, status=status.HTTP_200_OK)
 
     def delete(self, request, nickname):
+        permission_classes = [IsAuthenticated]
         user = request.user
         deleted_user = get_object_or_404(User, nickname=nickname)
 
@@ -385,6 +389,14 @@ class LogoutAPIView(PermissionAPIView):
 
 # 회원탈퇴
 class DeleteAPIView(PermissionAPIView):
+    def get(self, request, nickname):
+        serializer = PasswordCheckSerializer(data=request.data)
+        context ={
+            "nickname":nickname,
+        }
+        print(context)
+        return render(request, 'accounts/signout.html', context)
+    
     def delete(self, request, nickname):
         user = request.user
         deleted_user = get_object_or_404(User, nickname=nickname)
