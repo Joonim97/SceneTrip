@@ -20,6 +20,34 @@
     padding-right: 20px;
   }
 </style>
+
+<head>
+  <title>Button Placement</title>
+    <style>
+      #container a {
+        position: absolute;
+        top: 120px; 
+        right: 30px; 
+        display: flex;
+        gap: 10px; 
+        color: black;
+        background-color: #F2F0EB;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+
+      #container a:hover {
+        background-color: #AAFA82;
+        cursor: pointer;
+      }
+
+    </style>
+</head>
+
+<div id="container">
+  <a href="{% url 'locations:trip-planning' %}"><strong>🤖 AI 여행 플래닝</strong></a>
+</div>
 <div class="container mt-5">
   <h1>촬영지 목록</h1>
 

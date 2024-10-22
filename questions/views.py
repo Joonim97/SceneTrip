@@ -80,10 +80,9 @@ class QuestionListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭제
-    permission_classes = [IsAuthenticated]  # 로그인 권한
 
-    def get(self, request, key=None):
-        question = get_object_or_404(Questions, pk=key)
+    def get(self, request, questionKey):
+        question = get_object_or_404(Questions, questionKey=questionKey)
 
         images = question.images.all()
         image_serializer = QuestionImageSerializer(images, many=True)
@@ -96,7 +95,7 @@ class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭�
         hit_count_cookie = request.COOKIES.get('hit_count')
         if hit_count_cookie is not None:
             cookies_list = hit_count_cookie.split('|')  # '|' 구분자 사용
-            if str(key) not in cookies_list:
+            if str(questionKey) not in cookies_list:
                 question.hit()  # 조회수 증가
                 # 질문 직렬화
                 serializer = QuestionDetailSerializer(question)
@@ -107,14 +106,14 @@ class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭�
 
             # JSON 응답 대신 HTML 템플릿을 렌더링
                 response = render(request, 'questions/qna_detail.html', context)
-                response.set_cookie('hit_count', hit_count_cookie + f'|{key}', expires=expires)
+                response.set_cookie('hit_count', hit_count_cookie + f'|{questionKey}', expires=expires)
                 return response
         else:
             question.hit()  # 조회수 증가
             # 질문 직렬화
             serializer = QuestionDetailSerializer(question)
             response = Response(serializer.data)
-            response.set_cookie('hit_count', str(key), expires=expires)
+            response.set_cookie('hit_count', str(questionKey), expires=expires)
             return response
 
         # hit 쿠키가 이미 있는 경우 조회수는 증가하지 않음
@@ -126,9 +125,9 @@ class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭�
         print(context)
         return render(request,'questions/qna_detail.html', context)
 
-    def put(self, request, key):  # 큐앤에이 수정
+    def put(self, request, questionKey):  # 큐앤에이 수정
         permission_classes = [IsAuthenticated]
-        question = get_object_or_404(Questions, pk=key)
+        question = get_object_or_404(Questions, questionKey=questionKey)
         serializer = QuestionDetailSerializer(question, data=request.data, partial=True)
 
         if serializer.is_valid(raise_exception=True):
@@ -151,9 +150,9 @@ class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭�
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    def delete(self, request, key):  # 큐앤에이 삭제
+    def delete(self, request, questionKey):  # 큐앤에이 삭제
         permission_classes = [IsAuthenticated]
-        question = get_object_or_404(Questions, pk=key)
+        question = get_object_or_404(Questions, questionKey=questionKey)
         if question.author != request.user:
             return Response({"error": "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -163,8 +162,8 @@ class QuestionDetailAPIView(APIView):  # 큐앤에이 상세조회, 수정, 삭�
 class CommentView(APIView):
 
     # 댓글 조회
-    def get(self, request, key):
-        comments = Comments.objects.filter(questionKey=key)
+    def get(self, request, questionKey):
+        comments = Comments.objects.filter(questionKey=questionKey)
         serializer = CommentSerializer(comments, many=True)
         context = {
             'comments': serializer.data
@@ -172,10 +171,10 @@ class CommentView(APIView):
         return render(request, 'questions/qna_detail.html', context)
 
     # 댓글 작성
-    def post(self, request, key, parent_id=None):
+    def post(self, request, questionKey, parent_id=None):
         permission_classes = [IsAuthenticated]
         data = request.data.copy()  # 요청 데이터를 복사하여 수정 가능하게 처리
-        question = get_object_or_404(Questions, questionKey=key)
+        question = get_object_or_404(Questions, questionKey=questionKey)
         data['question'] = question.id  # 질문 ID를 데이터에 추가
 
         if parent_id:

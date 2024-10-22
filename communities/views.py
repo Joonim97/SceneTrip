@@ -159,9 +159,9 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
         # 템플릿을 렌더링하여 반환
         return render(request, 'communities/community_detail.html', context)
 
-    def put(self, request, pk): # 커뮤니티 수정
+    def put(self, request, communityKey): # 커뮤니티 수정
             permission_classes = [IsAuthenticated] # 로그인권한
-            community = self.get_object(pk)
+            community = self.get_object(communityKey)
             community_images = request.FILES.getlist('images')
             serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
             print(request.user)
@@ -181,9 +181,9 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
                     return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-    def delete(self, request, pk): # 커뮤니티 삭제
+    def delete(self, request, communityKey): # 커뮤니티 삭제
             permission_classes = [IsAuthenticated] # 로그인권한
-            community = self.get_object(pk)
+            community = self.get_object(communityKey)
             
             if community.author != request.user :
                 return Response( {"error" : "다른 사용자의 글은 삭제할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
@@ -275,27 +275,35 @@ class CommunityWriteView(APIView):
         
 class CommunityEditAPIView(APIView):
 
-    def get_object(self, pk):
-        return get_object_or_404(Community, pk=pk)
+    def get_object(self, communityKey):
+        return get_object_or_404(Community, communityKey=communityKey)
 
-    def get(self, request, pk):  # 커뮤니티 수정 페이지에서 기존 데이터 가져오기
-        community = self.get_object(pk)
+    def get(self, request, communityKey):  # 커뮤니티 수정 페이지에서 기존 데이터 가져오기
+        community = get_object_or_404(Community, communityKey=communityKey)
     
-
         context = {
             'community': community  # 기존 커뮤니티 데이터를 템플릿에 전달
         }
 
         return render(request, 'communities/community_write.html', context)  # community_write.html로 렌더링
 
-    def put(self, request, pk):  # 커뮤니티 수정
-        community = self.get_object(pk)
+    def put(self, request, communityKey):  # 커뮤니티 수정
+        community = get_object_or_404(Community, communityKey=communityKey)
 
         if community.author != request.user:
             return Response({"error": "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
         
-        serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
+        serializer = CommunitySerializer(community, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            
+                        # 기존 이미지 삭제 (새 이미지를 저장할 때만 삭제)
+            if 'community_images' in request.FILES:
+                community.community_images.all().delete()  # 기존 이미지를 모두 삭제
+
+                # 새 이미지 저장
+                for image in request.FILES.getlist('community_images'):
+                    CommunityImage.objects.create(community=community, community_image=image)
+                    
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

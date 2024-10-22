@@ -42,8 +42,8 @@
         <div class="card-body">
           <h5 class="card-title">{{ journal.title }}</h5>
           <p class="card-text">{{ journal.content|slice:":100" }}...</p>
-          <p class="card-text"><small>작성자: {{ journal.author.nickname }} | 조회수: {{ journal.views }}</small></p>
-          <a href="{% url 'journals:journal_detail' journal.id %}" class="btn btn-primary">더 읽기</a>
+          <p class="card-text"><small>작성자: {{ journal.author.nickname }}</small></p>
+          <a href="{% url 'journals:journal_detail' journal.journalKey %}" class="btn btn-primary">더 읽기</a>
         </div>
       </div>
     </div>

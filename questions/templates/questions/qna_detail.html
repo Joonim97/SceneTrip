@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
-
 {% block title %}
   {{ question.title }} - 상세 페이지
 {% endblock %}
-
 {% block content %}
 <div class="container mt-5">
   <h2 id="question-title">{{ question.title }}</h2>
@@ -14,7 +12,6 @@
     <button id="delete-btn" class="btn btn-danger">삭제</button>
   </p>
   <p>작성일: {{ question.created_at }}</p>
-  
   <!-- 이미지 표시 -->
   <div class="mb-3">
     <h5>첨부된 이미지</h5>
@@ -26,11 +23,9 @@
       {% endfor %}
     </div>
   </div>
-
   <div class="mb-3">
     <h5>내용</h5>
     <p id="question-content">{{ question.content }}</p> <!-- 기존 질문 내용을 표시 -->
-    
     <!-- 수정 모드에서는 이 폼을 보여줌 -->
     <div id="edit-form" style="display: none;">
       <div class="mb-3">
@@ -45,7 +40,6 @@
         <label for="edit-images">이미지 수정</label>
         <input type="file" id="edit-images" name="images" class="form-control" accept="image/*" multiple>
       </div>
-
       <!-- 기존 이미지를 삭제할 수 있는 체크박스 -->
       <div class="mb-3">
         <h6>기존 이미지 삭제</h6>
@@ -63,12 +57,10 @@
           {% endfor %}
         </div>
       </div>
-
       <button id="save-edit-btn" class="btn btn-primary mt-2">저장</button>
       <button id="cancel-edit-btn" class="btn btn-secondary mt-2">취소</button>
     </div>
   </div>
-
   <!-- 댓글 목록 -->
   <div class="mb-3">
     <h5>댓글</h5>
@@ -88,7 +80,6 @@
     {% endif %}
   </div>
 </div>
-
 <!-- 댓글 작성 -->
 <div class="mb-3">
   <h5>댓글 작성</h5>
@@ -98,39 +89,32 @@
   </form>
 </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const accessToken = localStorage.getItem('access_token');
-
   // 수정 버튼 클릭 시 수정 폼 표시
   document.getElementById('edit-btn').addEventListener('click', function() {
     document.getElementById('question-content').style.display = 'none'; // 기존 내용 숨기기
     document.getElementById('question-title').style.display = 'none'; // 기존 제목 숨기기
     document.getElementById('edit-form').style.display = 'block'; // 수정 폼 표시
   });
-
   // 수정 취소 버튼 클릭 시 원래 내용 표시
   document.getElementById('cancel-edit-btn').addEventListener('click', function() {
     document.getElementById('question-content').style.display = 'block'; // 기존 내용 표시
     document.getElementById('question-title').style.display = 'block'; // 기존 제목 표시
     document.getElementById('edit-form').style.display = 'none'; // 수정 폼 숨기기
   });
-
   document.getElementById('save-edit-btn').addEventListener('click', function() {
     const editedTitle = document.getElementById('edit-title').value;
     const editedContent = document.getElementById('edit-content').value;
-
     const formData = new FormData();
     formData.append('title', editedTitle);
     formData.append('content', editedContent);
-
     // 추가된 이미지 파일을 FormData에 추가
     const imageFiles = document.getElementById('edit-images').files;
     for (let i = 0; i < imageFiles.length; i++) {
         formData.append('images', imageFiles[i]);
     }
-
     // 삭제할 이미지 ID를 수집
     const deleteImages = [];
     const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
@@ -141,17 +125,13 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteImages.push(checkbox.value);
         }
     });
-
     console.log("삭제할 이미지 ID들:", deleteImages);
-
     deleteImages.forEach(id => formData.append('delete_images', id));
-
     if (!accessToken) {
       alert('로그인 후 이용해주세요.');
       window.location.href = "{% url 'accounts:login_page' %}";
       return;
     }
-
     // PUT 요청을 통해 서버에 수정된 제목, 내용 및 이미지 전송
     fetch(`/api/questions/{{ question.questionKey }}/`, {
       method: "PUT",
@@ -173,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageElement = document.getElementById(`delete-image-${imageId}`).closest('.col-md-4');
         imageElement.remove();
       });
-      document.getElementById('question-title').textContent = editedTitle; 
-      document.getElementById('question-content').textContent = editedContent; 
+      document.getElementById('question-title').textContent = editedTitle;
+      document.getElementById('question-content').textContent = editedContent;
       document.getElementById('question-title').style.display = 'block';
       document.getElementById('question-content').style.display = 'block';
       document.getElementById('edit-form').style.display = 'none';
@@ -184,18 +164,15 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('수정 중 문제가 발생했습니다.');
     });
 });
-
   // 댓글 작성 처리
   document.getElementById('comment-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const commentContent = document.getElementById('comment-content').value;
-
     if (!accessToken) {
       alert('로그인 후 이용해주세요.');
       window.location.href = "{% url 'accounts:login_page' %}";
       return;
     }
-
     fetch(`/api/questions/{{ question.questionKey }}/comments/`, {
       method: "POST",
       headers: {
@@ -221,7 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('댓글 작성 중 문제가 발생했습니다.');
     });
   });
-
   // 글 삭제 처리
   document.getElementById('delete-btn').addEventListener('click', function() {
     if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
@@ -243,5 +219,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
-
 {% endblock %}

@@ -26,7 +26,7 @@ urlpatterns = [
 
 
     ######## 마이페이지 관련된 url
-    path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
+    # path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
 
@@ -42,7 +42,7 @@ urlpatterns = [
     path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete'), # 회원탈퇴
     path('user-info/', UserInfoView.as_view(), name='user_info'),  # 사용자 정보 API
     
-    # path("<str:nickname>/mypage/", mypage, name='my_page'), 중복되고 있음 확인 필요
+    path("<str:nickname>/mypage/", mypage, name='my_page'),
 
 
     # 소셜 로그인
