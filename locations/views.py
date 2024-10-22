@@ -171,26 +171,6 @@ class LocationSaveView(APIView):
             location.save()
             location_save.delete()
             return Response({"message": "촬영지 정보가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
-        
-        
-def index(request):
-    latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
-    popular_locations = Location.objects.order_by('-save_count')[:3]  # 인기 촬영지 3개 가져오기
-    popular_community_posts = Community.objects.annotate(likes_count=Count('community_likes')).order_by('-likes_count')[:3]
-
-    context = {
-        'popular_locations': popular_locations,
-        'latest_journals': latest_journals,
-        'popular_community_posts': popular_community_posts,  # 인기 커뮤니티 글 추가
-    }
-    
-    return render(request, 'journals/index.html', context)
-
-
-def location_detail(request, pk):
-    # 촬영지 상세 정보를 가져와 템플릿에 렌더링
-    location = get_object_or_404(Location, pk=pk)
-    return render(request, 'locations/location_detail.html', {'location': location})
 
 
 def get_nearby_place(place_name):
@@ -276,7 +256,7 @@ class AiPlanningAPIView(APIView):
                 return nearby_places 
 
             nearby_places_formatted = [
-            f"Title: {place['title']}, Category: {place['category']}, Link: {place['link']}, Road Address: {place['roadaddress']}, Address: {place['address']}"
+            f"제목: {place['title']}, 카테고리: {place['category']}, Link: {place['link']}, 도로명 주소: {place['roadaddress']}, 지번 주소: {place['address']}"
             for place in nearby_places
             ]
             nearby_places_str = "\n".join(nearby_places_formatted)
@@ -284,7 +264,7 @@ class AiPlanningAPIView(APIView):
             template = f"""{place_name}에 방문하는 일정을 포함한 여행 계획을 세워줘. 나는 한국에 살고있어. 
                     반드시 {nearby_places_str} 중에서 장소를 추천해줘. 다음의 내용을 담아 계획을 세워줘.
                     매일의 일정: 오전, 오후, 저녁별로 어떤 활동을 할 지. 날짜 예시는 들지 않아도 돼.
-                    단, 매일 식사는 아침, 점심, 저녁을 먹을거고 메뉴가 중복되지 않도록 해줘.
+                    매일 식사는 아침, 점심, 저녁을 먹을거야.
                     반드시 특정 식당, 장소명을 포함한 답변을 줘. 같은 장소를 두번 방문하지 않도록 해. 그리고 링크가 있다면 포함시켜줘."""
             
             if preference and len(preference)<=50:
@@ -326,25 +306,24 @@ class AiPlanningAPIView(APIView):
                     "error": str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-              
+
 class PlanResultView(APIView):
-    
     def get(self, request):
         cache_key = f"user:{request.user.id}:travel_plan"
-        cached_plan = redis_client.get(cache_view=True)
+        cached_plan = redis_client.get(cache_key)
         if cached_plan:
             travel_plan = json.loads(cached_plan)
             return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
         else:
             return Response({"error": "No travel plan found"}, status=404)
-
+        
 
 def location_detail(request, pk):
     # 촬영지 상세 정보를 가져와 템플릿에 렌더링
     location = get_object_or_404(Location, pk=pk)
     return render(request, 'locations/location_detail.html', {'location': location})
-  
-        
+
+
 def index(request):
     latest_journals = Journal.objects.order_by('-created_at')[:3]  # 최신 저널 3개 가져오기
     popular_locations = Location.objects.order_by('-save_count')[:4]  # 인기 촬영지 3개 가져오기
@@ -357,4 +336,3 @@ def index(request):
     }
     
     return render(request, 'journals/index.html', context)
-

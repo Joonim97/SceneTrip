@@ -25,6 +25,18 @@ User = get_user_model() # 필수 지우면 안됨
 #################################################################################################################
 #################################################################################################################
 
+# Custom JWTAuthentication
+class CustomJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get('access_token')
+
+        if access_token is None:
+            return None
+        
+        validated_token = self.get_validated_token(access_token)
+
+        return self.get_user(validated_token), validated_token
+
 # Parents Class 모음
 # 커스텀 페이지네이션 // 마이페이지에 들어가는 내용들 페이지네이션
 class CustomPagination(PageNumberPagination):
@@ -791,17 +803,6 @@ class SocialCallbackView(APIView):
             "access": str(refresh.access_token),
         }
 
-class CustomJWTAuthentication(JWTAuthentication):
-    def authenticate(self, request):
-        access_token = request.COOKIES.get('access_token')
-
-        if access_token is None:
-            return None
-        
-        validated_token = self.get_validated_token(access_token)
-
-        return self.get_user(validated_token), validated_token
-
 class SetNicknameView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -811,8 +812,14 @@ class SetNicknameView(APIView):
         if nickname:
             user = request.user
             user.nickname = nickname
-            user.save()
-            return Response({'message': 'Nickname set successfully.'})
+            if User.objects.filter(nickname=nickname).exists(): # 이미 존재하는 닉네임을 입력한 경우.
+                return Response({'available': False}, status=200)
+            else:
+                return Response({'available': True}, status=200)
+        user.nickname = nickname
+        user.save()
+            
+            # return redirect('index')
         return Response({'error': 'Nickname is required.'}, status=400)
 
     def get(self, request):
