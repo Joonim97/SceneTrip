@@ -45,7 +45,9 @@
     2024.09.23.(Mon.) ~ 2024.09.25.(Wed.) | Creation of SA Document
     2024.09.26.(Thu.) ~ 2024.10.03.(Thu.) | Back-End Development Completed, GitHub Merge
     2024.10.04.(Fri.) ~ 2024.10.06.(Mon.) | Complement Code
-    2024.10.07.(Tue.) ~ 2024.10.08.(Wed.) | Front-End Development
+    2024.10.07.(Tue.) ~ 2024.10.14.(Mon.) | Front-End Development
+    2024.10.15.(Tue.) ~ 2024.10.22.(Wed.) | Front-End Development, Deployment, Writing Testing Code
+    2024.10.22.(Wed.)                     | Domain Registration
 
 <br>
 
