@@ -6,7 +6,7 @@ import uuid
 User = get_user_model()
 
 class Questions(models.Model): # 큐앤에이 모델
-    questionKey = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, unique=False) # 고유번호필드
+    questionKey = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, unique=True) # 고유번호필드
     title = models.CharField(max_length=40)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

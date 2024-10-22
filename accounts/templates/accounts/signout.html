@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}
+회원 탈퇴
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>회원 탈퇴</h2>
+  {% csrf_token %}
+  <!-- 탈퇴 확인 폼 -->
+  <form id="delete-account-form">
+    <div class="mb-3">
+      <label for="password" class="form-label">비밀번호 확인</label>
+      <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요" required>
+    </div>
+    
+    <button type="submit" class="btn btn-danger">회원 탈퇴</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+      alert('로그인한 사용자만 이용 가능합니다.');
+      window.location.href = '/api/accounts/login-page/';  // 로그인 페이지로 리다이렉트
+      return;  // 이후 코드를 실행하지 않도록 return
+    }
+
+    fetch("/api/accounts/user-info/", {
+      method: "GET",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,  // 변수로 가져온 토큰 사용
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 401) {  // 토큰 만료에 따른 리프레시
+          return fetch("/api/accounts/token/refresh/", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+          })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error('토큰 갱신 실패');
+            }
+            return res.json();
+          })
+          .then(data => {
+            // 새로 발급된 액세스 토큰 저장
+            localStorage.setItem('access_token', data.access);
+            return fetch("/api/accounts/user-info/", {
+              method: "GET",
+              headers: {
+                'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                'Content-Type': 'application/json'
+              }
+            });
+          });
+        } else {
+          throw new Error('인증 실패');
+        }
+      }
+      return response.json();
+    })
+    .then(data => {
+      // 로그인한 사용자가 질문 작성자가 아니면 리다이렉트 처리
+      if (data.nickname !== '{{ nickname }}') {
+        alert('작성자만 탈퇴가 가능합니다.');
+        window.location.href = '/';  // 메인 페이지 또는 다른 페이지로 리다이렉트
+      }
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    });
+  });
+    
+  // 탈퇴 폼 제출 처리
+  document.getElementById('delete-account-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // 폼 기본 제출 막기
+    
+    // 비밀번호 입력값 가져오기
+    const password = document.getElementById('password').value;
+    const accessToken = localStorage.getItem('access_token');  // 액세스 토큰 확인
+
+    if (!accessToken) {
+      alert('로그인 후 이용해주세요.');
+      window.location.href = '/api/accounts/login-page/';
+      return;
+    }
+
+    // 백엔드 API 호출 (회원탈퇴)
+    fetch(`/api/accounts/{{ nickname }}/delete/`, {  // 백엔드 URL에 맞게 수정
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,  // Authorization 헤더에 토큰 추가
+        'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰 추가 (Django의 경우)
+      },
+      body: JSON.stringify({ password: password })  // 비밀번호를 JSON으로 전송
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.error || '탈퇴 실패');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.message) {
+        // 탈퇴 성공 메시지
+        alert(data.message);
+        window.location.href = '/';  // 탈퇴 후 메인 페이지로 리다이렉트
+      } else if (data.error) {
+        // 오류 메시지 처리
+        alert(data.error);
+      }
+    })
+    .catch(error => {
+      console.error('회원탈퇴 요청 중 오류 발생:', error);
+      alert('회원탈퇴 요청 중 문제가 발생했습니다. 다시 시도해주세요.');
+    });
+  });
+</script>
+{% endblock %}
