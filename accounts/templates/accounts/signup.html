@@ -89,14 +89,14 @@
   </div>
 </div>
 {% endif %}
-{% endblock %}
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const messagePopupElement = document.getElementById('message-popup');
-    if (messagePopupElement) {
+    //if (messagePopupElement) {
       const messagePopup = new bootstrap.Modal(messagePopupElement);
       messagePopup.show();
-    }
+   // }
   });
 </script>
+{% endblock %}
