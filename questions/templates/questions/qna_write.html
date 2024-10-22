@@ -71,12 +71,12 @@
         return response.json();
       })
       .then(data => {
-        alert('저널이 성공적으로 작성되었습니다.');
+        alert('Q&A가 성공적으로 작성되었습니다.');
         window.location.href = `/api/questions/qna/page/`;
       })
       .catch(error => {
         console.error('에러 발생:', error);
-        alert(`저널 작성 중 문제가 발생했습니다: ${error.message}`);
+        alert(`Q&A 작성 중 문제가 발생했습니다: ${error.message}`);
       });
       
     }

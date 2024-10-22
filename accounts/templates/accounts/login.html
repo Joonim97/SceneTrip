@@ -46,6 +46,28 @@
     <a href="{% url 'accounts:kakaologinpage' %}" class="kakao-login-btn">카카오 계정으로 로그인하기</a>
   </form>
 
+  <!-- 메시지 팝업 -->
+  {% if messages %}
+  <div id="message-popup" class="modal fade" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">알림</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <script>
     document.getElementById('login-form').addEventListener('submit', function(event) {
       event.preventDefault();  // 기본 폼 제출 막기
@@ -86,6 +108,15 @@
         console.error('로그인 요청 중 에러 발생:', error);
         alert('로그인 요청 중 문제가 발생했습니다. 다시 시도해주세요.');
       });
+    });
+
+    // 팝업 메시지 표시
+    document.addEventListener('DOMContentLoaded', function () {
+      const messagePopupElement = document.getElementById('message-popup');
+      if (messagePopupElement) {
+        const messagePopup = new bootstrap.Modal(messagePopupElement);
+        messagePopup.show();
+      }
     });
   </script>
 </div>
