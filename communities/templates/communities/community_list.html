@@ -8,6 +8,19 @@
 <div class="container mt-5">
   <h1>커뮤니티 페이지</h1></h1>
 
+  <!-- 검색 폼 추가: 분류 선택 -->
+  <form method="GET" action="{% url 'communities:community_list' %}" class="mb-4">
+    <div class="input-group mb-3">
+      <select name="filter" class="form-select">
+        <option value="title" {% if request.GET.filter == 'title' %}selected{% endif %}>제목</option>
+        <option value="content" {% if request.GET.filter == 'content' %}selected{% endif %}>내용</option>
+        <option value="author" {% if request.GET.filter == 'author' %}selected{% endif %}>작성자</option>
+      </select>
+      <input type="text" name="search" class="form-control" placeholder="검색어 입력" value="{{ request.GET.search }}">
+      <button type="submit" class="btn btn-primary">검색</button>
+    </div>
+  </form>
+
   <!-- 테이블 형식으로 목록 표시 -->
   <table class="table table-striped table-hover">
     <thead>
@@ -16,7 +29,6 @@
         <th>제목</th>
         <th>글쓴이</th>
         <th>등록일</th>
-        <th>조회</th>
         <th>추천</th>
       </tr>
     </thead>
@@ -34,7 +46,6 @@
         </td>
         <td>{{ post.author.nickname }}</td>
         <td>{{ post.created_at|date:"m-d H:i" }}</td>
-        <td>{{ post.views }}</td>
         <td>{{ post.likes_count }}</td>
       </tr>
       {% endfor %}
@@ -46,12 +57,12 @@
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1" aria-label="처음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page=1" aria-label="처음">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="이전">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.previous_page_number }}" aria-label="이전">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -60,23 +71,23 @@
       {% for num in page_range %}
         {% if page_obj.number == num %}
         <li class="page-item active">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
         </li>
         {% else %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
         </li>
         {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="다음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.next_page_number }}" aria-label="다음">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>

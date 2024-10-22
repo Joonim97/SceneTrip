@@ -161,28 +161,29 @@ class Mypage(ListAPIView):  # 마이 페이지
     serializer_class = MyPageSerializer
 
     def get(self, request, nickname):
-        try:
-            # my_page 변수를 먼저 선언
-            my_page = get_object_or_404(User, nickname=nickname)
-            print(request.user)  # 현재 로그인한 사용자 출력
-            print(my_page.id)    # my_page의 ID 출력
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-
+        my_page = get_object_or_404(User, nickname=nickname)
+        
         # 요청한 사용자가 본인인지 확인
-        if my_page.id == request.user.id:
-            serializer = MyPageSerializer(my_page)
+        serializer = MyPageSerializer(my_page)
+
+        # 'edit' 파라미터가 있으면 회원정보 수정 페이지 렌더링
+        if request.GET.get('edit'):
+            return render(request, 'accounts/edit_profile.html', {'user': my_page})
+        else:
             return render(request, 'accounts/mypage.html', {'user': serializer.data})
-        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
 
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
         if user != request.user:
             return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
 
+        user.nickname = request.data.get('nickname', user.nickname)
+        user.email = request.data.get('email', user.email)
+        user.birth_date = request.data.get('birth_date', user.birth_date)
+        user.gender = request.data.get('gender', user.gender)
+
         if 'profile_image' in request.FILES:
-            profile_image = request.FILES['profile_image']
-            user.profile_image = profile_image
+            user.profile_image = request.FILES['profile_image']
         elif 'profile_image' in request.data and not request.data['profile_image']:
             user.profile_image = None
 
@@ -500,3 +501,30 @@ class UserInfoView(APIView):
             'email': user.email,
             'grade': user.grade  # grade 필드를 추가
         })
+        
+class EditProfileView(APIView):
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)
+
+        return render(request, 'accounts/edit_profile.html', {'user': user})
+
+    def put(self, request, nickname):
+
+        user = get_object_or_404(User, nickname=nickname)
+
+        if user != request.user:
+            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 사용자 입력 정보 업데이트
+        user.nickname = request.data.get('nickname', user.nickname)
+        user.email = request.data.get('email', user.email)
+        user.birth_date = request.data.get('birth_date', user.birth_date)
+        user.gender = request.data.get('gender', user.gender)
+
+        # 프로필 이미지 업데이트
+        if 'profile_image' in request.FILES:
+            user.profile_image = request.FILES['profile_image']
+
+        user.save()  # 변경사항 저장
+        return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)

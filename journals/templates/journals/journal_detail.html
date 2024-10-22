@@ -12,10 +12,10 @@
     <button id="subscribe-btn" class="btn btn-primary" onclick="toggleSubscribe('{{ journal.author_nickname }}')">
       구독하기
     </button>
-    <button id="edit-btn" class="btn btn-warning">수정</button>
-    <button id="delete-btn" class="btn btn-danger">삭제</button>
+    <button id="edit-btn" class="btn btn-warning" style="display: none;">수정</button>
+    <button id="delete-btn" class="btn btn-danger" style="display: none;">삭제</button>
   </p>
-  <p>작성일: {{ journal.created_at }}</p>
+  <p>작성일: <span id="created-at"></span></p>
 
   
   <div class="mb-3">
@@ -51,43 +51,20 @@
     <h5>댓글</h5>
     {% if journal.comments %}
       {% for comment in journal.comments %}
-        {% if not comment.parent %} <!-- 부모 댓글이 없는 댓글만 출력 (원댓글) -->
         <div class="comment mb-3">
-          <p><strong>{{ comment.user_nickname }}:</strong> {{ comment.content }}</p>
-          <p><small>{{ comment.created_at }}</small></p>
+          <p><strong>{{ comment.user_nickname }} :</strong> {{ comment.content }}</p>
+          <p><small id="created-at-{{ comment.id }}" data-created-at="{{ comment.created_at }}"></small></p>
   
           <!-- 댓글 좋아요/싫어요 버튼 및 카운트 -->
           <div class="d-flex align-items-center">
-            <button class="btn btn-link like-btn" data-comment-id="{{ comment.id }}" data-like-type="like">
-              👍 좋아요 (<span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>)
+            <button class="btn btn-sm btn-outline-success like-btn" data-comment-id="{{ comment.id }}" data-like-type="like">
+              👍 (<span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>)
             </button>
-            <button class="btn btn-link dislike-btn" data-comment-id="{{ comment.id }}" data-like-type="dislike">
-              👎 싫어요 (<span id="dislike-count-{{ comment.id }}">{{ comment.dislike_count }}</span>)
+            <button class="btn btn-sm btn-outline-danger dislike-btn" data-comment-id="{{ comment.id }}" data-like-type="dislike">
+              👎 (<span id="dislike-count-{{ comment.id }}">{{ comment.dislike_count }}</span>)
             </button>
-          </div>
-  
-          <!-- 대댓글 작성 버튼 -->
-          <button class="btn btn-link reply-btn" data-comment-id="{{ comment.id }}">대댓글 작성</button>
-  
-          <!-- 대댓글 작성 폼 (처음에는 숨김 상태) -->
-          <form id="reply-form-{{ comment.id }}" class="reply-form" style="display: none;" method="POST">
-            <textarea class="form-control" rows="2" placeholder="대댓글을 입력하세요"></textarea>
-            <button type="submit" class="btn btn-primary mt-2">대댓글 작성</button>
-          </form>
-  
-          <!-- 대댓글 출력 -->
-          <div class="replies ml-4">
-            {% for reply in journal.comments %}
-            {% if reply.parent.id == comment.id %} <!-- parent 필드가 원댓글의 id와 일치하는 경우만 -->
-            <div class="reply mb-2" style="border-left: 2px solid #ccc; padding-left: 10px;">
-              <p><strong>{{ reply.user_nickname }}:</strong> {{ reply.content }}</p>
-              <p><small>{{ reply.created_at }}</small></p>
-            </div>
-            {% endif %}
-            {% endfor %}
           </div>
         </div>
-        {% endif %}
       {% endfor %}
     {% else %}
       <p>댓글이 없습니다.</p>
@@ -107,6 +84,35 @@
 </div>
 
 <script>
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const accessToken = localStorage.getItem('access_token');
+
+    if (accessToken) {
+      fetch("/api/accounts/user-info/", {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 로그인한 사용자의 닉네임과 작성자의 닉네임이 일치하는지 확인
+        if (data.nickname === "{{ journal.author_nickname }}") {
+          // 작성자가 일치하면 수정, 삭제 버튼을 표시
+          document.getElementById('edit-btn').style.display = 'inline-block';
+          document.getElementById('delete-btn').style.display = 'inline-block';
+        }
+      })
+      .catch(error => {
+        console.error('에러 발생:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      });
+    }
+});
+
   function toggleSubscribe(authorNickname) {
     const accessToken = localStorage.getItem('access_token');
     if (!accessToken) {
@@ -232,55 +238,6 @@
     });
   });
 
-  // 대댓글 폼 토글
-  document.querySelectorAll('.reply-btn').forEach(button => {
-    button.addEventListener('click', function() {
-      const commentId = button.getAttribute('data-comment-id');
-      const replyForm = document.getElementById(`reply-form-${commentId}`);
-      replyForm.style.display = (replyForm.style.display === 'none') ? 'block' : 'none';
-    });
-  });
-
-  // 대댓글 작성 처리
-  document.querySelectorAll('.reply-form').forEach(form => {
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const parentCommentId = form.id.split('-')[2];
-      const replyContent = form.querySelector('textarea').value;
-      const accessToken = localStorage.getItem('access_token');
-
-      if (!accessToken) {
-        alert('로그인 후 이용해주세요.');
-        window.location.href = "{% url 'accounts:login_page' %}";
-        return;
-      }
-
-      fetch(`/api/journals/{{ journal.id }}/comments/${parentCommentId}/`, {
-        method: "POST",
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-
-        },
-        body: JSON.stringify({
-          content: replyContent
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('대댓글 작성 실패');
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert('대댓글이 성공적으로 작성되었습니다.');
-        location.reload();  // 페이지 새로고침
-      })
-      .catch(error => {
-        console.error('에러 발생:', error);
-        alert('대댓글 작성 중 문제가 발생했습니다.');
-      });
-    });
-  });
 
   // 댓글 작성 처리
   document.getElementById('comment-form').addEventListener('submit', function(event) {
@@ -368,7 +325,28 @@
       alert('수정 페이지로 이동할 수 없습니다.');
     });
   });
-  
+
+  // 댓글의 created_at을 처리하는 함수
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = String(date.getFullYear()).slice(2);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  }
+
+  // 모든 댓글의 날짜를 처리하는 부분
+  document.querySelectorAll('[id^="created-at-"]').forEach(function(element) {
+    const createdAt = element.getAttribute('data-created-at');
+    element.textContent = formatDate(createdAt);
+  });
+
+  const createdAt = "{{ journal.created_at }}"; 
+
+  // 변환된 날짜를 HTML에 표시
+  document.getElementById('created-at').textContent = formatDate(createdAt);
   
 </script>
 

@@ -7,10 +7,9 @@
 {% block content %}
 <div class="container mt-5">
   <h2>{{ user.nickname }}님의 마이페이지</h2>
-  <p>로그인한 사용자 닉네임: {{ logged_in_user.nickname }}</p>
   <p>이메일: {{ user.email }}</p>
   <p>성별: {{ user.gender }}</p>
-  <p>생일: {{ user.birth_date }}</p>
+  <p>생년월일: {{ user.birth_date }}</p>
 
   <h3>구독 중인 사용자</h3>
   <ul>
@@ -32,7 +31,13 @@
       <li>{{ journal.title }}</li>
     {% endfor %}
   </ul>
+
+  <!-- 회원정보수정 버튼 추가 -->
+  <div class="mt-4">
+    <a href="{% url 'accounts:edit_profile' user.nickname %}" class="btn btn-primary">회원정보수정</a>
+  </div>  
 </div>
+{% endblock %}
 
 {% comment %} <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -46,5 +51,3 @@
     }
   });
 </script> {% endcomment %}
-
-{% endblock %}

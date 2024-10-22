@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     CommentView, CommentLikeView, CommunityListAPIView, CommunityDetailAPIView,
-    CommunityUnusableAPIView,CommunityLikeAPIView, CommunityDislikeAPIView, CommunityWriteView, CommunityListView
+    CommunityUnusableAPIView,CommunityLikeAPIView, CommunityDislikeAPIView, CommunityWriteView, CommunityListView, CommunityEditAPIView
     )
 
 app_name = "communities"
@@ -28,4 +28,5 @@ urlpatterns = [
     
     path('write/', CommunityWriteView.as_view(), name='community_write'),
     path('list/', CommunityListView.as_view(), name='community_list'),
+    path('<int:pk>/edit/', CommunityEditAPIView.as_view(), name='community_edit'),
 ]   

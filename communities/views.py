@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Comment, CommentLike, CommunityLike, CommunityDislike, Community, CommunityImage
 from .serializers import CommentSerializer, CommunitySerializer, CommunityDetailSerializer
 
@@ -114,13 +115,28 @@ class CommunityListAPIView(ListAPIView): # 커뮤 전체목록조회, 커뮤니�
             
             
 class CommunityListView(ListView):
+    serializer_class = CommunitySerializer
     model = Community
     template_name = 'communities/community_list.html'  # 사용할 템플릿
     context_object_name = 'communities'  # 템플릿에서 사용할 변수명
     paginate_by = 10  # 페이지당 표시할 글 수
 
     def get_queryset(self):
-        return Community.objects.all().order_by('-created_at')  # 최신 글 순으로 정렬
+        queryset = Community.objects.all().order_by('-created_at')
+
+        # 검색 파라미터 처리
+        search_query = self.request.GET.get('search', None)
+        filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
+
+        if search_query:
+            if filter_by == 'title':
+                queryset = queryset.filter(title__icontains=search_query)
+            elif filter_by == 'content':
+                queryset = queryset.filter(content__icontains=search_query)
+            elif filter_by == 'author':
+                queryset = queryset.filter(author__nickname__icontains=search_query)
+
+        return queryset
 
 
 class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
@@ -148,7 +164,7 @@ class CommunityDetailAPIView(APIView): # 커뮤니티 상세조회,수정,삭제
             community = self.get_object(pk)
             community_images = request.FILES.getlist('images')
             serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
-            
+            print(request.user)
             if community.author != request.user :
                 return Response( {"error" : "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
             
@@ -247,9 +263,39 @@ class CommunityWriteView(APIView):
             # 이미지 파일 처리
             for image in request.FILES.getlist('community_images'):
                 CommunityImage.objects.create(community=community, community_image=image)
+            print(community.id)
 
             # 성공적으로 작성한 경우 JSON 응답 반환
             return JsonResponse({'message': 'Community post created successfully', 'id': community.id}, status=201)
+
         else:
             # 유효성 검사 실패 시 JSON 응답 반환
             return JsonResponse({'errors': form.errors}, status=400)
+        
+        
+class CommunityEditAPIView(APIView):
+
+    def get_object(self, pk):
+        return get_object_or_404(Community, pk=pk)
+
+    def get(self, request, pk):  # 커뮤니티 수정 페이지에서 기존 데이터 가져오기
+        community = self.get_object(pk)
+    
+
+        context = {
+            'community': community  # 기존 커뮤니티 데이터를 템플릿에 전달
+        }
+
+        return render(request, 'communities/community_write.html', context)  # community_write.html로 렌더링
+
+    def put(self, request, pk):  # 커뮤니티 수정
+        community = self.get_object(pk)
+
+        if community.author != request.user:
+            return Response({"error": "다른 사용자의 글은 수정할 수 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = CommunityDetailSerializer(community, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

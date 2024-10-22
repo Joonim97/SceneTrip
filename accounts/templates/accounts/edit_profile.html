@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}
+회원정보수정
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>회원정보수정</h2>
+  
+  <form method="POST" enctype="multipart/form-data" id="edit-profile-form">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+      <label for="nickname" class="form-label">닉네임</label>
+      <input type="text" class="form-control" id="nickname" name="nickname" value="{{ user.nickname }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="email" class="form-label">이메일</label>
+      <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="birth_date" class="form-label">생년월일</label>
+      <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ user.birth_date|date:'Y-m-d' }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="gender" class="form-label">성별</label>
+      <select id="gender" name="gender" class="form-select">
+        <option value="남성" {% if user.gender == '남성' %}selected{% endif %}>남성</option>
+        <option value="여성" {% if user.gender == '여성' %}selected{% endif %}>여성</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="profile_image" class="form-label">프로필 이미지</label>
+      <input type="file" class="form-control" id="profile_image" name="profile_image">
+    </div>
+
+    <button type="submit" class="btn btn-primary">수정하기</button>
+  </form>
+</div>
+
+<script>
+    document.getElementById('edit-profile-form').onsubmit = function(event) {
+        event.preventDefault();  // 기본 폼 제출 동작을 막습니다.
+    
+        const accessToken = localStorage.getItem('access_token');
+        const formData = new FormData(this);
+    
+        fetch("{% url 'accounts:edit_profile' user.nickname %}", {
+            method: 'PUT',  // PUT 메서드로 요청을 보냅니다.
+            body: formData,
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('수정 실패');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.message) {
+                alert(data.message);
+                window.location.href = "{% url 'accounts:my_page' user.nickname %}";
+            } else {
+                alert('수정 중 오류가 발생했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+        });
+    }
+</script>
+{% endblock %}
