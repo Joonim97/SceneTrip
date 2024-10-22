@@ -5,8 +5,8 @@ from .views import (SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAP
                     PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView,
                     EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
                     LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, 
-                    MyCommunityListAPIView, DeleteAPIView, VerifyjJurnalEmailAPIView, SocialCallbackView, LoginView,
-                    VerifyjJournalEmailAPIView,UserInfoView, mypage)
+                    MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, SocialCallbackView, LoginView,
+                    VerifyjJournalEmailAPIView,UserInfoView, mypage, SetNicknameView)
 
 app_name = 'accounts'
 
@@ -26,7 +26,6 @@ urlpatterns = [
     path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
-    # path('accounts/<str:nickname>/<uuid:uuid>/', mypage, name='html-mypage'),
 
     # 마이페이지에서 보이는 기능
     path('<str:nickname>/mypage/journallike/', LikeJournalsListAPIView.as_view(), name='journal_like'), # 내가 좋아요한 저널 글 목록
@@ -42,6 +41,10 @@ urlpatterns = [
     path("<str:nickname>/mypage/", mypage, name='my_page'),
 
     # 소셜 로그인
-    path('social/login/<str:provider>/', SocialLoginView.as_view(), name='kakao_login'),  # 카카오 로그인 URL
+    # path('index/', views.index, name='index'),
+    path('kakaologinpage/', views.kakaologinpage, name='kakaologinpage'),
+    path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao_login'),  # 카카오 로그인 URL
     path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao_callback'),  # 카카오 콜백 URL
+    # path('set_nickname/<str:refresh>/<str:access>/', views.set_nickname, name='set-nickname'),
+    path('set_nickname/', SetNicknameView.as_view(), name='set-nickname'),
 ]
