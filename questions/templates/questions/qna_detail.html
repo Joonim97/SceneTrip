@@ -103,6 +103,67 @@
 document.addEventListener('DOMContentLoaded', function() {
   const accessToken = localStorage.getItem('access_token');
 
+    if (!accessToken) {
+      alert('로그인한 사용자만 이용 가능합니다.');
+      window.location.href = '/api/accounts/login-page/';  // 로그인 페이지로 리다이렉트
+      return;  // 이후 코드를 실행하지 않도록 return
+    }
+
+    fetch("/api/accounts/user-info/", {
+      method: "GET",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,  // 변수로 가져온 토큰 사용
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 401) {  // 토큰 만료에 따른 리프레시
+          return fetch("/api/accounts/token/refresh/", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 'refresh': localStorage.getItem('refresh_token') })
+          })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error('토큰 갱신 실패');
+            }
+            return res.json();
+          })
+          .then(data => {
+            // 새로 발급된 액세스 토큰 저장
+            localStorage.setItem('access_token', data.access);
+            return fetch("/api/accounts/user-info/", {
+              method: "GET",
+              headers: {
+                'Authorization': `Bearer ${data.access}`,  // 새로운 액세스 토큰 사용
+                'Content-Type': 'application/json'
+              }
+            });
+          });
+        } else {
+          throw new Error('인증 실패');
+        }
+      }
+      return response.json();
+    })
+    .then(data => {
+      // 로그인하지 않은 사용자의 경우 처리
+      if (data.nickname !== '{{ question.author }}') {
+        // 로그인했지만 작성자가 아닌 경우
+        alert('작성자만 들어갈 수 있습니다.');
+        window.location.href = '/api/questions/qna/page/';  // qna 페이지로 리다이렉트
+      }
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    });
+  }
+);
   // 수정 버튼 클릭 시 수정 폼 표시
   document.getElementById('edit-btn').addEventListener('click', function() {
     document.getElementById('question-content').style.display = 'none'; // 기존 내용 숨기기
@@ -241,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
-});
+
 </script>
 
 {% endblock %}
