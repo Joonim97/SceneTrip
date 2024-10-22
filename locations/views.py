@@ -59,14 +59,15 @@ class LocationListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         keyword = self.request.GET.get('keyword', None)
-        
+        filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
+
+        # 검색어가 있을 경우 분류에 따라 필터링
         if keyword:
-            queryset = queryset.filter(
-                Q(title__icontains=keyword) |
-                Q(place_name__icontains=keyword) |
-                Q(address__icontains=keyword) |
-                Q(place_description__icontains=keyword)
-            )
+            if filter_by == 'title':
+                queryset = queryset.filter(Q(title__icontains=keyword))
+            elif filter_by == 'address':
+                queryset = queryset.filter(Q(address__icontains=keyword))
+
         return queryset
 
     def get_context_data(self, **kwargs):

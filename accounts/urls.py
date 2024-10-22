@@ -1,12 +1,14 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
-from .views import (SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, 
-                    PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView,
-                    EamilResetConfirmView, MyJournalsListAPIView, SavedLocationsListAPIView, 
-                    LikeJournalsListAPIView, SubscribingsListAPIView, SubsribingsjournalAPI, 
-                    MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, SocialCallbackView, LoginView,
-                    VerifyjJournalEmailAPIView, UserInfoView, mypage, SetNicknameView)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from .views import (
+    SignupAPIView, SocialLoginView, VerifyEmailAPIView, LogoutAPIView, SubscribeView, Mypage, 
+    PasswordResetRequestView, PasswordResetConfirmView, EmailResetRequestView, EamilResetConfirmView, 
+    MyJournalsListAPIView, SavedLocationsListAPIView, LikeJournalsListAPIView, SubscribingsListAPIView, 
+    SubsribingsjournalAPI, MyCommunityListAPIView, DeleteAPIView, VerifyjJournalEmailAPIView, 
+    SocialCallbackView, LoginView, UserInfoView, SetNicknameView, mypage, EditProfileView
+)
 
 app_name = 'accounts'
 
@@ -22,12 +24,13 @@ urlpatterns = [
     path('emailreset/', EmailResetRequestView.as_view(), name='email_reset'), # 이메일 초기화
     path('emailchange/verify/<str:token>/', EamilResetConfirmView.as_view(), name='emailverifyemail'), # 이메일변경 이메일 인증
 
+
     ######## 마이페이지 관련된 url
     path("<str:nickname>/mypage/", Mypage.as_view(), name="mypage"), # 마이페이지
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # 리프레시 토큰
     path("logout/", LogoutAPIView.as_view(), name="logout"), # 로그아웃
 
-    # 마이페이지에서 보이는 기능
+
     path('<str:nickname>/mypage/journallike/', LikeJournalsListAPIView.as_view(), name='journal_like'), # 내가 좋아요한 저널 글 목록
     path('<str:nickname>/mypage/myjournals/', MyJournalsListAPIView.as_view(), name='my_journals'), # 내가 쓴 글 전체보기
     path('<str:nickname>/mypage/savedlocations/', SavedLocationsListAPIView.as_view(), name='saved_locations'), # 저장한 촬영지 전체보기
@@ -38,11 +41,16 @@ urlpatterns = [
     # 회원탈퇴
     path('<str:nickname>/delete/', DeleteAPIView.as_view(), name='accounts_delete'), # 회원탈퇴
     path('user-info/', UserInfoView.as_view(), name='user_info'),  # 사용자 정보 API
-    path("<str:nickname>/mypage/", mypage, name='my_page'),
+    
+    # path("<str:nickname>/mypage/", mypage, name='my_page'), 중복되고 있음 확인 필요
+
 
     # 소셜 로그인
     path('kakaologinpage/', views.kakaologinpage, name='kakaologinpage'),
     path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao-login'),  # 카카오 로그인 URL
     path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao-callback'),  # 카카오 콜백 URL
     path('set_nickname/', SetNicknameView.as_view(), name='set-nickname'),
+
+    
+    path('<str:nickname>/edit/', EditProfileView.as_view(), name='edit_profile'), #회원정보 수정
 ]

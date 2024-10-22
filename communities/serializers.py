@@ -11,10 +11,11 @@ class CommentSerializer(serializers.ModelSerializer): # 커뮤 댓글 시리얼�
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     replies = RecursiveSerializer(many=True, read_only=True)
+    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
     
     class Meta:
         model = Comment
-        fields = ['id', 'community', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies']
+        fields = ['id', 'community', 'user', 'content', 'parent', 'created_at', 'like_count', 'dislike_count', 'replies', 'user_nickname']
         read_only_fields = ['community', 'user', 'created_at', 'like_count', 'dislike_count', 'replies']
         
     def get_like_count(self, comment):

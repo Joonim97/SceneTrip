@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     'communities',
     'locations',
     'questions',
+    
     # 조회수
     'hitcount',
 ]
@@ -121,6 +122,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 ### CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
+
 CORS_ALLOW_METHODS = [  # 허용할 옵션
     "DELETE",
     "GET",
@@ -145,6 +147,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # 모든 도메인에서 요청 허용
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGIN_REGEXES = []
 ###
+
 
 
 ROOT_URLCONF = 'SceneTrip.urls'

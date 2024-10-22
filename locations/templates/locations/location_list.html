@@ -5,19 +5,41 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .filter-select {
+    max-width: 100px; /* 드롭다운 크기 조정 */
+  }
+  
+  .search-input {
+    margin-right: 10px; /* 검색창과 버튼 사이 여백 추가 */
+    flex-grow: 1; /* 검색창이 더 넓어지도록 설정 */
+  }
+  
+  .search-btn {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+</style>
 <div class="container mt-5">
   <h1>촬영지 목록</h1>
-  <br><br>
-    <!-- 검색 바 추가 -->
-    <form method="get" action="{% url 'locations:location_list' %}" class="mb-4">
-      <div class="input-group">
-        <input type="text" class="form-control" name="keyword" placeholder="촬영지 검색..." value="{{ request.GET.keyword }}">
-        <div class="input-group-append">
-          <button class="btn btn-primary" type="submit">검색</button>
-        </div>
+
+  <br>
+  
+  <form method="GET" action="{% url 'locations:location_list' %}" class="mb-4">
+    <div class="input-group mb-3">
+      <select name="filter" class="form-select form-select-sm filter-select">
+        <option value="title" {% if request.GET.filter == 'title' %}selected{% endif %}>작품별</option>
+        <option value="address" {% if request.GET.filter == 'address' %}selected{% endif %}>주소별</option>
+      </select>
+      <input type="text" name="keyword" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.keyword }}">
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary search-btn">검색</button>
       </div>
-    </form>
-    <br><br>
+    </div>
+  </form>
+
+  <br>
+
   <div class="row">
     {% for location in page_obj %}
     <div class="col-md-4 mb-4">
@@ -25,9 +47,9 @@
         <div class="card-body">
           <h5 class="card-title">{{ location.title }}</h5>
           <p class="card-text"><strong>장소 이름:</strong> {{ location.place_name }}</p>
-          <p class="card-text"><strong>설명:</strong> {{ location.place_description|slice:":100" }}...</p>
+          {% comment %} <p class="card-text"><strong>설명:</strong> {{ location.place_description|slice:":100" }}...</p>
           <p class="card-text"><strong>영업 시간:</strong> {{ location.opening_hours }}</p>
-          <p class="card-text"><strong>주소:</strong> {{ location.address }}</p>
+          <p class="card-text"><strong>주소:</strong> {{ location.address }}</p> {% endcomment %}
           <p class="card-text"><small>저장 수: {{ location.save_count }}</small></p>
           <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-primary">자세히 보기</a>
         </div>
@@ -37,42 +59,44 @@
   </div>
 
 
-  <!-- 페이지네이션 --><nav aria-label="Page navigation">
+  <br>
+
+  <!-- 페이지네이션 -->
+  <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="처음">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page=1" aria-label="처음">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="이전">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.previous_page_number }}" aria-label="이전">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
       {% endif %}
-      
-      <!-- 페이지 범위 출력 -->
+
       {% for num in page_range %}
-      {% if page_obj.number == num %}
-      <li class="page-item active">
-        <a class="page-link" href="?page={{ num }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
-      </li>
-      {% else %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ num }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">{{ num }}</a>
-      </li>
-      {% endif %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}">{{ num }}</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
       {% endfor %}
       
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="다음">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.next_page_number }}" aria-label="다음">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}" aria-label="마지막">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>

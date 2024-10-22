@@ -182,36 +182,6 @@ class DeleteAPIView(APIView):  # 회원탈퇴
         # 유효성 검사를 통과하지 못한 경우
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# # 마이페이지
-# class Mypage(ListAPIView): # 마이 페이지
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = MyPageSerializer
-    
-#     def get(self, request, nickname):
-#             print(request.user)
-#             try:
-#                 my_page = get_object_or_404(User, nickname=nickname)
-#             except:
-#                 return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-            
-#             if my_page.id == request.user.id:
-#                 serializer = MyPageSerializer(my_page)
-#                 return render(request, 'accounts/mypage.html', {'user': serializer.data})
-#             return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
-    
-#     def put(self, request, nickname):
-#         user = get_object_or_404(User, nickname=nickname)
-#         if user != request.user:
-#             return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
-
-#         user.author_verification_token = ''
-#         if user.grade == User.NORMAL:  
-#             user.grade = User.AUTHOR
-#             user.save()
-#             return HttpResponse('f{user.username}님이 관리자에의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
-#         else:
-#             return HttpResponse({'error':'정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class DeleteAPIView(APIView):  # 회원탈퇴
     permission_classes = [IsAuthenticated]
@@ -244,28 +214,29 @@ class Mypage(ListAPIView):  # 마이 페이지
     serializer_class = MyPageSerializer
 
     def get(self, request, nickname):
-        try:
-            # my_page 변수를 먼저 선언
-            my_page = get_object_or_404(User, nickname=nickname)
-            print(request.user)  # 현재 로그인한 사용자 출력
-            print(my_page.id)    # my_page의 ID 출력
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-
+        my_page = get_object_or_404(User, nickname=nickname)
+        
         # 요청한 사용자가 본인인지 확인
-        if my_page.id == request.user.id:
-            serializer = MyPageSerializer(my_page)
+        serializer = MyPageSerializer(my_page)
+
+        # 'edit' 파라미터가 있으면 회원정보 수정 페이지 렌더링
+        if request.GET.get('edit'):
+            return render(request, 'accounts/edit_profile.html', {'user': my_page})
+        else:
             return render(request, 'accounts/mypage.html', {'user': serializer.data})
-        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
 
     def put(self, request, nickname):
         user = get_object_or_404(User, nickname=nickname)
         if user != request.user:
             return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
 
+        user.nickname = request.data.get('nickname', user.nickname)
+        user.email = request.data.get('email', user.email)
+        user.birth_date = request.data.get('birth_date', user.birth_date)
+        user.gender = request.data.get('gender', user.gender)
+
         if 'profile_image' in request.FILES:
-            profile_image = request.FILES['profile_image']
-            user.profile_image = profile_image
+            user.profile_image = request.FILES['profile_image']
         elif 'profile_image' in request.data and not request.data['profile_image']:
             user.profile_image = None
 
@@ -286,24 +257,6 @@ def mypage(request, nickname):
     }
     
     return render(request, 'accounts/mypage.html', context)
-
-
-# 회원가입 시 grade가 journal, 관리자가 해당 link를 누른 경우
-class VerifyjJurnalEmailAPIView(APIView):
-    def get(self, request, token):
-        try:
-            user = get_object_or_404(User, author_verification_token=token)
-            if user.grade == 'no_author':
-                user.grade = 'author' # 등급을 AUTHOR로 변경
-                user.is_active = True  # 사용자 활성화
-                user.author_verification_token = ''  # 인증 토큰 초기화
-                user.save()
-                return Response(f'{user.username}님이 관리자에 의해 저널리스트로 승인되셨습니다.', status=status.HTTP_200_OK)
-            else:
-                return Response({'error': '이메일 인증이 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({'error': '정상적으로 처리되지 않으셨습니다.', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 비밀번호 리셋 로직
@@ -354,6 +307,7 @@ class PasswordResetConfirmView(APIView):
         except:
             return HttpResponse({'error':'비밀번호 변경이 정상적으로 처리되지 않으셨습니다.'}, status=status.HTTP_400_BAD_REQUEST)    
 
+
 # 이메일 초기화
 class EmailResetRequestView(PermissionAPIView):
     def post(self, request):
@@ -380,6 +334,7 @@ class EmailResetRequestView(PermissionAPIView):
         
         except:
             return Response({"error": "사용자를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+
 
 # 이메일 인증 메일이 날아올 경우
 class EamilResetConfirmView(APIView):
@@ -416,6 +371,7 @@ class LogoutAPIView(PermissionAPIView):
         except:
             return Response({'error':'오류가 발생하였습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 # 회원탈퇴
 class DeleteAPIView(PermissionAPIView):
     def delete(self, request, nickname):
@@ -439,38 +395,8 @@ class DeleteAPIView(PermissionAPIView):
 
         # 유효성 검사를 통과하지 못한 경우
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-# 마이페이지
-class Mypage(ListAPIView): # 마이 페이지
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request, nickname):
-        try:
-            my_page = get_object_or_404(User, nickname=nickname)
-        except:
-            return Response({"error": "해당 유저를 찾을 수 없습니다."}, status=404)
-        if my_page == request.user:
-            serializer = MyPageSerializer(my_page)
-            return Response({'내 정보':serializer.data},status=200)
-        return Response({"error": "다른 유저의 마이페이지는 볼 수 없습니다."}, status=400)
-    
-    # 프로필 수정
-    def put(self, request, nickname):
-        user = get_object_or_404(User, nickname=nickname)
-        if user != request.user:
-            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
         
-        if 'profile_image' in request.FILES:
-            profile_image = request.FILES['profile_image']
-            user.profile_image = profile_image 
-        elif 'profile_image' in request.data and not request.data['profile_image']:
-            user.profile_image = None
-
-        user.save()  # 변경 사항 저장
-        return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
-
+        
 # 구독 기능
 class SubscribeView(PermissionAPIView):
 
@@ -487,7 +413,6 @@ class SubscribeView(PermissionAPIView):
                 return Response({"message": "구독했습니다."}, status=status.HTTP_200_OK)
             else:
                 return Response({"message": "자신을 구독할 수 없습니다."}, status=status.HTTP_200_OK)
-            
 
 
 # 내가 쓴 글
@@ -571,6 +496,7 @@ class SubsribingsjournalAPI(BaseListAPIView):
             return Response({'구독한 사용자의 글': serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "구독한 사용자가 아닙니다."}, status=400)
 
+
 # 내가 작성한 커뮤니티 목록
 class MyCommunityListAPIView(BaseListAPIView):
     def get(self, request, nickname):
@@ -610,6 +536,7 @@ class LikeJournalsListAPIView(BaseListAPIView):
             return Response({'내가 좋아요한 저널 글 목록': serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "다시 시도"}, status=400)  # 본인이 아닐 경우   
 
+
 class UserInfoView(APIView):
     def get(self, request):
         user = request.user
@@ -620,6 +547,34 @@ class UserInfoView(APIView):
             'email': user.email,
             'grade': user.grade  # grade 필드를 추가
         })
+        
+        
+class EditProfileView(APIView):
+
+    def get(self, request, nickname):
+        user = get_object_or_404(User, nickname=nickname)
+
+        return render(request, 'accounts/edit_profile.html', {'user': user})
+
+    def put(self, request, nickname):
+
+        user = get_object_or_404(User, nickname=nickname)
+
+        if user != request.user:
+            return Response({"error": "사용자만 수정 가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 사용자 입력 정보 업데이트
+        user.nickname = request.data.get('nickname', user.nickname)
+        user.email = request.data.get('email', user.email)
+        user.birth_date = request.data.get('birth_date', user.birth_date)
+        user.gender = request.data.get('gender', user.gender)
+
+        # 프로필 이미지 업데이트
+        if 'profile_image' in request.FILES:
+            user.profile_image = request.FILES['profile_image']
+
+        user.save()  # 변경사항 저장
+        return Response({"message": "프로필 정보가 업데이트되었습니다."}, status=status.HTTP_200_OK)
 
 #################################################################################################################
 #################################################################################################################
@@ -835,4 +790,3 @@ class SetNicknameView(APIView):
             'refresh_token': refresh,
             'access_token': access
         })
-    

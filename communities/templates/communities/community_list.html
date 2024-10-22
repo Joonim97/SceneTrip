@@ -5,6 +5,50 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .filter-select {
+    max-width: 100px; /* 드롭다운 크기 조정 */
+  }
+  
+  .search-input {
+    margin-right: 10px; /* 검색창과 버튼 사이 여백 추가 */
+    flex-grow: 1; /* 검색창이 더 넓어지도록 설정 */
+  }
+  
+  .search-btn {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .select-lg {
+    width: 150px; /* select 크기 줄이기 */
+  }
+  
+  .input-group {
+    display: flex;
+    justify-content: space-between; /* 검색 요소들 사이에 공간을 배치 */
+  }
+  
+  .btn-primary {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: 5px;
+  }
+  
+  /* 모던한 느낌을 위한 추가 디자인 */
+  .card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .pagination .page-item .page-link {
+    padding: 0.75rem 1.25rem;
+    border-radius: 5px;
+  }
+</style>
 <div class="container mt-5">
   <h1>커뮤니티 페이지</h1></h1>
   <!-- 테이블 형식으로 목록 표시 -->
@@ -15,7 +59,6 @@
         <th>제목</th>
         <th>글쓴이</th>
         <th>등록일</th>
-        <th>조회</th>
         <th>추천</th>
       </tr>
     </thead>
@@ -33,24 +76,35 @@
         </td>
         <td>{{ post.author.nickname }}</td>
         <td>{{ post.created_at|date:"m-d H:i" }}</td>
-        <td>{{ post.views }}</td>
         <td>{{ post.likes_count }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
+  <form method="GET" action="{% url 'communities:community_list' %}" class="mb-4">
+    <div class="input-group mb-3">
+      <select name="filter" class="form-select form-select-sm filter-select">
+        <option value="title" {% if request.GET.filter == 'title' %}selected{% endif %}>제목</option>
+        <option value="content" {% if request.GET.filter == 'content' %}selected{% endif %}>내용</option>
+        <option value="author" {% if request.GET.filter == 'author' %}selected{% endif %}>작성자</option>
+      </select>
+      <input type="text" name="search" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.search }}">
+      <button type="submit" class="btn btn-primary search-btn">검색</button>
+    </div>
+  </form>
+
   <!-- 페이지네이션 -->
   <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1" aria-label="처음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page=1" aria-label="처음">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="이전">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.previous_page_number }}" aria-label="이전">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -59,23 +113,23 @@
       {% for num in page_range %}
         {% if page_obj.number == num %}
         <li class="page-item active">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
         </li>
         {% else %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
         </li>
         {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="다음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.next_page_number }}" aria-label="다음">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>

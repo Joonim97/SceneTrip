@@ -5,15 +5,43 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .filter-select {
+    max-width: 100px; /* 드롭다운 크기 조정 */
+  }
+  
+  .search-input {
+    margin-right: 10px; /* 검색창과 버튼 사이 여백 추가 */
+    flex-grow: 1; /* 검색창이 더 넓어지도록 설정 */
+  }
+  
+  .search-btn {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+</style>
 <div class="container mt-5">
   <h1>저널 목록</h1>
+
+  <form method="GET" action="{% url 'journals:journal_list' %}" class="mb-4">
+    <div class="input-group mb-3">
+      <select name="filter" class="form-select form-select-sm filter-select">
+        <option value="title" {% if request.GET.filter == 'title' %}selected{% endif %}>제목</option>
+        <option value="content" {% if request.GET.filter == 'content' %}selected{% endif %}>내용</option>
+        <option value="author" {% if request.GET.filter == 'author' %}selected{% endif %}>작성자</option>
+      </select>
+      <input type="text" name="search" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.search }}">
+      <button type="submit" class="btn btn-primary search-btn">검색</button>
+    </div>
+  </form>
+
   <div class="row">
-    {% for journal in page_obj %}  <!-- 수정: page_obj로 변경 -->
-    <div class="col-md-4 mb-4"> <!-- col-md-4에서 col-md-6으로 변경하여 한 줄에 2개씩 배치 -->
+    {% for journal in page_obj %}
+    <div class="col-md-4 mb-4">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">{{ journal.title }}</h5>
-          <p class="card-text">{{ journal.content|slice:":100" }}...</p> <!-- 저널 내용 일부만 표시 -->
+          <p class="card-text">{{ journal.content|slice:":100" }}...</p>
           <p class="card-text"><small>작성자: {{ journal.author.nickname }} | 조회수: {{ journal.views }}</small></p>
           <a href="{% url 'journals:journal_detail' journal.id %}" class="btn btn-primary">더 읽기</a>
         </div>
@@ -22,48 +50,51 @@
     {% endfor %}
   </div>
 
+
   <!-- 페이지네이션 -->
   <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1" aria-label="처음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page=1" aria-label="처음">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="이전">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.previous_page_number }}" aria-label="이전">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
       {% endif %}
-      
-      <!-- 페이지 번호 출력 -->
+
       {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-        <li class="page-item active">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% else %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-        </li>
-        {% endif %}
+      {% if page_obj.number == num %}
+      <li class="page-item active">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
+      </li>
+      {% else %}
+      <li class="page-item">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
+      </li>
+      {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="다음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.next_page_number }}" aria-label="다음">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>
       {% endif %}
     </ul>
   </nav>
+
+
+
 </div>
 {% endblock %}

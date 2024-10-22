@@ -22,56 +22,56 @@ import datetime
 
 
 class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성, 저널검색
-        serializer_class = JournalSerializer
-        queryset = Journal.objects.all().order_by('-created_at') # 생성최신순
-        parser_classes = (MultiPartParser, FormParser)
+    serializer_class = JournalSerializer
+    parser_classes = (MultiPartParser, FormParser)
         
-        def get_queryset(self): # 저널전체목록조회 & 저널검색 | method는 get | 검색어 아무것도 안 넣으면 전체목록 나옴
-            permission_classes = [AllowAny]
-            queryset = Journal.objects.all().order_by('-created_at')
-            search_query= self.request.query_params.get('search', None) # 통합검색 | 'search'라는 파라미터로 검색어를 받음
-            title_query= self.request.query_params.get('title',None) # 제목 검색
-            content_query= self.request.query_params.get('content',None) # 내용 검색
-            author_query= self.request.query_params.get('author',None) # 작성자 검색
-            start_date= self.request.query_params.get('start_date', None) # 기간시작일
-            end_date= self.request.query_params.get('end_date', None) # 기간종료일
-            # 기간입력 예: ?start_date=2023-01-01&end_date=2023-12-31
-            
-            if search_query:
-                queryset=queryset.filter(
-                    Q(title__icontains=search_query) | Q(content__icontains=search_query) | Q(author__nickname__icontains=search_query) )
-            if title_query :
-                queryset=queryset.filter( Q(title__icontains=title_query) )
-            if content_query :
-                queryset=queryset.filter( Q(content__icontains=content_query) )
-            if author_query :
-                queryset=queryset.filter( Q(author__nickname__icontains=author_query) )
-            
-            if start_date:
-                start_date_parsed = parse_date(start_date) 
-                if start_date_parsed:
-                    queryset = queryset.filter(created_at__gte=start_date_parsed)
+    def get_queryset(self):
+        permission_classes = [AllowAny]
+        queryset = Journal.objects.all().order_by('-created_at')
 
-            if end_date:
-                end_date_parsed = parse_date(end_date)
-                if end_date_parsed:
-                    queryset = queryset.filter(created_at__lte=end_date_parsed)
-            return queryset
+        # 검색 쿼리 파라미터
+        search_query = self.request.query_params.get('search', None)
+        filter_by = self.request.query_params.get('filter', 'title')  # 기본값: 제목 검색
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
 
-        def post(self, request): # 작성
-            permission_classes = [IsAuthenticated] # 로그인권한
-            serializer = JournalSerializer(data=request.data)
+        # 검색어가 있을 경우 필터링
+        if search_query:
+            if filter_by == 'title':
+                queryset = queryset.filter(Q(title__icontains=search_query))
+            elif filter_by == 'content':
+                queryset = queryset.filter(Q(content__icontains=search_query))
+            elif filter_by == 'author':
+                queryset = queryset.filter(Q(author__nickname__icontains=search_query))
 
-            if request.user.grade != 'author' :
-                return Response( {"error" : "저널리스트 회원이 아닙니다"}, status=status.HTTP_403_FORBIDDEN)
+        # 날짜 필터링
+        if start_date:
+            start_date_parsed = parse_date(start_date)
+            if start_date_parsed:
+                queryset = queryset.filter(created_at__gte=start_date_parsed)
 
-            if serializer.is_valid(raise_exception=True):
-                journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
-                journal_images = request.FILES.getlist('images')
-                for journal_image in journal_images:
-                    JournalImage.objects.create(journal=journal, journal_image=journal_image)
+        if end_date:
+            end_date_parsed = parse_date(end_date)
+            if end_date_parsed:
+                queryset = queryset.filter(created_at__lte=end_date_parsed)
+
+        return queryset
+
+    def post(self, request): # 작성
+        permission_classes = [IsAuthenticated] # 로그인권한
+        serializer = JournalSerializer(data=request.data)
+
+        if request.user.grade != 'author' :
+            return Response( {"error" : "저널리스트 회원이 아닙니다"}, status=status.HTTP_403_FORBIDDEN)
+
+        if serializer.is_valid(raise_exception=True):
+            journal = serializer.save(author=request.user)  # 현재 로그인한 유저 저장
+            journal_images = request.FILES.getlist('images')
+            for journal_image in journal_images:
+                JournalImage.objects.create(journal=journal, journal_image=journal_image)
 
 
+<<<<<<< HEAD
                 return Response(serializer.data, status=201)
             else:
                 return Response(serializer.errors, status=400)
@@ -82,6 +82,11 @@ class JournalListAPIView(ListAPIView): # 저널 전체목록조회, 저널작성
 
 #         def get(self, request, pk):  # 저널 상세조회
 #             journal = self.get_object(pk)
+=======
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+>>>>>>> feat/front
             
 #             # 쿠키 만료 시간: 자정으로 설정
 #             tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
@@ -118,7 +123,35 @@ class JournalListView(ListView):
     paginate_by = 12  # 한 페이지에 표시할 저널 수
 
     def get_queryset(self):
-        return Journal.objects.all().order_by('-created_at')  # 최신 순으로 정렬
+        queryset = Journal.objects.all().order_by('-created_at')
+
+        # request.GET을 사용하여 검색 파라미터 가져오기
+        search_query = self.request.GET.get('search', None)
+        filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
+        start_date = self.request.GET.get('start_date', None)
+        end_date = self.request.GET.get('end_date', None)
+
+        # 검색어가 있을 경우 필터링
+        if search_query:
+            if filter_by == 'title':
+                queryset = queryset.filter(Q(title__icontains=search_query))
+            elif filter_by == 'content':
+                queryset = queryset.filter(Q(content__icontains=search_query))
+            elif filter_by == 'author':
+                queryset = queryset.filter(Q(author__nickname__icontains=search_query))
+
+        # 날짜 필터링
+        if start_date:
+            start_date_parsed = parse_date(start_date)
+            if start_date_parsed:
+                queryset = queryset.filter(created_at__gte=start_date_parsed)
+
+        if end_date:
+            end_date_parsed = parse_date(end_date)
+            if end_date_parsed:
+                queryset = queryset.filter(created_at__lte=end_date_parsed)
+
+        return queryset
 
 
 class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
@@ -142,6 +175,18 @@ class JournalDetailAPIView(APIView):  # 저널 상세조회, 수정, 삭제
         print(context)
         
         return render(request, 'journals/journal_detail.html', context)
+<<<<<<< HEAD
+=======
+      
+        # # 내가 입력한 images에서 이미지가 있거나 없을때
+        # if 'images' in request.FILES or not journal_images:
+        #     # 기존 이미지 삭제
+        #     journal.journal_images.all().delete()
+        #     # 새로운 이미지 저장
+        #     for journal_image in journal_images:
+        #         JournalImage.objects.create(journal=journal, journal_image=journal_image)
+
+>>>>>>> feat/front
 
     def put(self, request, pk):  # 저널 수정
         journal = self.get_object(pk)
@@ -351,7 +396,6 @@ class JournalEditView(APIView):
 
     def put(self, request, pk):
         journal = get_object_or_404(Journal, pk=pk)
-        print(request.user)
 
         if journal.author != request.user:
             return Response({"detail": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
@@ -359,5 +403,14 @@ class JournalEditView(APIView):
         serializer = JournalSerializer(journal, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+
+            # 기존 이미지 삭제 (새 이미지를 저장할 때만 삭제)
+            if 'images' in request.FILES:
+                journal.journal_images.all().delete()  # 기존 이미지를 모두 삭제
+
+                # 새 이미지 저장
+                for image in request.FILES.getlist('images'):
+                    JournalImage.objects.create(journal=journal, journal_image=image)
+
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
