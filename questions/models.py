@@ -11,7 +11,8 @@ class Questions(models.Model): # 큐앤에이 모델
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_questions') 
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_questions')
+    hit_count = models.IntegerField(default=0)
 
     def hit(self):
         self.hit_count += 1
@@ -21,7 +22,7 @@ class Questions(models.Model): # 큐앤에이 모델
         return self.title
     
 class QuestionsImage(models.Model): # 다중이미지용
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='question_images')  # 저널과의 관계
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='images')  # 저널과의 관계
     question_images = models.ImageField(upload_to="question_images/")
 
 
