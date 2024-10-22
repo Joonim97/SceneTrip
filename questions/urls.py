@@ -11,8 +11,6 @@ urlpatterns =  [
     path('', QuestionListView.as_view(), name='question-list'),
     # 큐앤에이 상세조회, 수정, 삭제
     path('<str:key>/', QuestionDetailAPIView.as_view(), name='question-detail'),
-    # 대댓글
-    path('<str:key>/comments/<int:parent_id>/', CommentView.as_view(), name='question-reply'),
     # 댓글 조회, 생성, 수정, 삭제
     path('<str:key>/comments/', CommentView.as_view(), name='question-comment'),
     # 댓글 수정, 삭제
