@@ -1,13 +1,13 @@
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView
+from django.urls import reverse
 from django.db.models import Q, Count, Value
 from django.conf import settings
 from django.db.models.functions import Replace
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
@@ -18,10 +18,7 @@ from .serializers import LocationSerializer
 import re
 import urllib
 import json
-import redis
 
-
-redis_client = redis.Redis(host='localhost', port=8000, db=0)
 
 
 def custom_sort_key(value):
@@ -229,14 +226,6 @@ def get_nearby_place(place_name):
 
 
 class AiPlanningAPIView(APIView):
-        # AI 여행 플래닝 서비스
-        # permission_classes = [IsAuthenticated]
-
-        # def get_permissions(self):
-        #     if self.request.method == 'GET':
-        #         return [AllowAny()]
-        #     return [IsAuthenticated()]
-
         def get(self, request):
             return render(request, 'locations/plan.html')
         
@@ -287,35 +276,20 @@ class AiPlanningAPIView(APIView):
 
             try:
                 response = llm_chain.run(place_name=place_name, preference=preference, nearby_places=nearby_places)
-                print(response)
-                # request.session['travel_plan'] = response
-                
-                cache_key = f"user:{request.user.id}:travel_plan"
-                redis_client.set(cache_key, json.dumps(response), ex=3000)
-
+                request.session['travel_plan'] = response  # Store the travel plan in the session
                 return render(request, 'locations/plan.html', {"travel_plan": response})
-                # return Response({
-                #     "message": "여행플래닝이 완료되었습니다. 각 장소는 여건에 따라 현재 이용 불가 할 수 있으니 반드시 사전에 알아보고 가시길 바랍니다.",
-                #     "travel_plan": response,
-                #     "nearby_places": nearby_places
-                # }, status=status.HTTP_200_OK)
-
+                # return redirect(reverse('plan_result'))
             except Exception as e:
-                return Response({
-                    "message": "죄송합니다. 여행플래닝 서비스 제공에 실패했습니다. 다시 시도해주세요.",
-                    "error": str(e)
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+                return Response({"message": "죄송합니다. 여행플래닝 서비스 제공에 실패했습니다. 다시 시도해주세요.", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PlanResultView(APIView):
     def get(self, request):
-        cache_key = f"user:{request.user.id}:travel_plan"
-        cached_plan = redis_client.get(cache_key)
-        if cached_plan:
-            travel_plan = json.loads(cached_plan)
+        travel_plan = request.session.get('travel_plan')
+        if travel_plan:
             return render(request, 'locations/plan_result.html', {"travel_plan": travel_plan})
         else:
-            return Response({"error": "No travel plan found"}, status=404)
+            # return Response({"error": "No travel plan found"}, status=404)
+            return render(request, 'locations/plan_result.html')
         
 
 def location_detail(request, pk):
