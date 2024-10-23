@@ -1,5 +1,5 @@
 from pathlib import Path
-import os, json, environ
+import os, json
 from django.core.exceptions import ImproperlyConfigured
 from datetime import timedelta
 
@@ -195,8 +195,8 @@ DATABASES = {
     # }
 }
 
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+env = os.environ.Env()
+os.environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
 STATIC_URL = env('STATIC_URL', default='/static/')
