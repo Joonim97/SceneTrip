@@ -37,7 +37,7 @@
 </head>
 
 <body>
-  <h1>AI 여행 플래닝 서비스</h1><br><br>
+  <h1>AI 여행 플래닝 서비스</h1><br>
 
   <div class="container mt-5">
     <div class="row">
@@ -46,9 +46,9 @@
         {% comment %} <h4>서비스 이용하기</h4> {% endcomment %}
         <form id="planning-form">
           <div class="form-group">
-            <label for="place_name"><h5><strong>방문하고자 하는 촬영지</strong></h5></label><br>
+            <label for="place_name"><h5><strong>방문하고자 하는 촬영지</strong></h5></label>
             <h6 style="color:#0B610B">우측의 검색창을 이용해주세요. <br>검색 결과의 촬영지명과 동일하게 입력하셔야 적절한 여행계획이 생성됩니다. 
-              <br><strong>복사</strong>버튼 이용을 추천드립니다.</h6><br><br>
+              <br><strong>복사</strong>버튼 이용을 추천드립니다.</h6><br>
             <input type="text" class="form-control" id="place_name" placeholder="촬영지명을 정확히 입력해주세요" name="place_name" required>
           </div>
           <div class="form-group">
@@ -73,14 +73,14 @@
             <br><br>
             <input type="text" class="form-control" id="preference" name="preference" maxlength="50" placeholder="50자 이내로 입력">
           </div>
-          <br><br>
+          <br>
           <button type="submit" class="btn btn-primary" style="color:#FFFFFF solid #173B0B; background-color: #173B0B;">계획 세우기</button>
           <br><br>
         </form>
       </div>
 
       <!-- 촬영지 검색하기 -->
-      <div class="col-md-4">
+      <div class="col-md-4" style="margin-right: 0px;">
         <div class="container" style="border: 10px solid #FBF9E3; background-color: #FBF9E3; padding: 40px; border-radius: 25px;">
           <h4 style="text-align:center; color:#243B0B;">촬영지 검색하기</h4>
           <br>
