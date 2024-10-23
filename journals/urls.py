@@ -33,5 +33,3 @@ urlpatterns = [
     path('<uuid:journalKey>/edit/', JournalEditView.as_view(), name='journal_edit'),  # 추가된 수정 페이지 경로
 ] 
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

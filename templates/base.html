@@ -118,6 +118,7 @@
     {% block content %} {% endblock %}
   </div>
 
+  
   <script>
     function login() {
       fetch("/api/accounts/login/", {
@@ -154,18 +155,59 @@
 
     if (accessTokenFromUrl) {
         localStorage.setItem('access_token', accessTokenFromUrl);
-        console.log("Access Token 저장됨:", accessTokenFromUrl);
+      //  console.log("Access Token 저장됨:", accessTokenFromUrl);
     }
 
     if (refreshTokenFromUrl) {
         localStorage.setItem('refresh_token', refreshTokenFromUrl);
-        console.log("Refresh Token 저장됨:", refreshTokenFromUrl);
+      //  console.log("Refresh Token 저장됨:", refreshTokenFromUrl);
     }
 
+    async function refreshToken() {
+      const refresh_token = localStorage.getItem('refresh_token');
+      if (!refresh_token) return null;
+
+      const response = await fetch("/api/token/refresh/", {
+          method: "POST",
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ refresh: refresh_token })
+      });
+
+      if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('access_token', data.access);
+          return data.access;
+      } else {
+          console.error("Token refresh failed:", response);
+          logout();  // Log out if refresh fails
+          return null;
+      }
+  }
+
+  async function apiRequest(url, options = {}) {
+      const access_token = localStorage.getItem('access_token');
+      options.headers = options.headers || {};
+      options.headers['Authorization'] = `Bearer ${access_token}`;
+
+      let response = await fetch(url, options);
+
+      if (response.status === 401) {  // Token expired
+          const newAccessToken = await refreshToken();
+          if (newAccessToken) {
+              options.headers['Authorization'] = `Bearer ${newAccessToken}`;
+              response = await fetch(url, options);  // Retry the request
+          }
+      }
+
+      return response;
+  }
+
+  
     // 사용자 정보를 가져와 마이페이지와 로그아웃 링크를 설정
     function fetchUserInfo() {
       const accessToken = localStorage.getItem('access_token');
-      console.log('Access Token:', accessToken);
       const navbarAuthLinks = document.getElementById('navbar-auth-links');
 
       if (accessToken) {

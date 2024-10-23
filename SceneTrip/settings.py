@@ -41,13 +41,13 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 배포 시 False
-DEBUG = False
+DEBUG = True
 
 # Hosts
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
@@ -195,17 +195,11 @@ DATABASES = {
     # }
 }
 
-env = os.environ.Env()
-os.environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/ubuntu/SceneTrip/media/'  # 실제 미디어 파일 저장 경로
 
-
-STATIC_URL = env('STATIC_URL', default='/static/')
-STATICFILES_DIRS = [env('STATICFILES_DIRS', default=os.path.join(BASE_DIR, 'static'))]
-STATIC_ROOT = env('STATIC_ROOT', default=os.path.join(BASE_DIR, 'staticfiles'))
-
-
-MEDIA_URL = env('MEDIA_URL', default='/media/')
-MEDIA_ROOT = env('MEDIA_ROOT', default=os.path.join(BASE_DIR, 'media'))
+STATIC_URL = '/static/'
+STATIC_ROOT = '/home/ubuntu/SceneTrip/static/'  # 실제 정적 파일 저장 경로
 
 
 REST_FRAMEWORK = {
@@ -224,6 +218,7 @@ REST_FRAMEWORK = {
 
 REST_AUTH = {
     'USE_JWT' : True,
+    'JWT_EXPIRATION_DELTA': timedelta(days=1),
     'JWT_AUTH_COOKIE' : 'access',
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
