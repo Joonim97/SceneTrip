@@ -41,7 +41,7 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 배포 시 False
-DEBUG = False
+DEBUG = True
 
 # Hosts
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
@@ -195,11 +195,11 @@ DATABASES = {
     # }
 }
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/home/ubuntu/SceneTrip/media/'  # 실제 미디어 파일 저장 경로
+
+STATIC_URL = '/static/'
+STATIC_ROOT = '/home/ubuntu/SceneTrip/static/'  # 실제 정적 파일 저장 경로
 
 
 REST_FRAMEWORK = {
