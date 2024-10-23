@@ -89,7 +89,7 @@ class SignupAPIView(APIView):
                         user.save()
                         
                         send_verification_email(user)  # 이메일 전송
-                        # messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
+                        messages.success(request, "이메일을 전송하였습니다! 이메일을 확인해주세요.")
                         # return Response({"message": "이메일을 전송하였습니다. 이메일을 확인해주세요."}, status=status.HTTP_201_CREATED)
                         return redirect('accounts:login_page')  # 메시지를 팝업으로 보여주기 위해 리디렉션
 
@@ -734,27 +734,19 @@ class SetNicknameView(APIView):
     def post(self, request):
         nickname = request.data.get('nickname')
         if nickname:
-            user = request.user
-            user.nickname = nickname
-            if User.objects.filter(nickname=nickname).exists(): # 이미 존재하는 닉네임을 입력한 경우.
+            if User.objects.filter(nickname=nickname).exists():  # 이미 존재하는 닉네임을 입력한 경우
                 return Response({'available': False}, status=200)
             else:
+                user = request.user
+                user.nickname = nickname
+                user.save()  # 저장
                 return Response({'available': True}, status=200)
-        user.nickname = nickname
-        user.save()
-            
-            # return redirect('index')
         return Response({'error': 'Nickname is required.'}, status=400)
 
     def get(self, request):
-        # Get tokens from cookies instead of query parameters
         refresh = request.COOKIES.get('refresh_token')
         access = request.COOKIES.get('access_token')
 
-        # return Response({
-        #     'refresh': refresh,
-        #     'access': access
-        # })
         return render(request, 'accounts/set_nickname.html', {
             'refresh_token': refresh,
             'access_token': access
