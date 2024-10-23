@@ -67,7 +67,7 @@
       </select>
       <input type="text" name="keyword" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.keyword }}">
       <div class="input-group-append">
-        <button type="submit" class="btn btn-primary search-btn">검색</button>
+        <button type="submit" class="btn btn-primary search-btn" style="background-color:#546E7A; border: none;">검색</button>
       </div>
     </div>
   </form>
@@ -93,7 +93,7 @@
           <h5 class="card-title">{{ location.title }}</h5>
           <p class="card-text"><strong>장소 이름:</strong> {{ location.place_name }}</p>
           <p class="card-text"><small>저장 수: {{ location.save_count }}</small></p>
-          <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-primary">자세히 보기</a>
+          <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-primary" style="background-color:#546E7A; border: none;">자세히 보기</a>
         </div>
       </div>
     </div>
@@ -122,23 +122,23 @@
       {% for num in page_range %}
         {% if page_obj.number == num %}
         <li class="page-item active">
-          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}" style="background-color:#546E7A; border: none;">{{ num }}</a>
         </li>
         {% else %}
         <li class="page-item">
-          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}">{{ num }}</a>
+          <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ num }}" style="background-color:#546E7A; border: none;">{{ num }}</a>
         </li>
         {% endif %}
       {% endfor %}
       
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.next_page_number }}" aria-label="다음">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.next_page_number }}" aria-label="다음" style="background-color:#546E7A; border: none;">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막">
+        <a class="page-link" href="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&page={{ page_obj.paginator.num_pages }}" aria-label="마지막" style="background-color:#546E7A; border: none;">
           <span aria-hidden="true">&raquo;&raquo;</span>
         </a>
       </li>

@@ -7,13 +7,13 @@
 {% block content %}
 <div class="container mt-5">
   <h2>{{ journal.title }}</h2>
-  <p>작성자: {{ journal.author_nickname }}
+  <p>작성자: {{ journal.author_nickname }} &nbsp
     <!-- 구독 버튼 추가 -->
-    <button id="subscribe-btn" class="btn btn-primary" onclick="toggleSubscribe('{{ journal.author_nickname }}')">
-      구독하기
+    <button style="color:#000; background-color:#FFE082; border: none;" id="subscribe-btn" class="btn btn-primary" onclick="toggleSubscribe('{{ journal.author_nickname }}')">
+      구독하기 
     </button>
-    <button id="edit-btn" class="btn btn-warning" style="display: none;">수정</button>
-    <button id="delete-btn" class="btn btn-danger" style="display: none;">삭제</button>
+    <button id="edit-btn" class="btn btn-warning" style="display: none; color:#FFFFFF; background-color:#A5D6A7; border: none;">수정</button>
+    <button id="delete-btn" class="btn btn-danger" style="display: none; background-color:#A5D6A7; border: none;">삭제</button>
   </p>
   <p>작성일: <span id="created-at"></span></p>
 
@@ -33,7 +33,7 @@
 
   <div class="mt-4">
     <!-- 좋아요 버튼 -->
-    <button id="like-btn" class="btn btn-outline-success">
+    <button id="like-btn" class="btn btn-outline-success" style="background-color: #FFE082; border: none;">
       🤍 <!-- 기본 상태는 빈 하트 -->
     </button>
     <span>좋아요 수: {{ journal.likes_count }} | 댓글 수: {{ journal.comments_count }}</span>
