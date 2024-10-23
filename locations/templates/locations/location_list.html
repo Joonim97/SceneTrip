@@ -41,7 +41,12 @@
         background-color: #AAFA82;
         cursor: pointer;
       }
-
+      /* 드롭다운 크기 조정 */
+      .sort-select {
+        width: auto !important; /* 텍스트 길이에 맞게 자동 조정, 중요도 높이기 */
+        display: inline-block !important; /* 드롭다운의 폭을 최소로 설정 */
+        max-width: 150px; /* 최대 너비를 제한하여 너무 넓어지지 않도록 */
+      }
     </style>
 </head>
 
@@ -64,6 +69,17 @@
       <div class="input-group-append">
         <button type="submit" class="btn btn-primary search-btn">검색</button>
       </div>
+    </div>
+  </form>
+
+  <br>
+
+  <form method="GET" action="{% url 'locations:location_list' %}" class="d-flex justify-content-start mb-3">
+    <div class="input-group">
+      <select class="form-select form-select-sm sort-select" onchange="location = this.value;">
+        <option value="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&sort=title" {% if request.GET.sort == 'title' %}selected{% endif %}>제목순 정렬</option>
+        <option value="?filter={{ request.GET.filter }}&keyword={{ request.GET.keyword }}&sort=popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>인기순 정렬</option>
+      </select>
     </div>
   </form>
 

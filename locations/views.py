@@ -3,7 +3,7 @@ from django.views.generic import ListView
 from django.urls import reverse
 from django.db.models import Q, Count, Value
 from django.conf import settings
-from django.db.models.functions import Replace
+from django.db.models.functions import Replace, Lower
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,7 +18,6 @@ from .serializers import LocationSerializer
 import re
 import urllib
 import json
-
 
 
 def custom_sort_key(value):
@@ -50,30 +49,18 @@ class LocationListAPIView(APIView):
 
         return Response(sorted_location_data)
     
+    
 class LocationListView(ListView):
     model = Location
     template_name = 'locations/location_list.html'
     context_object_name = 'locations'
     paginate_by = 12  # 한 페이지에 표시할 촬영지 수
     
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-    #     keyword = self.request.GET.get('keyword', None)
-    #     filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
-
-    #     # 검색어가 있을 경우 분류에 따라 필터링
-    #     if keyword:
-    #         if filter_by == 'title':
-    #             queryset = queryset.filter(Q(title__icontains=keyword))
-    #         elif filter_by == 'address':
-    #             queryset = queryset.filter(Q(address__icontains=keyword))
-
-    #     return queryset
-    
     def get_queryset(self):
         queryset = super().get_queryset()
         keyword = self.request.GET.get('keyword', None)
         filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
+        sort_by = self.request.GET.get('sort', 'title')  # 기본 정렬: 제목순
 
         # 검색어가 있을 경우 분류에 따라 필터링
         if keyword:
@@ -88,9 +75,15 @@ class LocationListView(ListView):
                 filters |= Q(**{f"{filter_by}__icontains": keyword})
 
             queryset = queryset.filter(filters)
+            
+        # 정렬 방식 적용
+        if sort_by == 'popularity':
+            queryset = queryset.order_by('-save_count')  # 저장 수를 기준으로 내림차순 정렬
+        elif sort_by == 'title':
+            # 커스텀 정렬을 사용하기 위해 Python의 sorted() 사용
+            queryset = sorted(queryset, key=lambda location: custom_sort_key(location.title))
 
         return queryset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         page_obj = context['page_obj']
@@ -107,6 +100,7 @@ class LocationListView(ListView):
 
         # 템플릿으로 start_page와 end_page 전달
         context['page_range'] = range(start_page, end_page + 1)
+        context['current_sort'] = self.request.GET.get('sort', 'title')  # 현재 정렬 방식도 전달
         return context
     
 
