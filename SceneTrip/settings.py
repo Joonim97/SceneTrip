@@ -41,10 +41,10 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 배포 시 False
-DEBUG = True
+DEBUG = False
 
 # Hosts
-ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
+ALLOWED_HOSTS = ['3.35.4.197', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # 액세스 토큰 만료 시간
@@ -94,7 +94,7 @@ INSTALLED_APPS = [
 ]
 
 # BASE_URL 주소
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = 'https://scenetrip.co.kr'
 
 # 사이트
 SITE_ID = 1
