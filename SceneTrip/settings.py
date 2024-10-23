@@ -47,7 +47,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['3.34.143.41', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),  # 액세스 토큰 만료 시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # 액세스 토큰 만료 시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 리프레시 토큰 만료 시간
     'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰을 회전시키는지 여부
     'BLACKLIST_AFTER_ROTATION': True,                 # 리프레시 토큰 회전 후 블랙리스트 처리 여부
@@ -218,6 +218,7 @@ REST_FRAMEWORK = {
 
 REST_AUTH = {
     'USE_JWT' : True,
+    'JWT_EXPIRATION_DELTA': timedelta(days=1),
     'JWT_AUTH_COOKIE' : 'access',
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_REFRESH_COOKIE' : "refresh_token",
