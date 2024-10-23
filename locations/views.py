@@ -56,6 +56,20 @@ class LocationListView(ListView):
     context_object_name = 'locations'
     paginate_by = 12  # 한 페이지에 표시할 촬영지 수
     
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     keyword = self.request.GET.get('keyword', None)
+    #     filter_by = self.request.GET.get('filter', 'title')  # 기본값: 제목 검색
+
+    #     # 검색어가 있을 경우 분류에 따라 필터링
+    #     if keyword:
+    #         if filter_by == 'title':
+    #             queryset = queryset.filter(Q(title__icontains=keyword))
+    #         elif filter_by == 'address':
+    #             queryset = queryset.filter(Q(address__icontains=keyword))
+
+    #     return queryset
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         keyword = self.request.GET.get('keyword', None)
@@ -63,10 +77,17 @@ class LocationListView(ListView):
 
         # 검색어가 있을 경우 분류에 따라 필터링
         if keyword:
-            if filter_by == 'title':
-                queryset = queryset.filter(Q(title__icontains=keyword))
-            elif filter_by == 'address':
-                queryset = queryset.filter(Q(address__icontains=keyword))
+            filters = Q()
+
+            if filter_by == 'all':  # 'all'은 모든 필드에서 검색할 때 사용
+                filter_fields = ["media_type", "title", "place_name", "place_type", "place_description", "address"]
+                for field in filter_fields:
+                    filters |= Q(**{f"{field}__icontains": keyword})
+            else:
+                # 특정 필드에 대해서만 검색 (예: title, address 등)
+                filters |= Q(**{f"{filter_by}__icontains": keyword})
+
+            queryset = queryset.filter(filters)
 
         return queryset
 
