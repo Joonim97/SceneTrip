@@ -8,8 +8,8 @@
   <p>
     작성자: {{ question.author }}
     <!-- 수정 및 삭제 버튼 -->
-    <button id="edit-btn" class="btn btn-warning">수정</button>
-    <button id="delete-btn" class="btn btn-danger">삭제</button>
+    <button id="edit-btn" class="btn btn-warning" style="display: none; color: #000; background-color:#A5D6A7; border: none;">수정</button>
+    <button id="delete-btn" class="btn btn-danger" style="display: none; color: #000; background-color:#FFE082; border: none;">삭제</button>
   </p>
   <p>작성일: {{ question.created_at }}</p>
   <!-- 이미지 표시 -->
@@ -57,8 +57,8 @@
           {% endfor %}
         </div>
       </div>
-      <button id="save-edit-btn" class="btn btn-primary mt-2">저장</button>
-      <button id="cancel-edit-btn" class="btn btn-secondary mt-2">취소</button>
+      <button id="save-edit-btn" class="btn btn-primary mt-2" style="background-color:#546E7A; border: none;">저장</button>
+      <button id="cancel-edit-btn" class="btn btn-secondary mt-2" style="background-color:#546E7A; border: none;">취소</button>
     </div>
   </div>
   <!-- 댓글 목록 -->
@@ -85,7 +85,7 @@
   <h5>댓글 작성</h5>
   <form id="comment-form" method="POST">
     <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
-    <button type="submit" class="btn btn-primary mt-2">댓글 작성</button>
+    <button type="submit" class="btn btn-primary mt-2" style="background-color:#546E7A; border: none;">댓글 작성</button>
   </form>
 </div>
 </div>

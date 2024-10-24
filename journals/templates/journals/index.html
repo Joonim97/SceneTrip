@@ -182,7 +182,7 @@ Scene Trip
         if (data.grade === 'author') {
           journalWriteBtn.innerHTML = `
             <div class="text-end mt-4">
-              <a href="api/journals/write/" class="btn btn-success">저널 글 작성</a>
+              <a href="api/journals/write/" class="btn btn-success" style="background-color:#A5D6A7; border: none;">저널 글 작성</a>
             </div>
           `;
         }
@@ -244,7 +244,7 @@ Scene Trip
         // 모든 회원에게 커뮤니티 글 작성 버튼을 표시
         communityWriteBtn.innerHTML = `
           <div class="text-end mt-4">
-            <a href="{% url 'communities:community_write' %}" class="btn btn-success">커뮤니티 글 작성</a>
+            <a href="{% url 'communities:community_write' %}" class="btn btn-success" style="background-color:#A5D6A7; border: none;">커뮤니티 글 작성</a>
           </div>
         `;
       })

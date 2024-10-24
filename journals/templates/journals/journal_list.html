@@ -37,7 +37,7 @@
         <option value="author" {% if request.GET.filter == 'author' %}selected{% endif %}>작성자</option>
       </select>
       <input type="text" name="search" class="form-control search-input mx-2" placeholder="검색어 입력" value="{{ request.GET.search }}">
-      <button type="submit" class="btn btn-primary search-btn">검색</button>
+      <button type="submit" class="btn btn-primary search-btn" style="background-color:#546E7A; border: none;">검색</button>
     </div>
   </form>
 
@@ -62,12 +62,12 @@
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page=1" aria-label="처음">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page=1" aria-label="처음" style="background-color:#B0BEC5; border: none;">
           <span aria-hidden="true">&laquo;&laquo;</span>
         </a>
       </li>
       <li class="page-item">
-        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.previous_page_number }}" aria-label="이전">
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ page_obj.previous_page_number }}" aria-label="이전" style="background-color:#546E7A; border: none;">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -76,11 +76,11 @@
       {% for num in page_obj.paginator.page_range %}
       {% if page_obj.number == num %}
       <li class="page-item active">
-        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}" style="background-color:#B0BEC5; border: none;">{{ num }}</a>
       </li>
       {% else %}
       <li class="page-item">
-        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}">{{ num }}</a>
+        <a class="page-link" href="?search={{ request.GET.search }}&filter={{ request.GET.filter }}&page={{ num }}" style="background-color:#B0BEC5; border: none;">{{ num }}</a>
       </li>
       {% endif %}
       {% endfor %}
@@ -153,7 +153,7 @@
         if (data.grade === 'author') {
           journalWriteBtn.innerHTML = `
             <div class="text-end mt-4">
-              <a href="/api/journals/write/" class="btn btn-success">저널 글 작성</a>
+              <a href="/api/journals/write/" class="btn btn-success" style="background-color: #546E7A;">저널 글 작성</a>
             </div>
           `;
         }

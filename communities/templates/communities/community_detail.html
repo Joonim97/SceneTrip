@@ -6,14 +6,15 @@
 
 {% block content %}
 <div class="container mt-5">
-  <h2>{{ community.title }}</h2>
-  <p>작성자: {{ community.author }} | 작성일: <span id="created-at"></span>
-    <button id="edit-btn" class="btn btn-warning" style="display: none;">수정</button>
-    <button id="delete-btn" class="btn btn-danger" style="display: none;">삭제</button>
-  </p>
+  <h2>{{ community.title }}   &nbsp   
+    <button id="edit-btn" class="btn btn-warning" style="display: none; color: #000; background-color:#A5D6A7; border: none;">수정</button>
+    <button id="delete-btn" class="btn btn-danger" style="display: none; color: #000; background-color:#FFE082; border: none;">삭제</button>
+  </h2><br><hr><br>
+
+  <p>작성자: {{ community.author }} | 작성일: <span id="created-at"> </span> &nbsp </p>
   
   <div class="mt-4">
-    <p>{{ community.content }}</p>
+    <h6>{{ community.content }}</h6>
   </div>
   
   <!-- 이미지 목록 -->
@@ -27,13 +28,13 @@
     </div>
   </div>
 
-  <br><br>
+  <br>
   
   <!-- 좋아요 / 싫어요 버튼 -->
   <div class="mt-4">
-    <button id="like-btn" class="btn btn-outline-success">좋아요</button>
-    <button id="dislike-btn" class="btn btn-outline-danger">싫어요</button>
-    <span>좋아요 수: {{ community.likes_count }} | 싫어요 수: {{ community.dislikes_count }}</span>
+    <button id="like-btn" class="btn btn-outline-success" style="color: #000; background-color:#FFF8E1; border: none;">좋아요</button>
+    <button id="dislike-btn" class="btn btn-outline-danger" style="color: #000; background-color:#FFF8E1; border: none;">싫어요</button>
+    <span>&nbsp 좋아요: {{ community.likes_count }} | 싫어요: {{ community.dislikes_count }}</span>
   </div>
 
   <div class="mt-5">
@@ -59,7 +60,7 @@
         <div class="form-group">
           <textarea id="comment-content" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
+        <button type="submit" class="btn btn-primary mt-3" style="background-color:#546E7A; border: none;">댓글 작성</button> <br><br>
       </form>
     </div>
   </div>
