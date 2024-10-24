@@ -1,5 +1,5 @@
 from pathlib import Path
-import os, json, environ
+import os, json
 from django.core.exceptions import ImproperlyConfigured
 from datetime import timedelta
 
@@ -44,7 +44,8 @@ MANAGER_EMAIL = get_secret("MANAGER_EMAIL")  # 관리자의 이메일 주소
 DEBUG = False
 
 # Hosts
-ALLOWED_HOSTS = ['3.35.4.197', 'localhost', '127.0.0.1', 'scenetrip.co.kr']
+ALLOWED_HOSTS = ['3.35.4.197', 'localhost', '127.0.0.1', 'scenetrip.kr','172.31.33.162']
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # 액세스 토큰 만료 시간
@@ -94,7 +95,7 @@ INSTALLED_APPS = [
 ]
 
 # BASE_URL 주소
-BASE_URL = 'https://scenetrip.co.kr'
+BASE_URL = 'https://scenetrip.kr'
 
 # 사이트
 SITE_ID = 1
@@ -195,11 +196,11 @@ DATABASES = {
     # }
 }
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/ubuntu/SceneTrip/media/'  # 실제 미디어 파일 저장 경로
-
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/ubuntu/SceneTrip/static/'  # 실제 정적 파일 저장 경로
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 REST_FRAMEWORK = {
