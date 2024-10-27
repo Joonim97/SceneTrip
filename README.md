@@ -23,20 +23,20 @@
 ### Team name : Travelers  
 [Team Notion](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
 
-| - |주성현|강다영|김경민|조민희|
-|:---:|:---:|:---:|:---:|:---:| - |
-| <b>역할</b> |Team Leader|Deputy Team Leader|Clerk|Member|
-| <b>Backend</b> |Journals/Comment <br>Communities/Comment | Locations <br>Interlocking an API(한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br>Communities/Article |
-| <b>Frontend</b> | All | - | - | - |
-| <b>배포</b> | - | - | All | - |
+|                 | 주성현           | 강다영                                  | 김경민   | 조민희                     |
+|-----------------|------------------|-----------------------------------------|----------|----------------------------|
+| **Role**        | Team Leader      | Deputy Team Leader                      | Clerk    | Member                     |
+| **Backend**     | Journals/Comment <br> Communities/Comment | Locations <br> Interlocking an API <br> (한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts <br> Chats | Journals/Article <br> Communities/Article <br> Questions <br> Writing Testing Code |
+| **Frontend**    | Journals <br> Communities <br> Accounts <br> Making the Logos              | AI Trip Planning Service Part <br> CSS       | Accounts / Social Log-in <br> Questions        | -                          |
+| **배포**        | -                | -                                       | All      | -                          |
 
 
 <br>
 
 ## 4. Features
-|Accounts|Journals|Communities|Locations|
-|:---|:---|:---|:---|
-|-Sign up <br>-Sign in<br>-Sign out <br>-Mypage <br>-Subscribing <br>-Withdrawl| Journal inquiry & search <br>-Journal creation <br>-Journal modification <br>-Delete journal <br>-Comment features <br>-Reply features <br>-Like for jouranl <br>-Report comment, reply |-Community inquiry & search <br>-Community creation <br>-Community modification <br>-Delete community <br>-Report community <br>-Comment features <br>-Reply features <br>-Report community, comment, reply |-Location inquiry <br>-Location search <br>-Save for locations <br>-Travel plan recommendation |
+|Accounts|Journals|Communities|Locations|Chats|Questions|
+|:---|:---|:---|:---|:---|:---|
+|-Sign up <br>-Sign in<br>-Sign out <br>-Mypage <br>-Subscribing <br>-Withdrawl| Journal inquiry & search <br>-Journal creation <br>-Journal modification <br>-Delete journal <br>-Comment features <br>-Reply features <br>-Like for jouranl <br>-Report comment, reply |-Community inquiry & search <br>-Community creation <br>-Community modification <br>-Delete community <br>-Report community <br>-Comment features <br>-Reply features <br>-Report community, comment, reply |-Location inquiry <br>-Location search <br>-Save for locations <br>-Travel plan recommendation | -Chatting features between current users | -Posting individual questions |
 
 <br>
 
