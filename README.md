@@ -23,12 +23,15 @@
 ### Team name : Travelers  
 [Team Notion](https://www.notion.so/teamsparta/Travelers-fff2dc3ef5148189b38ff20c0d472b26)
 
-| - |주성현|강다영|김경민|조민희|
-|:---:|:---:|:---:|:---:|:---:| - |
-| <b>역할</b> |Team Leader|Deputy Team Leader|Clerk|Member|
-| <b>Backend</b> |Journals/Comment <br>Communities/Comment | Locations <br>Interlocking an API(한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br>Communities/Article |
-| <b>Frontend</b> | All | - | - | - |
-| <b>배포</b> | - | - | All | - |
+
+
+|                 | 주성현           | 강다영                                  | 김경민   | 조민희                     |
+|-----------------|------------------|-----------------------------------------|----------|----------------------------|
+| **역할**        | Team Leader      | Deputy Team Leader                      | Clerk    | Member                     |
+| **Backend**     | Journals/Comment <br> Communities/Comment | Locations <br> Interlocking an API <br> (한국문화정보원 미디어콘텐츠 영상촬영지데이터) | Accounts | Journals/Article <br> Communities/Article |
+| **Frontend**    | Almost All              | AI Trip Planning Service Part       | Question Part        | -                          |
+| **배포**        | -                | -                                       | All      | -                          |
+
 
 
 <br>
@@ -36,7 +39,7 @@
 ## 4. Features
 |Accounts|Journals|Communities|Locations|
 |:---|:---|:---|:---|
-|-Sign up <br>-Sign in<br>-Sign out <br>-Mypage <br>-Subscribing <br>-Withdrawl| Journal inquiry & search <br>-Journal creation <br>-Journal modification <br>-Delete journal <br>-Comment features <br>-Reply features <br>-Like for jouranl <br>-Report comment, reply |-Community inquiry & search <br>-Community creation <br>-Community modification <br>-Delete community <br>-Report community <br>-Comment features <br>-Reply features <br>-Report community, comment, reply |-Location inquiry <br>-Location search <br>-Save for locations <br>-Travel plan recommendation |
+|-Sign up <br>-Sign in<br>-Sign out <br>-Mypage <br>-Subscribing <br>-Withdrawl| -Journal inquiry & search <br>-Journal creation <br>-Journal modification <br>-Delete journal <br>-Comment features <br>-Reply features <br>-Like for jouranl <br>-Report comment, reply |-Community inquiry & search <br>-Community creation <br>-Community modification <br>-Delete community <br>-Report community <br>-Comment features <br>-Reply features <br>-Report community, comment, reply |-Location inquiry <br>-Location search <br>-Save for locations <br>-Travel plan recommendation |
 
 <br>
 
@@ -65,7 +68,7 @@
 <br>
 
 ## 7. ERD
-(추후 첨부)
+![image](https://github.com/user-attachments/assets/60efaad2-cce1-48ac-9147-99fca2b4d9af)
 <br>
 
 ## 8. Project Structure 
