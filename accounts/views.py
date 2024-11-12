@@ -582,19 +582,18 @@ class SocialCallbackView(APIView):
     def get(self, request, provider):
         try:
             code = request.GET.get("code")
+            
             access_token = self.get_token(provider, code)
+            user_info = self.get_user_info(provider, access_token)
 
-            if access_token:
-                user_info = self.get_user_info(provider, access_token)
-
-                # 제공받는 데이터들
-                if provider == "kakao":
-                    username = user_info['kakao_account'].get('name')
-                    email = user_info['kakao_account'].get('email')
-                    gender = user_info['kakao_account'].get('gender')
-                    birthday = user_info['kakao_account'].get('birthday')
-                    birthyear = user_info['kakao_account'].get('birthyear')
-                    user_id = email
+            # 제공받는 데이터들
+            if provider == "kakao":
+                username = user_info['kakao_account'].get('name')
+                email = user_info['kakao_account'].get('email')
+                gender = user_info['kakao_account'].get('gender')
+                birthday = user_info['kakao_account'].get('birthday')
+                birthyear = user_info['kakao_account'].get('birthyear')
+                user_id = email
 
                 # model 에서 birth_date 양식 통일 (0000-00-00)
                 if birthyear and birthday:
@@ -640,6 +639,12 @@ class SocialCallbackView(APIView):
             else:
                 return Response("Error retrieving access token", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            # user_info가 있을 경우 로그로 기록
+            logger.error(f"Error occurred: {str(e)}")
+            logger.error(f"user_info content: {user_info if 'user_info' in locals() else 'user_info not defined'}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # 토큰
@@ -647,18 +652,19 @@ class SocialCallbackView(APIView):
         if provider == "kakao":
             token_url = "https://kauth.kakao.com/oauth/token"
             client_id = settings.KAKAO_REST_API_KEY
+        
+            redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+            data = {
+                "grant_type": "authorization_code",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "code": code,
+            }
+            response = requests.post(token_url, data=data)
+            return response.json().get("access_token")
+    
         else:
             raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
-        
-        redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-        data = {
-            "grant_type": "authorization_code",
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "code": code,
-        }
-        response = requests.post(token_url, data=data)
-        return response.json().get("access_token")
     
     def get_user_info(self, provider, access_token):
         if provider == "kakao":
@@ -679,7 +685,6 @@ class SocialCallbackView(APIView):
             gender=gender,
             birth_date=birth_date,
             defaults={
-                # "nickname": nickname,
                 "username": username,
                 "user_id": user_id
             },
@@ -694,7 +699,6 @@ class SocialCallbackView(APIView):
     def create_jwt_token(self, user_data):
         if isinstance(user_data, dict):
             email = user_data.get("email")
-            # nickname = user_data.get("nickname")
             username = user_data.get("username")
             gender = user_data.get("gender")
             birth_date = user_data.get("birth_date")
