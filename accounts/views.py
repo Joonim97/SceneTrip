@@ -558,6 +558,24 @@ def kakaologinpage(request):
 # 카카오 로그인 완료 창(실패창은 안나옴)
 # def index(request):
 #     return render(request, 'accounts/index.html')
+class SocialLogout(APIView):
+    def kakaoLogout(request):
+        token = request.session['access_token']
+        url = 'https://kapi.kakao.com/v1/user/logout'
+        header = {
+        'Authorization': f'bearer {token}'
+        }
+        # _url = 'https://kapi.kakao.com/v1/user/unlink'
+        # _header = {
+        #   'Authorization': f'bearer {_token}',
+        # }
+        res = requests.post(url, headers=header)
+        result = res.json()
+        if result.get('id'):
+            del request.session['access_token']
+            return render(request, 'index')
+        else:
+            return HttpResponse("카카오 로그아웃 실패", status=500)
 
 # 소셜로그인(카카오,) 추가가능
 class SocialLoginView(APIView):

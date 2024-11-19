@@ -197,7 +197,10 @@ DATABASES = {
 }
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 배포 시 이 코드 사용
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # 개발할 때 이 코드 사용
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

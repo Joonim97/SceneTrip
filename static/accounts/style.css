@@ -1,0 +1,32 @@
+body {
+    font-family: 'Arial', sans-serif; /* 기본 폰트 */
+}
+
+.kakao-login-container {
+    display: flex;
+    justify-content: center; /* 중앙 정렬 */
+    margin-top: 50px; /* 상단 여백 */
+}
+
+.kakao-login-button {
+    display: flex;
+    align-items: center;
+    background-color: #FEE500; /* 컨테이너 색상 */
+    border-radius: 12px; /* 둥근 모서리 */
+    padding: 10px 20px; /* 패딩 */
+    cursor: pointer; /* 클릭 가능 커서 */
+    text-decoration: none; /* 링크의 밑줄 제거 */
+}
+
+.kakao-icon {
+    background-image: url('https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg'); /* 카카오 아이콘 */
+    width: 24px; /* 아이콘 너비 */
+    height: 24px; /* 아이콘 높이 */
+    margin-right: 10px; /* 아이콘과 레이블 사이 간격 */
+    background-size: contain; /* 아이콘 크기 조정 */
+}
+
+.kakao-label {
+    color: rgba(0, 0, 0, 0.85); /* 레이블 색상 */
+    font-size: 30px; /* 레이블 폰트 크기 */
+}
