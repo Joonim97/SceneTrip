@@ -46,8 +46,8 @@ urlpatterns = [
 
     # 소셜 로그인
     path('kakaologinpage/', views.kakaologinpage, name='kakaologinpage'),
-    path('social/login/<str:provider>/', SocialLoginView.as_view() ,name='kakao-login'),  # 카카오 로그인 URL
-    path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='kakao-callback'),  # 카카오 콜백 URL
+    path('social/login/<str:provider>/', SocialLoginView.as_view(), name='social-login'),  # 카카오 및 구글 로그인 URL
+    path('social/callback/<str:provider>/', SocialCallbackView.as_view(), name='social-callback'),  # 카카오 및 구글 콜백 URL
     path('set_nickname/', SetNicknameView.as_view(), name='set-nickname'),
-    path('<str:nickname>/edit/', EditProfileView.as_view(), name='edit_profile'), #회원정보 수정
+    path('<str:nickname>/edit/', EditProfileView.as_view(), name='edit_profile'),  # 회원정보 수정
 ]

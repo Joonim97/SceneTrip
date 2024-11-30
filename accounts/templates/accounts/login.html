@@ -20,11 +20,33 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
+    margin-bottom: 15px; /* Add space between buttons */
+  }
 
   .kakao-login-btn:hover {
       background-color: #C3E16C; /* Slightly darker yellow on hover */
       cursor: pointer; /* Hand cursor on hover */
+  }
+
+  .google-login-btn {
+    display: inline-block;
+    background-color: #4285F4; /* Google's blue */
+    color: white; /* Text color */
+    padding: 15px 30px;
+    border-radius: 25px;
+    border: 0px solid black;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .google-login-btn:hover {
+      background-color: #357AE8; /* Slightly darker blue on hover */
+      cursor: pointer;
   }
 </style>
 
@@ -43,7 +65,10 @@
     <br><br><br>
     <hr>
     <br>
+    <!-- 카카오 로그인 버튼 -->
     <a href="{% url 'accounts:kakaologinpage' %}" class="kakao-login-btn">카카오 계정으로 로그인하기</a>
+    <!-- 구글 로그인 버튼 -->
+    <a href="{% url 'accounts:social-login' provider='google' %}" class="google-login-btn">구글 계정으로 로그인하기</a>
   </form>
 
   <!-- 메시지 팝업 -->

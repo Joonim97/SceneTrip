@@ -577,34 +577,47 @@ class SocialLogout(APIView):
         else:
             return HttpResponse("카카오 로그아웃 실패", status=500)
 
-# 소셜로그인(카카오,) 추가가능
+# 소셜로그인(카카오, 구글)
 class SocialLoginView(APIView):
     def get(self, request, provider):
+        # kakao
         if provider == "kakao":
             client_id = settings.KAKAO_REST_API_KEY
             redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-            scope = "gender, birthday, birthyear" # 선택 제공 동의를 요청
+            scope = "gender, birthday, birthyear"  # 선택 제공 동의를 요청
             auth_url = (
                 f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}"
                 f"&redirect_uri={redirect_uri}&response_type=code"
                 f"&scope={scope}"
             )
+
+        # google
+        elif provider == "google":
+            client_id = settings.GOOGLE_CLIENT_ID
+            redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+            scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+            auth_url = (
+                f"https://accounts.google.com/o/oauth2/auth?client_id={client_id}"
+                f"&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+            )
+
         else:
             return Response(
                 {"error": "지원되지 않는 소셜 로그인 제공자입니다."}, status=400
             )
+
         return redirect(auth_url)
 
-# 소셜로그인 callback(카카오,) 추가가능
+
+# 소셜로그인 callback(카카오, 구글)
 class SocialCallbackView(APIView):
     def get(self, request, provider):
         try:
             code = request.GET.get("code")
-            
             access_token = self.get_token(provider, code)
             user_info = self.get_user_info(provider, access_token)
 
-            # 제공받는 데이터들
+            # 카카오 로그인 처리
             if provider == "kakao":
                 username = user_info['kakao_account'].get('name')
                 email = user_info['kakao_account'].get('email')
@@ -613,49 +626,47 @@ class SocialCallbackView(APIView):
                 birthyear = user_info['kakao_account'].get('birthyear')
                 user_id = email
 
-                # model 에서 birth_date 양식 통일 (0000-00-00)
+                # model에서 birth_date 양식 통일 (0000-00-00)
                 if birthyear and birthday:
                     birth_date = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
                 else:
                     birth_date = None
 
-                user_data, created = self.get_or_create_user(provider, email, username, gender, birth_date, user_id)
+            # 구글 로그인 처리
+            elif provider == "google":
+                email = user_info.get("email")
+                username = user_info.get("name")
+                gender = None  # 구글은 기본적으로 성별 정보 제공 없음
+                birth_date = None  # 구글에서 생일 정보는 제공하지 않음
+                user_id = email
 
-                if created:
-                    refresh = RefreshToken.for_user(user_data)
-                    access = str(refresh.access_token)
-                    response = redirect(f'/api/accounts/set_nickname/')
-                    response.set_cookie('access_token', access)
-                    response.set_cookie('refresh_token', str(refresh))
-                    return response
-                #     tokens = {
-                #         "access": str(refresh.access_token),
-                #         "refresh": str(refresh)
-                #     }
-                #     # return redirect(f'/api/accounts/set_nickname/?refresh={tokens["refresh"]}&access={tokens["access"]}')
-                # else:
-                #     tokens = self.create_jwt_token(user_data)
-                
-                # response_data = {
-                #     "access_token": tokens["access"],
-                #     "refresh_token": tokens["refresh"],
-                #     "email": email,
-                #     "gender": gender,
-                #     "username": username,
-                #     "birth_date": birth_date,
-                #     "user_id": user_id,
-                #     "is_new_user": created
-                # }
+            else:
+                return Response(
+                    {"error": "지원되지 않는 소셜 로그인 제공자입니다."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 사용자 생성 또는 가져오기
+            user_data, created = self.get_or_create_user(
+                provider, email, username, gender, birth_date, user_id
+            )
+
+            # 신규 사용자 처리
+            if created:
                 refresh = RefreshToken.for_user(user_data)
                 access = str(refresh.access_token)
-                response = redirect('/')
+                response = redirect('/api/accounts/set_nickname/')
                 response.set_cookie('access_token', access)
                 response.set_cookie('refresh_token', str(refresh))
                 return response
-            
-                # return Response(response_data,  status=status.HTTP_200_OK)
-            else:
-                return Response("Error retrieving access token", status=status.HTTP_400_BAD_REQUEST)
+
+            # 기존 사용자 처리
+            refresh = RefreshToken.for_user(user_data)
+            access = str(refresh.access_token)
+            response = redirect('/')
+            response.set_cookie('access_token', access)
+            response.set_cookie('refresh_token', str(refresh))
+            return response
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
@@ -667,35 +678,44 @@ class SocialCallbackView(APIView):
     
     # 토큰
     def get_token(self, provider, code):
+        # kakao
         if provider == "kakao":
             token_url = "https://kauth.kakao.com/oauth/token"
             client_id = settings.KAKAO_REST_API_KEY
+
+        # google
+        elif provider == "google":
+            token_url = "https://oauth2.googleapis.com/token"
+            client_id = settings.GOOGLE_CLIENT_ID
+
+        else:
+            raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
         
-            redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
-            data = {
+        redirect_uri = f"{settings.BASE_URL}/api/accounts/social/callback/{provider}/"
+        data = {
                 "grant_type": "authorization_code",
                 "client_id": client_id,
                 "redirect_uri": redirect_uri,
                 "code": code,
             }
-            response = requests.post(token_url, data=data)
-            return response.json().get("access_token")
-    
-        else:
-            raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
+        
+        if provider in ["google"]:
+            data["client_secret"] = settings.GOOGLE_SECRET
+
+        response = requests.post(token_url, data=data)
+        return response.json().get("access_token")
     
     def get_user_info(self, provider, access_token):
         if provider == "kakao":
             user_info_url = "https://kapi.kakao.com/v2/user/me"
-            headers = {"Authorization": f"Bearer {access_token}"}
-            response = requests.get(user_info_url, headers=headers)
-            return response.json()
+        elif provider == "google":
+            user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo"
         else:
             raise ValueError("지원되지 않는 소셜 로그인 제공자입니다.")
 
-        # headers = {"Authorization": f"Bearer {access_token}"}
-        # response = requests.get(user_info_url, headers=headers)
-        # return response.json()
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get(user_info_url, headers=headers)
+        return response.json()
 
     def get_or_create_user(self, provider, email, username, gender, birth_date, user_id):
         user, created = User.objects.get_or_create(

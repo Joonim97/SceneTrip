@@ -29,6 +29,12 @@ NAVER_CLIENT_ID = get_secret("NAVER_CLIENT_ID") # Naver search Client Id
 NAVER_SECRET_KEY = get_secret("NAVER_SECRET_KEY") # Naver Search API Secret Key
 KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY") # Kakao Rest API key
 KAKAO_JAVA_SCRIPTS_API_KEY = get_secret("KAKAO_JAVA_SCRIPTS_API_KEY") # Kakao javascripts key
+GOOGLE_SCOPE_USERINFO = get_secret("GOOGLE_SCOPE_USERINFO")
+GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
+GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
+GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
+
 # EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
@@ -80,7 +86,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.kakao',  # Kakao 제공자
+    'allauth.socialaccount.providers.kakao',  # Kakao
+    "allauth.socialaccount.providers.google", # Google
 
     # 자체 앱들
     'accounts',
